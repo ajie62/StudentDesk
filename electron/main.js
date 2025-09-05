@@ -165,6 +165,19 @@ app.on('window-all-closed', function () {
   if (process.platform !== 'darwin') app.quit()
 })
 
+/* -------------------- Helpers: photos -------------------- */
+function deletePhotoIfExists(photoPath) {
+  if (!photoPath) return
+  try {
+    if (fs.existsSync(photoPath)) {
+      fs.unlinkSync(photoPath)
+      console.log('[StudentDesk] Photo supprimée:', photoPath)
+    }
+  } catch (e) {
+    console.warn('Erreur suppression photo:', e)
+  }
+}
+
 /* -------------------- IPC: Students CRUD -------------------- */
 ipcMain.handle('students:list', async () => {
   const students = loadStudents()
@@ -174,6 +187,7 @@ ipcMain.handle('students:list', async () => {
     return a.firstName.localeCompare(b.firstName)
   })
 })
+
 ipcMain.handle('students:create', async (_evt, payload) => {
   const students = loadStudents()
   const now = new Date().toISOString()
@@ -186,28 +200,42 @@ ipcMain.handle('students:create', async (_evt, payload) => {
     isActive: Boolean(payload.isActive),
     photo: payload.photo || null,
     sheet: { createdAt: now },
-    lessons: []
+    lessons: [],
+    updatedAt: null,
+    deletedAt: null
   }
   students.push(student)
   saveStudents(students, 'students:create')
   return student
 })
+
 ipcMain.handle('students:update', async (_evt, id, patch) => {
   const students = loadStudents()
   const idx = findStudentIndex(students, id)
   if (idx === -1) throw new Error('Student not found')
-  students[idx] = { ...students[idx], ...patch }
+  students[idx] = {
+    ...students[idx],
+    ...patch,
+    updatedAt: new Date().toISOString()
+  }
   saveStudents(students, 'students:update')
   return students[idx]
 })
+
 ipcMain.handle('students:delete', async (_evt, id) => {
   const students = loadStudents()
   const idx = findStudentIndex(students, id)
   if (idx === -1) throw new Error('Student not found')
-  const removed = students.splice(idx, 1)[0]
+
+  const student = students[idx]
+  student.deletedAt = new Date().toISOString()
+  // supprimer photo du disque si elle existe
+  deletePhotoIfExists(student.photo)
+
   saveStudents(students, 'students:delete')
-  return removed.id
+  return student.id
 })
+
 ipcMain.handle('students:get', async (_evt, id) => {
   const students = loadStudents()
   const s = students.find(x => x.id === id)
@@ -225,6 +253,8 @@ ipcMain.handle('lessons:add', async (_evt, studentId, payload) => {
   const lesson = {
     id: uid(),
     createdAt: now,
+    updatedAt: null,
+    deletedAt: null,
     comment: payload.comment || '',
     homework: payload.homework || '',
     tags: payload.tags || []
@@ -234,16 +264,7 @@ ipcMain.handle('lessons:add', async (_evt, studentId, payload) => {
   const lessons = [...students[idx].lessons].sort((a, b) => b.createdAt.localeCompare(a.createdAt))
   return { ...students[idx], lessons }
 })
-ipcMain.handle('lessons:delete', async (_evt, studentId, lessonId) => {
-  const students = loadStudents()
-  const idx = findStudentIndex(students, studentId)
-  if (idx === -1) throw new Error('Student not found')
-  const lidx = students[idx].lessons.findIndex(l => l.id === lessonId)
-  if (lidx === -1) throw new Error('Lesson not found')
-  students[idx].lessons.splice(lidx, 1)
-  saveStudents(students, 'lessons:delete')
-  return lessonId
-})
+
 ipcMain.handle('lessons:update', async (_evt, studentId, lessonId, patch) => {
   const students = loadStudents()
   const idx = findStudentIndex(students, studentId)
@@ -252,10 +273,28 @@ ipcMain.handle('lessons:update', async (_evt, studentId, lessonId, patch) => {
   const lidx = students[idx].lessons.findIndex(l => l.id === lessonId)
   if (lidx === -1) throw new Error('Lesson not found')
 
-  students[idx].lessons[lidx] = { ...students[idx].lessons[lidx], ...patch }
+  students[idx].lessons[lidx] = {
+    ...students[idx].lessons[lidx],
+    ...patch,
+    updatedAt: new Date().toISOString()
+  }
 
   saveStudents(students, 'lessons:update')
   return students[idx].lessons[lidx]
+})
+
+ipcMain.handle('lessons:delete', async (_evt, studentId, lessonId) => {
+  const students = loadStudents()
+  const idx = findStudentIndex(students, studentId)
+  if (idx === -1) throw new Error('Student not found')
+
+  const lidx = students[idx].lessons.findIndex(l => l.id === lessonId)
+  if (lidx === -1) throw new Error('Lesson not found')
+
+  students[idx].lessons[lidx].deletedAt = new Date().toISOString()
+
+  saveStudents(students, 'lessons:delete')
+  return lessonId
 })
 
 /* -------------------- IPC: Import CSV -------------------- */
@@ -297,7 +336,9 @@ ipcMain.handle('students:importCSV', async () => {
         String(row.isActive) === '1',
       photo: null,
       sheet: { createdAt: now },
-      lessons: []
+      lessons: [],
+      updatedAt: null,
+      deletedAt: null
     }
     students.push(student)
     count++

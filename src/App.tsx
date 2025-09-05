@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react'
-import { Student } from './types'
+import { Student, ActivityItem } from './types'
 import { fullName } from './utils'
 import StudentForm from './components/StudentForm'
 import StudentDetail from './components/StudentDetail'
@@ -21,14 +21,6 @@ type Stats = {
   lastStudent?: Student
   lastLesson?: { student: Student; createdAt: string }
   topStudent?: Student
-}
-
-type ActivityItem = {
-  id: string
-  kind: 'student:create' | 'lesson:add'
-  label: string
-  when: string
-  studentId: string
 }
 
 type Toast = { id: string; text: string }
@@ -171,22 +163,69 @@ export default function App() {
     const evts: ActivityItem[] = []
 
     students.forEach(s => {
+      // Création
       evts.push({
-        id: `stu-${s.id}`,
+        id: `stu-${s.id}-created`,
         kind: 'student:create',
         label: `${fullName(s)} ajouté`,
         when: s.sheet.createdAt,
         studentId: s.id
       })
 
-      s.lessons.forEach(l => {
+      // Mise à jour
+      if (s.updatedAt) {
         evts.push({
-          id: `les-${s.id}-${l.id}`,
+          id: `stu-${s.id}-updated`,
+          kind: 'student:update',
+          label: `${fullName(s)} modifié`,
+          when: s.updatedAt,
+          studentId: s.id
+        })
+      }
+
+      // Suppression
+      if (s.deletedAt) {
+        evts.push({
+          id: `stu-${s.id}-deleted`,
+          kind: 'student:delete',
+          label: `${fullName(s)} supprimé`,
+          when: s.deletedAt,
+          studentId: s.id
+        })
+      }
+
+      // Leçons
+      s.lessons.forEach(l => {
+        // Création
+        evts.push({
+          id: `les-${s.id}-${l.id}-created`,
           kind: 'lesson:add',
           label: `Leçon pour ${fullName(s)}`,
           when: l.createdAt,
           studentId: s.id
         })
+
+        // Mise à jour
+        if (l.updatedAt) {
+          evts.push({
+            id: `les-${s.id}-${l.id}-updated`,
+            kind: 'lesson:update',
+            label: `Leçon modifiée pour ${fullName(s)}`,
+            when: l.updatedAt,
+            studentId: s.id
+          })
+        }
+
+        // Suppression
+        if (l.deletedAt) {
+          evts.push({
+            id: `les-${s.id}-${l.id}-deleted`,
+            kind: 'lesson:delete',
+            label: `Leçon supprimée pour ${fullName(s)}`,
+            when: l.deletedAt,
+            studentId: s.id
+          })
+        }
       })
     })
 
@@ -220,7 +259,7 @@ export default function App() {
           🏠 Accueil
         </button>
 
-        {/* 👇 Bouton import CSV restauré */}
+        {/* 👇 Bouton import CSV */}
         <button
           className="btn ghost"
           style={{ marginBottom: '16px', width: '100%' }}

@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react'
-import { Student } from '../types'
+import { Student, ActivityItem } from '../types'
 import { fullName } from '../utils'
 
 type Stats = {
@@ -10,14 +10,6 @@ type Stats = {
   lastStudent?: Student
   lastLesson?: { student: Student; createdAt: string }
   topStudent?: Student
-}
-
-type ActivityItem = {
-  id: string
-  kind: 'student:create' | 'lesson:add' | 'student:delete' | 'lesson:delete'
-  label: string
-  when: string
-  studentId: string
 }
 
 type Props = {

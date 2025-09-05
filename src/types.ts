@@ -1,23 +1,46 @@
 // Data contracts for the renderer side.
-export type Lesson = {
+export interface Lesson {
   id: string
   createdAt: string
+  updatedAt: string | null
+  deletedAt: string | null
   comment: string
   homework: string
+  tags: string[]
 }
 
 export type StudentSheet = {
   createdAt: string
 }
 
-export type Student = {
+export type ActivityKind =
+  | 'student:create'
+  | 'student:update'
+  | 'student:delete'
+  | 'lesson:add'
+  | 'lesson:update'
+  | 'lesson:delete'
+
+export interface ActivityItem {
+  id: string
+  kind: ActivityKind
+  label: string
+  when: string
+  studentId: string
+}
+
+export interface Student {
   id: string
   firstName: string
   lastName: string
   description: string
+  email: string
   isActive: boolean
-  // Optional photo stored as data URL (png/jpg). Keep null/undefined if none.
-  photo?: string | null
-  sheet: { createdAt: string }
+  photo: string | null
+  sheet: {
+    createdAt: string
+  }
   lessons: Lesson[]
+  updatedAt: string | null
+  deletedAt: string | null
 }
