@@ -1,24 +1,22 @@
-import type { Student } from './types'
+import { Student } from './types'
 
 declare global {
   interface Window {
     studentApi: {
+      // Students
       listStudents: () => Promise<Student[]>
       createStudent: (payload: Partial<Student>) => Promise<Student>
       updateStudent: (id: string, patch: Partial<Student>) => Promise<Student>
-      deleteStudent: (id: string) => Promise<void>
+      deleteStudent: (id: string) => Promise<string>
+      getStudent: (id: string) => Promise<Student>
 
-      listLessons: (studentId: string) => Promise<any[]>
-      createLesson: (studentId: string, payload: Partial<any>) => Promise<any>
-      updateLesson: (studentId: string, lessonId: string, patch: Partial<any>) => Promise<any>
-      deleteLesson: (studentId: string, lessonId: string) => Promise<void>
+      // Lessons
+      addLesson: (studentId: string, payload: any) => Promise<Student>
+      deleteLesson: (studentId: string, lessonId: string) => Promise<string>
 
-      onAppFocus: (cb: (evt: any) => void) => void
-
-      /** Event déclenché après chaque sauvegarde (locale + iCloud) */
-      onStoreSaved?: (
-        cb: (payload: { action: string; icloud: boolean }) => void
-      ) => () => void
+      // Events
+      onAppFocus: (cb: (evt?: any) => void) => () => void
+      onStoreSaved?: (cb: (payload: { action: string; icloud: boolean; when: string }) => void) => () => void
     }
   }
 }

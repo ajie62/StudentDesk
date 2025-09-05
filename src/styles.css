@@ -217,19 +217,61 @@ body {
   z-index: 1;
 }
 .hero-row {
-  display: grid;
-  grid-template-columns: 72px 1fr;
-  align-items: center;
+  display: flex;
+  align-items: flex-start;
   gap: 16px;
-  position: relative;
-  z-index: 1;
 }
+
+.hero-avatar {
+  flex-shrink: 0;
+  width: 72px;
+  height: 72px;
+}
+
 .hero-main {
+  flex: 1;
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 6px;
+}
+
+.hero-description {
+  margin-top: 12px;
+  font-size: 15px;
+  line-height: 1.6;
+  color: var(--muted);
   position: relative;
-  z-index: 1;
+}
+
+.hero-description.limited {
+  max-height: 140px;
+  overflow: hidden;
+}
+
+.hero-description.limited::after {
+  content: "";
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 40px;
+  background: linear-gradient(to bottom, transparent, var(--card));
+  pointer-events: none;
+}
+
+/* Lien Voir plus / Voir moins */
+.hero-description-toggle {
+  margin-top: 6px;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--muted);
+  cursor: pointer;
+  align-self: flex-start;
+  transition: color 0.2s ease;
+}
+.hero-description-toggle:hover {
+  color: var(--accent);
+  text-decoration: underline;
 }
 
 /* Lesson Cards */
@@ -383,6 +425,8 @@ body {
   width: 100%;
   height: 100%;
   object-fit: cover;
+  mix-blend-mode: normal;
+  filter: none;
 }
 .avatar__placeholder {
   width: 100%;
@@ -390,11 +434,9 @@ body {
   display: grid;
   place-items: center;
   font-weight: 700;
-  color: #ffe5e7;
-  font-size: 12px;
-  background:
-    radial-gradient(140px 90px at 20% -10%, rgba(229,9,20,0.22), transparent 60%),
-    linear-gradient(180deg, #1b1b1e, #141416);
+  color: var(--text);
+  font-size: 14px;
+  background: #1c1c1e; /* neutre */
 }
 
 /* --- Modal --- */
@@ -619,51 +661,56 @@ a,
 .title-drag {
   position: fixed;
   top: 0;
-  left: 280px;   /* = largeur de la sidebar desktop */
+  left: 280px;
   right: 0;
-  height: 32px;  /* hauteur confortable pour choper la fenêtre */
-  z-index: 4;    /* au-dessus du contenu, sous les modals */
+  height: 32px;
+  z-index: 4;
   background: transparent;
-  /* zone draggable */
   -webkit-app-region: drag;
 }
-
-/* Ne recouvre rien en mobile : on a déjà .mobile-topbar draggable */
 @media (max-width: 900px) {
   .title-drag { display: none; }
 }
-
-/* Rappel (déjà présent chez toi) : tout élément interactif ne doit pas drag */
 .window-drag { -webkit-app-region: drag; }
 .window-no-drag,
 button, .btn, input, textarea, label, select, a, .burger {
   -webkit-app-region: no-drag;
 }
 
-/* --- Toasts (bottom-right) --- */
+/* --- Toasts --- */
 .toast-container {
   position: fixed;
-  right: 18px;
-  bottom: 18px;
+  bottom: 16px;
+  right: 16px;
   display: flex;
   flex-direction: column;
-  gap: 10px;
-  z-index: 60;
-  pointer-events: none; /* les clics traversent */
+  gap: 8px;
+  z-index: 100;
 }
-
 .toast {
-  pointer-events: auto;
-  background: rgba(20,20,22,0.92);
-  border: 1px solid var(--soft);
+  padding: 10px 14px;
+  border-radius: var(--r-md);
+  font-size: 14px;
+  font-weight: 500;
   color: var(--text);
-  padding: 10px 12px;
-  border-radius: 12px;
-  font-size: 13px;
-  box-shadow: 0 6px 24px rgba(0,0,0,0.45);
-  animation: toastIn 180ms ease;
+  background: #1c1c1e;
+  border: 1px solid var(--soft);
+  box-shadow: 0 4px 20px rgba(0,0,0,0.4);
+  opacity: 0;
+  transform: translateY(8px);
+  animation: toastIn 0.25s ease forwards;
+}
+.toast.icloud {
+  background: rgba(0, 102, 255, 0.15);
+  border-color: rgba(0, 102, 255, 0.35);
+  color: #cce0ff;
+}
+.toast.local {
+  background: rgba(255,255,255,0.08);
+  border-color: rgba(255,255,255,0.15);
+  color: #e0e0e0;
 }
 @keyframes toastIn {
-  from { transform: translateY(8px); opacity: 0; }
-  to { transform: translateY(0); opacity: 1; }
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
 }

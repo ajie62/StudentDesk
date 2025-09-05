@@ -28,22 +28,23 @@ export default function App() {
   const [students, setStudents] = useState<Student[]>([])
   const [selectedId, setSelectedId] = useState<string | null>(null)
   const [showDashboard, setShowDashboard] = useState(true)
+
   const [q, setQ] = useState('')
   const [filterActive, setFilterActive] = useState<'all' | 'active' | 'inactive'>('all')
+
   const [showNew, setShowNew] = useState(false)
 
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const [closingMenu, setClosingMenu] = useState(false)
   const [isMobile, setIsMobile] = useState<boolean>(window.innerWidth < 900)
 
-  // Toaster
+  // Toasts discrets (ex: confirmation de sauvegarde iCloud / locale)
   const [toasts, setToasts] = useState<Toast[]>([])
-
   function pushToast(text: string) {
     const id = Math.random().toString(36).slice(2)
-    setToasts((t) => [...t, { id, text }])
+    setToasts(t => [...t, { id, text }])
     window.setTimeout(() => {
-      setToasts((t) => t.filter(x => x.id !== id))
+      setToasts(t => t.filter(x => x.id !== id))
     }, 2200)
   }
 
@@ -62,11 +63,10 @@ export default function App() {
     window.studentApi.onAppFocus(() => refresh())
   }, [])
 
-  // Listen to store saved confirmations (from main)
+  // Toasts provenant du main (store:saved)
   useEffect(() => {
     const unsubscribe = window.studentApi.onStoreSaved?.(({ action, icloud }) => {
-      const where = icloud ? 'iCloud Drive' : 'local'
-      // Message FR concis et discret
+      const where = icloud ? '☁️ iCloud' : '💾 local'
       let label = 'Sauvegarde effectuée'
       if (action?.startsWith('students')) label = 'Étudiant enregistré'
       if (action === 'students:delete') label = 'Étudiant supprimé'
@@ -106,6 +106,7 @@ export default function App() {
     return () => window.removeEventListener('resize', onResize)
   }, [])
 
+  // Recherche fuzzy + filtre actif/inactif
   const filtered = useMemo(() => {
     let results = students
     const term = q.trim()
@@ -129,6 +130,7 @@ export default function App() {
     return results
   }, [q, students, filterActive])
 
+  // Agrégations pour le tableau de bord
   const stats: Stats = useMemo(() => {
     const total = students.length
     const active = students.filter(s => s.isActive).length
@@ -222,7 +224,13 @@ export default function App() {
             }}
             role="button"
             tabIndex={0}
-            onKeyDown={(e) => { if (e.key === 'Enter') { setSelectedId(s.id); setShowDashboard(false); if (mobileMenuOpen) closeMenuSmooth() } }}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter') {
+                setSelectedId(s.id)
+                setShowDashboard(false)
+                if (mobileMenuOpen) closeMenuSmooth()
+              }
+            }}
             aria-label={`Ouvrir la fiche de ${fullName(s)}`}
           >
             <div className="student-row">
@@ -246,8 +254,10 @@ export default function App() {
 
       {/* Main content */}
       <main className="content">
+        {/* fine-grained draggable strip for macOS titlebar */}
         <div className="title-drag window-drag" />
 
+        {/* Top bar (mobile) */}
         <div className="mobile-topbar window-drag">
           <button
             className={`burger ${mobileMenuOpen && !closingMenu ? 'active' : ''}`}
@@ -287,6 +297,7 @@ export default function App() {
                     <div className="stat-value">{stats.total}</div>
                   </div>
                 </div>
+
                 <div className="stat-card">
                   <div className="stat-icon accent">✅</div>
                   <div>
@@ -294,6 +305,7 @@ export default function App() {
                     <div className="stat-value">{stats.active}</div>
                   </div>
                 </div>
+
                 <div className="stat-card">
                   <div className="stat-icon">⏸️</div>
                   <div>
@@ -301,6 +313,7 @@ export default function App() {
                     <div className="stat-value">{stats.inactive}</div>
                   </div>
                 </div>
+
                 <div className="stat-card">
                   <div className="stat-icon">📘</div>
                   <div>
@@ -308,6 +321,7 @@ export default function App() {
                     <div className="stat-value">{stats.lessons}</div>
                   </div>
                 </div>
+
                 {stats.lastStudent && (
                   <div className="stat-card wide">
                     <div className="stat-icon">🆕</div>
@@ -320,6 +334,7 @@ export default function App() {
                     </div>
                   </div>
                 )}
+
                 {stats.lastLesson && (
                   <div className="stat-card wide">
                     <div className="stat-icon">⏰</div>
@@ -332,6 +347,7 @@ export default function App() {
                     </div>
                   </div>
                 )}
+
                 {stats.topStudent && (
                   <div className="stat-card wide">
                     <div className="stat-icon">⭐</div>
@@ -364,6 +380,7 @@ export default function App() {
         </div>
       </main>
 
+      {/* Nouvelle fiche étudiant */}
       {showNew && (
         <StudentForm
           onClose={() => setShowNew(false)}
@@ -371,11 +388,11 @@ export default function App() {
             await window.studentApi.createStudent(payload as any)
             setShowNew(false)
             await refresh()
-            // Pas besoin de toast ici : il arrivera automatiquement depuis main via 'store:saved'
           }}
         />
       )}
 
+      {/* Overlay mobile */}
       {mobileMenuOpen && (
         <div
           className={`overlay ${closingMenu ? 'fade-out' : 'fade-in'}`}

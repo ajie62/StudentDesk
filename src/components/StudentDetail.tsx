@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react'
+import React, { useEffect, useMemo, useRef, useState } from 'react'
 import { Student } from '../types'
 import { formatDate, fullName } from '../utils'
 import StudentForm from './StudentForm'
@@ -25,6 +25,11 @@ export default function StudentDetail({ studentId, onDeleted, onUpdated }: Props
   const [addingLesson, setAddingLesson] = useState(false)
   const [page, setPage] = useState(1)
 
+  // Description toggle
+  const [descExpanded, setDescExpanded] = useState(false)
+  const [canExpand, setCanExpand] = useState(false)
+  const descRef = useRef<HTMLDivElement>(null)
+
   async function load(resetPage = false) {
     const s = await window.studentApi.getStudent(studentId)
     setStudent(s)
@@ -32,6 +37,13 @@ export default function StudentDetail({ studentId, onDeleted, onUpdated }: Props
   }
 
   useEffect(() => { load(true) }, [studentId])
+
+  // Vérifie si description dépasse la limite
+  useEffect(() => {
+    if (descRef.current) {
+      setCanExpand(descRef.current.scrollHeight > 140)
+    }
+  }, [student?.description])
 
   const latest = useMemo(() => {
     if (!student?.lessons?.length) return null
@@ -80,9 +92,20 @@ export default function StudentDetail({ studentId, onDeleted, onUpdated }: Props
 
           <div className="hero-main">
             <h2 style={{ margin: '0 0 6px 0' }}>{fullName(student)}</h2>
-            <p style={{ margin: 0, color: 'var(--muted)' }}>
+            <div
+              ref={descRef}
+              className={`hero-description ${!descExpanded && canExpand ? 'limited' : ''}`}
+            >
               {student.description || 'Aucune description.'}
-            </p>
+            </div>
+            {canExpand && (
+              <span
+                className="hero-description-toggle"
+                onClick={() => setDescExpanded(x => !x)}
+              >
+                {descExpanded ? 'Voir moins' : 'Voir plus'}
+              </span>
+            )}
           </div>
         </div>
 
