@@ -24,6 +24,24 @@
   --s-8: 32px;
 }
 
+/* --- Scrollbar personnalisée --- */
+::-webkit-scrollbar {
+  width: 10px;
+}
+
+::-webkit-scrollbar-track {
+  background: #101013; /* même fond que la sidebar */
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(229, 9, 20, 0.35); /* rouge translucide */
+  border-radius: 8px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(229, 9, 20, 0.55); /* rouge un peu plus fort au hover */
+}
+
 * { box-sizing: border-box; }
 html, body, #root { height: 100%; }
 body {
