@@ -171,7 +171,6 @@ export default function App() {
     const evts: ActivityItem[] = []
 
     students.forEach(s => {
-      // ajout d'étudiant
       evts.push({
         id: `stu-${s.id}`,
         kind: 'student:create',
@@ -180,7 +179,6 @@ export default function App() {
         studentId: s.id
       })
 
-      // leçons
       s.lessons.forEach(l => {
         evts.push({
           id: `les-${s.id}-${l.id}`,
@@ -220,6 +218,21 @@ export default function App() {
           onClick={() => { setSelectedId(null); setShowDashboard(true) }}
         >
           🏠 Accueil
+        </button>
+
+        {/* 👇 Bouton import CSV restauré */}
+        <button
+          className="btn ghost"
+          style={{ marginBottom: '16px', width: '100%' }}
+          onClick={async () => {
+            const result = await window.studentApi.importCSV()
+            if (result?.count) {
+              pushToast(`Importé ${result.count} étudiants • 💾 local`)
+              refresh()
+            }
+          }}
+        >
+          📂 Importer CSV
         </button>
 
         <input

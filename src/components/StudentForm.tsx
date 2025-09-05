@@ -29,16 +29,53 @@ export default function StudentForm({ initial, onClose, onSaved }: Props) {
     fileInputRef.current?.click()
   }
 
+  async function resizeImage(file: File, maxSize: number): Promise<string> {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader()
+      reader.onload = e => {
+        const img = new Image()
+        img.onload = () => {
+          const canvas = document.createElement('canvas')
+          let w = img.width
+          let h = img.height
+
+          if (w > h) {
+            if (w > maxSize) {
+              h *= maxSize / w
+              w = maxSize
+            }
+          } else {
+            if (h > maxSize) {
+              w *= maxSize / h
+              h = maxSize
+            }
+          }
+
+          canvas.width = w
+          canvas.height = h
+          const ctx = canvas.getContext('2d')
+          if (!ctx) return reject(new Error('Impossible de créer le canvas'))
+
+          ctx.drawImage(img, 0, 0, w, h)
+          resolve(canvas.toDataURL(file.type, 0.85)) // qualité 85%
+        }
+        img.onerror = reject
+        img.src = e.target?.result as string
+      }
+      reader.onerror = reject
+      reader.readAsDataURL(file)
+    })
+  }
+
   async function onFileChange(e: React.ChangeEvent<HTMLInputElement>) {
     const f = e.target.files?.[0]
     if (!f) return
-
-    // ✅ conversion en base64 cross-platform
-    const reader = new FileReader()
-    reader.onload = () => {
-      setPhoto(reader.result as string)
+    try {
+      const resized = await resizeImage(f, 130)
+      setPhoto(resized)
+    } catch (err) {
+      console.error('Erreur lors du redimensionnement de l’image', err)
     }
-    reader.readAsDataURL(f)
   }
 
   async function handleSubmit(e: React.FormEvent) {
@@ -54,20 +91,13 @@ export default function StudentForm({ initial, onClose, onSaved }: Props) {
 
   return (
     <div className="modal-overlay" onClick={onClose}>
-      <div
-        className="modal-card"
-        onClick={e => e.stopPropagation()}
-        role="dialog"
-        aria-modal="true"
-      >
+      <div className="modal-card" onClick={e => e.stopPropagation()} role="dialog" aria-modal="true">
         <h3>{initial ? 'Modifier l’étudiant' : 'Nouvel étudiant'}</h3>
 
-        {/* Bloc avatar + bouton import */}
+        {/* Bloc avatar + bouton import (colonne gauche fixe 130px) */}
         <div className="field-photo">
           <div className="avatar avatar--lg" style={{ width: 130, height: 130 }}>
-            {photo ? (
-              <img src={photo} alt="Photo étudiante" />
-            ) : (
+            {photo ? <img src={photo} alt="" /> : (
               <div className="avatar__placeholder" style={{ fontSize: 18 }}>?</div>
             )}
           </div>
@@ -98,7 +128,7 @@ export default function StudentForm({ initial, onClose, onSaved }: Props) {
             />
 
             <div style={{ fontSize: 13, color: 'var(--muted)' }}>
-              JPG/PNG. L’aperçu est carré (130×130).
+              JPG/PNG. Redimensionné automatiquement (max 130×130).
             </div>
           </div>
         </div>
@@ -145,12 +175,8 @@ export default function StudentForm({ initial, onClose, onSaved }: Props) {
           </label>
 
           <div className="actions">
-            <button type="button" className="btn ghost" onClick={onClose}>
-              Annuler
-            </button>
-            <button type="submit" className="btn">
-              {initial ? 'Enregistrer' : 'Créer'}
-            </button>
+            <button type="button" className="btn ghost" onClick={onClose}>Annuler</button>
+            <button type="submit" className="btn">{initial ? 'Enregistrer' : 'Créer'}</button>
           </div>
         </form>
       </div>
