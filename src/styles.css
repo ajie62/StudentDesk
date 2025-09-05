@@ -206,6 +206,7 @@ body {
   inset: 0;
   background: linear-gradient(135deg, rgba(229,9,20,0.18), transparent 70%);
   pointer-events: none;
+  z-index: 1;
 }
 .hero-title {
   font-size: 13px;
@@ -418,6 +419,7 @@ body {
   background: #0f0f11;
   display: grid;
   place-items: center;
+  z-index: 2;
 }
 .avatar--lg { width: 72px; height: 72px; }
 .avatar--sm { width: 28px; height: 28px; border-radius: 8px; }
