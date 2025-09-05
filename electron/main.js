@@ -1,10 +1,11 @@
-import { app, BrowserWindow, ipcMain } from 'electron'
+import { app, BrowserWindow, ipcMain, dialog } from 'electron'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import fs from 'node:fs'
 import os from 'node:os'
 import Store from 'electron-store'
 import { v4 as uuidv4 } from 'uuid'
+import Papa from 'papaparse'
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
@@ -181,6 +182,7 @@ ipcMain.handle('students:create', async (_evt, payload) => {
     firstName: payload.firstName || '',
     lastName: payload.lastName || '',
     description: payload.description || '',
+    email: payload.email || '',
     isActive: Boolean(payload.isActive),
     photo: payload.photo || null,
     sheet: { createdAt: now },
@@ -254,4 +256,53 @@ ipcMain.handle('lessons:update', async (_evt, studentId, lessonId, patch) => {
 
   saveStudents(students, 'lessons:update')
   return students[idx].lessons[lidx]
+})
+
+/* -------------------- IPC: Import CSV -------------------- */
+ipcMain.handle('students:importCSV', async () => {
+  const { canceled, filePaths } = await dialog.showOpenDialog({
+    title: 'Importer un fichier CSV',
+    filters: [{ name: 'CSV files', extensions: ['csv'] }],
+    properties: ['openFile']
+  })
+  if (canceled || !filePaths.length) return { count: 0 }
+
+  const file = fs.readFileSync(filePaths[0], 'utf-8')
+  const delimiter = file.includes(';') ? ';' : ','
+
+  const { data } = Papa.parse(file, {
+    header: true,
+    skipEmptyLines: true,
+    delimiter
+  })
+
+  console.log('[StudentDesk] CSV import parsed headers:', Object.keys(data[0] || {}))
+
+  let students = loadStudents()
+  let count = 0
+
+  for (const row of data) {
+    if (!row.firstName && !row.lastName) continue // ignorer lignes vides
+
+    const now = new Date().toISOString()
+    const student = {
+      id: uid(),
+      firstName: row.firstName?.trim() || '',
+      lastName: row.lastName?.trim() || '',
+      description: row.description?.trim() || '',
+      email: row.email?.trim() || '',
+      isActive:
+        String(row.isActive).toLowerCase() === 'true' ||
+        String(row.isActive).toLowerCase() === 'oui' ||
+        String(row.isActive) === '1',
+      photo: null,
+      sheet: { createdAt: now },
+      lessons: []
+    }
+    students.push(student)
+    count++
+  }
+
+  saveStudents(students, 'students:importCSV')
+  return { count }
 })

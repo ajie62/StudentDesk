@@ -184,6 +184,20 @@ export default function App() {
           🏠 Accueil
         </button>
 
+        <button
+            className="btn ghost"
+            style={{ marginBottom: '16px', width: '100%' }}
+            onClick={async () => {
+                const result = await window.studentApi.importCSV()
+                if (result?.count) {
+                pushToast(`Importé ${result.count} étudiants • 💾 local`)
+                refresh()
+                }
+            }}
+        >
+            📂 Importer CSV
+        </button>
+
         <input
           className="search"
           placeholder="Rechercher des étudiants…"

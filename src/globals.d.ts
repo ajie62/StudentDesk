@@ -27,11 +27,16 @@ declare global {
         patch: Partial<Lesson>
       ) => Promise<Lesson>
 
+      // CSV Import
+      importCSV: () => Promise<{ count: number }>
+
       // App events
       onAppFocus: (cb: () => void) => () => void
 
       // Store saved event
-      onStoreSaved?: (cb: (payload: { action: string; icloud: boolean; when: string }) => void) => () => void
+      onStoreSaved?: (
+        cb: (payload: { action: string; icloud: boolean; when: string }) => void
+      ) => () => void
     }
   }
 }
