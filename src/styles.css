@@ -262,14 +262,19 @@ body {
 
 /* Lien Voir plus / Voir moins */
 .hero-description-toggle {
-  margin-top: 6px;
+  margin-top: 10px;
   font-size: 14px;
   font-weight: 500;
   color: var(--muted);
   cursor: pointer;
-  align-self: flex-start;
+  text-align: center; /* centré */
+  display: block;     /* force à prendre toute la largeur */
+  background: none;   /* aucune couleur de fond */
+  border: none;       /* aucune bordure */
+  padding: 0;         /* pas de padding bouton */
   transition: color 0.2s ease;
 }
+
 .hero-description-toggle:hover {
   color: var(--accent);
   text-decoration: underline;
@@ -301,6 +306,12 @@ body {
   margin: 0;
   font-size: 15px;
   line-height: 1.6;
+}
+.lesson-actions {
+  display: flex;
+  justify-content: center; /* centrer horizontalement */
+  gap: 12px;
+  margin-top: 12px;
 }
 
 /* Badges */
@@ -421,7 +432,7 @@ body {
   place-items: center;
   z-index: 2;
 }
-.avatar--lg { width: 72px; height: 72px; }
+.avatar--lg { width: 130px; height: 130px; }
 .avatar--sm { width: 28px; height: 28px; border-radius: 8px; }
 .avatar img {
   width: 100%;
@@ -477,10 +488,21 @@ body {
 }
 .field-photo {
   display: grid;
-  grid-template-columns: 96px 1fr;
+  grid-template-columns: 130px 1fr;
   gap: 16px;
-  align-items: center;
+  align-items: start;
   margin-bottom: var(--s-5);
+}
+/* Sur petit écran : empiler proprement */
+@media (max-width: 560px) {
+  .field-photo {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+  .field-photo .avatar--lg {
+    width: 130px !important;
+    height: 130px !important;
+  }
 }
 .field {
   display: flex;
@@ -550,7 +572,7 @@ body {
 .actions {
   display: flex;
   justify-content: flex-end;
-  gap: 12px;
+  gap: 16px;
   margin-top: var(--s-5);
 }
 

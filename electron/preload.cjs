@@ -1,4 +1,4 @@
-// preload.js (CJS obligatoire pour Electron)
+// CommonJS preload pour éviter l'erreur "Cannot use import statement outside a module"
 const { contextBridge, ipcRenderer } = require('electron')
 
 contextBridge.exposeInMainWorld('studentApi', {
@@ -12,6 +12,8 @@ contextBridge.exposeInMainWorld('studentApi', {
   // Lessons
   addLesson: (studentId, payload) => ipcRenderer.invoke('lessons:add', studentId, payload),
   deleteLesson: (studentId, lessonId) => ipcRenderer.invoke('lessons:delete', studentId, lessonId),
+  updateLesson: (studentId, lessonId, patch) =>
+    ipcRenderer.invoke('lessons:update', studentId, lessonId, patch),
 
   // App events
   onAppFocus: (cb) => {
@@ -20,7 +22,7 @@ contextBridge.exposeInMainWorld('studentApi', {
     return () => ipcRenderer.removeListener('app:focus', handler)
   },
 
-  // Store saved event
+  // Confirmation de sauvegarde (local / iCloud)
   onStoreSaved: (cb) => {
     const handler = (_evt, payload) => cb(payload)
     ipcRenderer.on('store:saved', handler)

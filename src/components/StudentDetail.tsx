@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useRef, useState } from 'react'
+import React, { useEffect, useMemo, useState } from 'react'
 import { Student } from '../types'
 import { formatDate, fullName } from '../utils'
 import StudentForm from './StudentForm'
@@ -24,11 +24,7 @@ export default function StudentDetail({ studentId, onDeleted, onUpdated }: Props
   const [editing, setEditing] = useState(false)
   const [addingLesson, setAddingLesson] = useState(false)
   const [page, setPage] = useState(1)
-
-  // Description toggle
-  const [descExpanded, setDescExpanded] = useState(false)
-  const [canExpand, setCanExpand] = useState(false)
-  const descRef = useRef<HTMLDivElement>(null)
+  const [showFullDesc, setShowFullDesc] = useState(false)
 
   async function load(resetPage = false) {
     const s = await window.studentApi.getStudent(studentId)
@@ -37,13 +33,6 @@ export default function StudentDetail({ studentId, onDeleted, onUpdated }: Props
   }
 
   useEffect(() => { load(true) }, [studentId])
-
-  // Vérifie si description dépasse la limite
-  useEffect(() => {
-    if (descRef.current) {
-      setCanExpand(descRef.current.scrollHeight > 140)
-    }
-  }, [student?.description])
 
   const latest = useMemo(() => {
     if (!student?.lessons?.length) return null
@@ -69,6 +58,12 @@ export default function StudentDetail({ studentId, onDeleted, onUpdated }: Props
 
   const prevDisabled = page <= 1
   const nextDisabled = page >= pageCount
+  const needClamp = (student.description?.length ?? 0) > 220
+
+  async function handleListUpdated() {
+    await load(true)
+    onUpdated()
+  }
 
   return (
     <div style={{ display: 'grid', gap: 16 }}>
@@ -82,7 +77,7 @@ export default function StudentDetail({ studentId, onDeleted, onUpdated }: Props
 
         {/* Avatar + name/desc row */}
         <div className="hero-row">
-          <div className="avatar avatar--lg">
+          <div className="avatar avatar--lg hero-avatar">
             {student.photo ? (
               <img src={student.photo} alt={`Photo de ${fullName(student)}`} />
             ) : (
@@ -92,19 +87,18 @@ export default function StudentDetail({ studentId, onDeleted, onUpdated }: Props
 
           <div className="hero-main">
             <h2 style={{ margin: '0 0 6px 0' }}>{fullName(student)}</h2>
-            <div
-              ref={descRef}
-              className={`hero-description ${!descExpanded && canExpand ? 'limited' : ''}`}
-            >
-              {student.description || 'Aucune description.'}
+
+            <div className={['hero-description', needClamp && !showFullDesc ? 'limited' : ''].join(' ')}>
+              {student.description || <span style={{ color: 'var(--muted)' }}>Aucune description.</span>}
             </div>
-            {canExpand && (
-              <span
+
+            {needClamp && (
+              <div
                 className="hero-description-toggle"
-                onClick={() => setDescExpanded(x => !x)}
+                onClick={() => setShowFullDesc(v => !v)}
               >
-                {descExpanded ? 'Voir moins' : 'Voir plus'}
-              </span>
+                {showFullDesc ? 'Voir moins' : 'Voir plus'}
+              </div>
             )}
           </div>
         </div>
@@ -180,15 +174,16 @@ export default function StudentDetail({ studentId, onDeleted, onUpdated }: Props
       )}
 
       <div className="list">
-        {currentLessons.map(lesson => (
+        {currentLessons.map((lesson) => (
           <LessonCard
             key={lesson.id}
+            studentId={student.id}
             lesson={lesson}
+            onUpdated={handleListUpdated}
             onDelete={async () => {
               if (confirm('Supprimer cette carte de leçon ?')) {
                 await window.studentApi.deleteLesson(student.id, lesson.id)
-                await load()
-                onUpdated()
+                await handleListUpdated()
               }
             }}
           />
@@ -202,20 +197,19 @@ export default function StudentDetail({ studentId, onDeleted, onUpdated }: Props
           onSaved={async (patch) => {
             await window.studentApi.updateStudent(student.id, patch as any)
             setEditing(false)
-            await load()
-            onUpdated()
+            await handleListUpdated()
           }}
         />
       )}
 
       {addingLesson && (
         <LessonForm
+          studentId={student.id}
           onClose={() => setAddingLesson(false)}
           onSaved={async (payload) => {
             await window.studentApi.addLesson(student.id, payload)
             setAddingLesson(false)
-            await load(true)
-            onUpdated()
+            await handleListUpdated()
           }}
         />
       )}

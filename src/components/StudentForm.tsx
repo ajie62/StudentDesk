@@ -1,146 +1,129 @@
-import React, { useEffect, useState, useRef } from 'react'
+import React, { useEffect, useRef, useState } from 'react'
 import { Student } from '../types'
 
 type Props = {
-  initial?: Partial<Student>
-  onSaved: (payload: Partial<Student>) => void | Promise<void>
+  initial?: Student
   onClose: () => void
+  onSaved: (payload: Partial<Student>) => Promise<void> | void
 }
 
-async function fileToDataURL(file: File): Promise<string> {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader()
-    reader.onload = () => resolve(String(reader.result))
-    reader.onerror = reject
-    reader.readAsDataURL(file)
-  })
-}
-
-export default function StudentForm({ initial, onSaved, onClose }: Props) {
+export default function StudentForm({ initial, onClose, onSaved }: Props) {
   const [firstName, setFirstName] = useState(initial?.firstName ?? '')
   const [lastName, setLastName] = useState(initial?.lastName ?? '')
   const [description, setDescription] = useState(initial?.description ?? '')
-  const [isActive, setIsActive] = useState(initial?.isActive ?? true)
+  const [isActive, setIsActive] = useState<boolean>(initial?.isActive ?? true)
   const [photo, setPhoto] = useState<string | null>(initial?.photo ?? null)
-  const [saving, setSaving] = useState(false)
 
-  const textareaRef = useRef<HTMLTextAreaElement | null>(null)
+  const fileInputRef = useRef<HTMLInputElement | null>(null)
+  const descRef = useRef<HTMLTextAreaElement | null>(null)
 
+  // auto-grow pour la textarea
   useEffect(() => {
-    function onKey(e: KeyboardEvent) {
-      if (e.key === 'Escape') onClose()
-    }
-    window.addEventListener('keydown', onKey)
-    return () => window.removeEventListener('keydown', onKey)
-  }, [onClose])
-
-  // Auto-expand de la textarea
-  useEffect(() => {
-    if (textareaRef.current) {
-      textareaRef.current.style.height = 'auto'
-      textareaRef.current.style.height = textareaRef.current.scrollHeight + 'px'
-    }
+    const el = descRef.current
+    if (!el) return
+    el.style.height = 'auto'
+    el.style.height = `${el.scrollHeight}px`
   }, [description])
 
-  async function handlePickFile(e: React.ChangeEvent<HTMLInputElement>) {
+  function pickFile() {
+    fileInputRef.current?.click()
+  }
+
+  async function onFileChange(e: React.ChangeEvent<HTMLInputElement>) {
     const f = e.target.files?.[0]
     if (!f) return
-    if (!/^image\/(png|jpeg)$/.test(f.type)) {
-      alert('Formats autorisés : PNG ou JPG.')
-      e.target.value = ''
-      return
-    }
-    const dataUrl = await fileToDataURL(f)
+    const buf = await f.arrayBuffer()
+    const base64 = Buffer.from(buf).toString('base64')
+    const dataUrl = `data:${f.type};base64,${base64}`
     setPhoto(dataUrl)
   }
 
-  async function handleSave() {
-    if (!firstName.trim() || !lastName.trim()) {
-      alert('Prénom et Nom sont requis.')
-      return
-    }
-    setSaving(true)
-    try {
-      await onSaved({ firstName, lastName, description, isActive, photo })
-    } finally {
-      setSaving(false)
-    }
+  async function handleSubmit(e: React.FormEvent) {
+    e.preventDefault()
+    await onSaved({
+      firstName: firstName.trim(),
+      lastName: lastName.trim(),
+      description: description.trim(),
+      isActive,
+      photo,
+    })
   }
 
   return (
-    <div className="modal-overlay">
-      <div
-        className="card modal-card"
-        role="dialog"
-        aria-modal="true"
-        aria-label={initial ? 'Modifier l’étudiant' : 'Nouvel étudiant'}
-      >
+    <div className="modal-overlay" onClick={onClose}>
+      <div className="modal-card" onClick={e => e.stopPropagation()} role="dialog" aria-modal="true">
         <h3>{initial ? 'Modifier l’étudiant' : 'Nouvel étudiant'}</h3>
 
-        {/* Photo + boutons */}
+        {/* Bloc avatar + bouton import (colonne gauche fixe 130px) */}
         <div className="field-photo">
-          <div className="avatar avatar--lg">
-            {photo ? (
-              <img src={photo} alt="Photo de l’étudiant" />
-            ) : (
-              <div className="avatar__placeholder">?</div>
+          <div className="avatar avatar--lg" style={{ width: 130, height: 130 }}>
+            {photo ? <img src={photo} alt="" /> : (
+              <div className="avatar__placeholder" style={{ fontSize: 18 }}>?</div>
             )}
           </div>
-          <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-            <label className="btn" style={{ cursor: 'pointer' }}>
-              Importer une photo
-              <input
-                type="file"
-                accept="image/png, image/jpeg"
-                onChange={handlePickFile}
-                style={{ display: 'none' }}
-              />
-            </label>
-            {photo && (
-              <button className="btn ghost" onClick={() => setPhoto(null)}>
-                Supprimer la photo
+
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+            <div style={{ display: 'flex', gap: 10, alignItems: 'center', flexWrap: 'wrap' }}>
+              <button type="button" className="btn" onClick={pickFile}>
+                Importer une photo
               </button>
-            )}
+              {photo && (
+                <button
+                  type="button"
+                  className="btn ghost"
+                  onClick={() => setPhoto(null)}
+                  title="Retirer la photo"
+                >
+                  Retirer
+                </button>
+              )}
+            </div>
+
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/*"
+              onChange={onFileChange}
+              style={{ display: 'none' }}
+            />
+
+            <div style={{ fontSize: 13, color: 'var(--muted)' }}>
+              JPG/PNG. L’aperçu est carré (130×130).
+            </div>
           </div>
         </div>
 
-        {/* Champs texte */}
-        <div className="field">
-          <label className="label" htmlFor="firstName">Prénom</label>
-          <input
-            id="firstName"
-            className="input"
-            value={firstName}
-            onChange={e => setFirstName(e.target.value)}
-            placeholder="Prénom de l’étudiant"
-          />
-        </div>
+        <form onSubmit={handleSubmit}>
+          <div className="field">
+            <label className="label">Prénom</label>
+            <input
+              className="input"
+              value={firstName}
+              onChange={e => setFirstName(e.target.value)}
+              autoFocus
+            />
+          </div>
 
-        <div className="field">
-          <label className="label" htmlFor="lastName">Nom</label>
-          <input
-            id="lastName"
-            className="input"
-            value={lastName}
-            onChange={e => setLastName(e.target.value)}
-            placeholder="Nom de l’étudiant"
-          />
-        </div>
+          <div className="field">
+            <label className="label">Nom</label>
+            <input
+              className="input"
+              value={lastName}
+              onChange={e => setLastName(e.target.value)}
+            />
+          </div>
 
-        <div className="field">
-          <label className="label" htmlFor="desc">Description</label>
-          <textarea
-            id="desc"
-            ref={textareaRef}
-            className="textarea"
-            value={description}
-            onChange={e => setDescription(e.target.value)}
-            placeholder="Notes générales à propos de l’étudiant"
-          />
-        </div>
+          <div className="field">
+            <label className="label">Description</label>
+            <textarea
+              ref={descRef}
+              className="textarea"
+              value={description}
+              onChange={e => setDescription(e.target.value)}
+              placeholder="Notes générales, contexte, objectifs…"
+            />
+          </div>
 
-        {/* Switch Actif */}
-        <div className="field">
           <label className="switch">
             <input
               type="checkbox"
@@ -148,17 +131,14 @@ export default function StudentForm({ initial, onSaved, onClose }: Props) {
               onChange={e => setIsActive(e.target.checked)}
             />
             <span className="track"><span className="thumb" /></span>
-            <span className="text">Actif</span>
+            <span>Étudiant actif</span>
           </label>
-        </div>
 
-        {/* Actions */}
-        <div className="actions">
-          <button className="btn" onClick={handleSave} disabled={saving}>
-            {saving ? 'Enregistrement…' : 'Enregistrer'}
-          </button>
-          <button className="btn ghost" onClick={onClose}>Annuler</button>
-        </div>
+          <div className="actions">
+            <button type="button" className="btn ghost" onClick={onClose}>Annuler</button>
+            <button type="submit" className="btn">{initial ? 'Enregistrer' : 'Créer'}</button>
+          </div>
+        </form>
       </div>
     </div>
   )

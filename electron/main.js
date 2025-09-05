@@ -101,7 +101,6 @@ function uid() {
 function loadStudents() {
   return store.get('students')
 }
-
 function saveStudents(students, action = 'write') {
   store.set('students', students)
   writeBackup(dataDirs.backupsDir, { students })
@@ -131,7 +130,7 @@ async function createWindow() {
     titleBarStyle: 'hiddenInset',
     trafficLightPosition: { x: 12, y: 12 },
     webPreferences: {
-      preload: path.join(__dirname, 'preload.js'),
+      preload: path.join(__dirname, 'preload.cjs'),
       contextIsolation: true,
       nodeIntegration: false
     }
@@ -141,11 +140,17 @@ async function createWindow() {
     await mainWindow.loadURL(process.env.ELECTRON_START_URL)
   } else {
     const indexPath = path.resolve(__dirname, '..', 'dist', 'index.html')
-    await mainWindow.loadFile(indexPath, { 
-      // IMPORTANT pour que ./assets/... marche bien
-      search: `?v=${Date.now()}` 
-    })
+    await mainWindow.loadFile(indexPath, { search: `?v=${Date.now()}` })
   }
+
+  mainWindow.webContents.on('did-fail-load', (_e, errorCode, errorDesc, validatedURL) => {
+    console.error('[StudentDesk] did-fail-load', { errorCode, errorDesc, validatedURL })
+  })
+  mainWindow.webContents.on('render-process-gone', (_e, details) => {
+    console.error('[StudentDesk] render-process-gone', details)
+  })
+
+  mainWindow.on('focus', () => mainWindow.webContents.send('app:focus'))
 }
 
 app.whenReady().then(() => {
@@ -236,4 +241,17 @@ ipcMain.handle('lessons:delete', async (_evt, studentId, lessonId) => {
   students[idx].lessons.splice(lidx, 1)
   saveStudents(students, 'lessons:delete')
   return lessonId
+})
+ipcMain.handle('lessons:update', async (_evt, studentId, lessonId, patch) => {
+  const students = loadStudents()
+  const idx = findStudentIndex(students, studentId)
+  if (idx === -1) throw new Error('Student not found')
+
+  const lidx = students[idx].lessons.findIndex(l => l.id === lessonId)
+  if (lidx === -1) throw new Error('Lesson not found')
+
+  students[idx].lessons[lidx] = { ...students[idx].lessons[lidx], ...patch }
+
+  saveStudents(students, 'lessons:update')
+  return students[idx].lessons[lidx]
 })

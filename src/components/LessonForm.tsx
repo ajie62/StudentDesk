@@ -1,50 +1,64 @@
-import React, { useEffect, useState } from 'react'
+import React, { useState } from 'react'
+import { Lesson } from '../types'
 
 type Props = {
-  onSaved: (payload: { comment: string; homework: string }) => void | Promise<void>
+  studentId: string
   onClose: () => void
+  onSaved: (payload: Partial<Lesson>) => Promise<void>
+  initial?: Lesson // si présent → mode édition
 }
 
-export default function LessonForm({ onSaved, onClose }: Props) {
-  const [comment, setComment] = useState('')
-  const [homework, setHomework] = useState('')
+export default function LessonForm({ studentId, onClose, onSaved, initial }: Props) {
+  const [comment, setComment] = useState(initial?.comment || '')
+  const [homework, setHomework] = useState(initial?.homework || '')
+  const [loading, setLoading] = useState(false)
 
-  useEffect(() => {
-    function onKey(e: KeyboardEvent) {
-      if (e.key === 'Escape') onClose()
+  async function handleSubmit(e: React.FormEvent) {
+    e.preventDefault()
+    setLoading(true)
+    try {
+      await onSaved({ comment, homework })
+      onClose()
+    } finally {
+      setLoading(false)
     }
-    window.addEventListener('keydown', onKey)
-    return () => window.removeEventListener('keydown', onKey)
-  }, [onClose])
+  }
 
   return (
-    <div style={overlay}>
-      <div style={modal} className="card">
-        <h3 style={{ marginTop: 0 }}>Ajouter une leçon</h3>
+    <div className="modal-overlay">
+      <div className="modal-card">
+        <h3>{initial ? 'Modifier la leçon' : 'Nouvelle leçon'}</h3>
+        <form onSubmit={handleSubmit} className="form">
+          <div className="field">
+            <label className="label">Commentaire</label>
+            <textarea
+              className="textarea"
+              value={comment}
+              onChange={(e) => setComment(e.target.value)}
+              placeholder="Notes sur la leçon..."
+            />
+          </div>
 
-        <div className="form-row">
-          <label>Commentaire (déroulement de la leçon)</label>
-          <textarea className="textarea" value={comment} onChange={e => setComment(e.target.value)} />
-        </div>
+          <div className="field">
+            <label className="label">Devoirs</label>
+            <textarea
+              className="textarea"
+              value={homework}
+              onChange={(e) => setHomework(e.target.value)}
+              placeholder="Travail à faire..."
+            />
+          </div>
 
-        <div className="form-row">
-          <label>Devoirs (à faire pour la prochaine leçon)</label>
-          <textarea className="textarea" value={homework} onChange={e => setHomework(e.target.value)} />
-        </div>
-
-        <div className="actions">
-          <button className="btn" onClick={() => onSaved({ comment, homework })}>
-            Enregistrer
-          </button>
-          <button className="btn ghost" onClick={onClose}>Annuler</button>
-        </div>
+          <div className="actions">
+            <button type="button" className="btn ghost" onClick={onClose}>
+              Annuler
+            </button>
+            <button type="submit" className="btn" disabled={loading}>
+              {initial ? 'Enregistrer' : 'Ajouter'}
+            </button>
+          </div>
+        </form>
       </div>
     </div>
   )
 }
-
-const overlay: React.CSSProperties = {
-  position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.45)',
-  display: 'grid', placeItems: 'center', zIndex: 50
-}
-const modal: React.CSSProperties = { width: 700, maxWidth: '95vw' }
