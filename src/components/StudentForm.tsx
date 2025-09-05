@@ -32,10 +32,13 @@ export default function StudentForm({ initial, onClose, onSaved }: Props) {
   async function onFileChange(e: React.ChangeEvent<HTMLInputElement>) {
     const f = e.target.files?.[0]
     if (!f) return
-    const buf = await f.arrayBuffer()
-    const base64 = Buffer.from(buf).toString('base64')
-    const dataUrl = `data:${f.type};base64,${base64}`
-    setPhoto(dataUrl)
+
+    // ✅ conversion en base64 cross-platform
+    const reader = new FileReader()
+    reader.onload = () => {
+      setPhoto(reader.result as string)
+    }
+    reader.readAsDataURL(f)
   }
 
   async function handleSubmit(e: React.FormEvent) {
@@ -51,13 +54,20 @@ export default function StudentForm({ initial, onClose, onSaved }: Props) {
 
   return (
     <div className="modal-overlay" onClick={onClose}>
-      <div className="modal-card" onClick={e => e.stopPropagation()} role="dialog" aria-modal="true">
+      <div
+        className="modal-card"
+        onClick={e => e.stopPropagation()}
+        role="dialog"
+        aria-modal="true"
+      >
         <h3>{initial ? 'Modifier l’étudiant' : 'Nouvel étudiant'}</h3>
 
-        {/* Bloc avatar + bouton import (colonne gauche fixe 130px) */}
+        {/* Bloc avatar + bouton import */}
         <div className="field-photo">
           <div className="avatar avatar--lg" style={{ width: 130, height: 130 }}>
-            {photo ? <img src={photo} alt="" /> : (
+            {photo ? (
+              <img src={photo} alt="Photo étudiante" />
+            ) : (
               <div className="avatar__placeholder" style={{ fontSize: 18 }}>?</div>
             )}
           </div>
@@ -135,8 +145,12 @@ export default function StudentForm({ initial, onClose, onSaved }: Props) {
           </label>
 
           <div className="actions">
-            <button type="button" className="btn ghost" onClick={onClose}>Annuler</button>
-            <button type="submit" className="btn">{initial ? 'Enregistrer' : 'Créer'}</button>
+            <button type="button" className="btn ghost" onClick={onClose}>
+              Annuler
+            </button>
+            <button type="submit" className="btn">
+              {initial ? 'Enregistrer' : 'Créer'}
+            </button>
           </div>
         </form>
       </div>

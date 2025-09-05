@@ -3,6 +3,7 @@ import { Student } from './types'
 import { fullName } from './utils'
 import StudentForm from './components/StudentForm'
 import StudentDetail from './components/StudentDetail'
+import Dashboard from './components/Dashboard'
 import Fuse from 'fuse.js'
 import './styles.css'
 
@@ -22,6 +23,14 @@ type Stats = {
   topStudent?: Student
 }
 
+type ActivityItem = {
+  id: string
+  kind: 'student:create' | 'lesson:add'
+  label: string
+  when: string
+  studentId: string
+}
+
 type Toast = { id: string; text: string }
 
 export default function App() {
@@ -38,7 +47,7 @@ export default function App() {
   const [closingMenu, setClosingMenu] = useState(false)
   const [isMobile, setIsMobile] = useState<boolean>(window.innerWidth < 900)
 
-  // Toasts discrets (ex: confirmation de sauvegarde iCloud / locale)
+  // Toasts discrets
   const [toasts, setToasts] = useState<Toast[]>([])
   function pushToast(text: string) {
     const id = Math.random().toString(36).slice(2)
@@ -63,7 +72,7 @@ export default function App() {
     window.studentApi.onAppFocus(() => refresh())
   }, [])
 
-  // Toasts provenant du main (store:saved)
+  // Toasts depuis main (store:saved)
   useEffect(() => {
     const unsubscribe = window.studentApi.onStoreSaved?.(({ action, icloud }) => {
       const where = icloud ? '☁️ iCloud' : '💾 local'
@@ -106,7 +115,7 @@ export default function App() {
     return () => window.removeEventListener('resize', onResize)
   }, [])
 
-  // Recherche fuzzy + filtre actif/inactif
+  // Recherche fuzzy + filtre
   const filtered = useMemo(() => {
     let results = students
     const term = q.trim()
@@ -130,7 +139,7 @@ export default function App() {
     return results
   }, [q, students, filterActive])
 
-  // Agrégations pour le tableau de bord
+  // Stats
   const stats: Stats = useMemo(() => {
     const total = students.length
     const active = students.filter(s => s.isActive).length
@@ -155,6 +164,35 @@ export default function App() {
     const lastStudent = [...students].sort((a, b) => b.sheet.createdAt.localeCompare(a.sheet.createdAt))[0]
 
     return { total, active, inactive, lessons, lastStudent, lastLesson, topStudent }
+  }, [students])
+
+  // Génération d’événements récents
+  const events: ActivityItem[] = useMemo(() => {
+    const evts: ActivityItem[] = []
+
+    students.forEach(s => {
+      // ajout d'étudiant
+      evts.push({
+        id: `stu-${s.id}`,
+        kind: 'student:create',
+        label: `${fullName(s)} ajouté`,
+        when: s.sheet.createdAt,
+        studentId: s.id
+      })
+
+      // leçons
+      s.lessons.forEach(l => {
+        evts.push({
+          id: `les-${s.id}-${l.id}`,
+          kind: 'lesson:add',
+          label: `Leçon pour ${fullName(s)}`,
+          when: l.createdAt,
+          studentId: s.id
+        })
+      })
+    })
+
+    return evts.sort((a, b) => b.when.localeCompare(a.when))
   }, [students])
 
   return (
@@ -182,20 +220,6 @@ export default function App() {
           onClick={() => { setSelectedId(null); setShowDashboard(true) }}
         >
           🏠 Accueil
-        </button>
-
-        <button
-            className="btn ghost"
-            style={{ marginBottom: '16px', width: '100%' }}
-            onClick={async () => {
-                const result = await window.studentApi.importCSV()
-                if (result?.count) {
-                pushToast(`Importé ${result.count} étudiants • 💾 local`)
-                refresh()
-                }
-            }}
-        >
-            📂 Importer CSV
         </button>
 
         <input
@@ -238,14 +262,6 @@ export default function App() {
             }}
             role="button"
             tabIndex={0}
-            onKeyDown={(e) => {
-              if (e.key === 'Enter') {
-                setSelectedId(s.id)
-                setShowDashboard(false)
-                if (mobileMenuOpen) closeMenuSmooth()
-              }
-            }}
-            aria-label={`Ouvrir la fiche de ${fullName(s)}`}
           >
             <div className="student-row">
               <div className="avatar avatar--sm" aria-hidden="true">
@@ -268,10 +284,7 @@ export default function App() {
 
       {/* Main content */}
       <main className="content">
-        {/* fine-grained draggable strip for macOS titlebar */}
         <div className="title-drag window-drag" />
-
-        {/* Top bar (mobile) */}
         <div className="mobile-topbar window-drag">
           <button
             className={`burger ${mobileMenuOpen && !closingMenu ? 'active' : ''}`}
@@ -301,80 +314,14 @@ export default function App() {
 
         <div className="container">
           {showDashboard ? (
-            <div className="dashboard">
-              <h2>Tableau de bord</h2>
-              <div className="stats-grid">
-                <div className="stat-card">
-                  <div className="stat-icon">👥</div>
-                  <div>
-                    <div className="stat-label">Étudiants total</div>
-                    <div className="stat-value">{stats.total}</div>
-                  </div>
-                </div>
-
-                <div className="stat-card">
-                  <div className="stat-icon accent">✅</div>
-                  <div>
-                    <div className="stat-label">Actifs</div>
-                    <div className="stat-value">{stats.active}</div>
-                  </div>
-                </div>
-
-                <div className="stat-card">
-                  <div className="stat-icon">⏸️</div>
-                  <div>
-                    <div className="stat-label">Inactifs</div>
-                    <div className="stat-value">{stats.inactive}</div>
-                  </div>
-                </div>
-
-                <div className="stat-card">
-                  <div className="stat-icon">📘</div>
-                  <div>
-                    <div className="stat-label">Leçons total</div>
-                    <div className="stat-value">{stats.lessons}</div>
-                  </div>
-                </div>
-
-                {stats.lastStudent && (
-                  <div className="stat-card wide">
-                    <div className="stat-icon">🆕</div>
-                    <div>
-                      <div className="stat-label">Dernier étudiant ajouté</div>
-                      <div className="stat-value">
-                        {fullName(stats.lastStudent)} –{' '}
-                        {new Date(stats.lastStudent.sheet?.createdAt || '').toLocaleDateString()}
-                      </div>
-                    </div>
-                  </div>
-                )}
-
-                {stats.lastLesson && (
-                  <div className="stat-card wide">
-                    <div className="stat-icon">⏰</div>
-                    <div>
-                      <div className="stat-label">Dernière leçon</div>
-                      <div className="stat-value">
-                        {fullName(stats.lastLesson.student)} –{' '}
-                        {new Date(stats.lastLesson.createdAt).toLocaleDateString()}
-                      </div>
-                    </div>
-                  </div>
-                )}
-
-                {stats.topStudent && (
-                  <div className="stat-card wide">
-                    <div className="stat-icon">⭐</div>
-                    <div>
-                      <div className="stat-label">Étudiant le plus actif</div>
-                      <div className="stat-value">
-                        {fullName(stats.topStudent)} ({stats.topStudent.lessons.length} leçons)
-                      </div>
-                    </div>
-                  </div>
-                )}
-              </div>
-            </div>
+            <Dashboard
+              stats={stats}
+              events={events}
+              onOpenStudent={(id) => {
+                setSelectedId(id)
+                setShowDashboard(false)
+              }}
+            />
           ) : !selectedId ? (
             <div className="empty">Sélectionnez un étudiant pour afficher sa fiche.</div>
           ) : (
@@ -387,14 +334,13 @@ export default function App() {
         </div>
 
         {/* Toasts */}
-        <div className="toast-container" aria-live="polite" aria-atomic="true">
+        <div className="toast-container">
           {toasts.map(t => (
             <div key={t.id} className="toast">{t.text}</div>
           ))}
         </div>
       </main>
 
-      {/* Nouvelle fiche étudiant */}
       {showNew && (
         <StudentForm
           onClose={() => setShowNew(false)}
@@ -406,12 +352,10 @@ export default function App() {
         />
       )}
 
-      {/* Overlay mobile */}
       {mobileMenuOpen && (
         <div
           className={`overlay ${closingMenu ? 'fade-out' : 'fade-in'}`}
           onClick={closeMenuSmooth}
-          aria-hidden="true"
         />
       )}
     </div>
