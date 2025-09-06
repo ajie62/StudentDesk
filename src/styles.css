@@ -74,6 +74,9 @@ body {
   box-shadow: 8px 0 30px rgba(0,0,0,0.55);
   animation: slideIn 0.25s ease forwards;
 }
+.sidebar * {
+  user-select: none;
+}
 .sidebar.closing { animation: slideOut 0.25s ease forwards; }
 @keyframes slideIn {
   from { transform: translateX(-100%); opacity: 0; }
@@ -243,21 +246,27 @@ body {
 
 /* Description + Voir plus/moins */
 .hero-description {
-  margin-top: 12px;
   font-size: 15px;
   line-height: 1.6;
   color: var(--muted);
   position: relative;
+  max-width: 90%;
 }
 .hero-description.limited {
-  max-height: 140px;
+  display: -webkit-box;
+  line-clamp: 3;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
   overflow: hidden;
+  position: relative;
 }
+
+/* Effet fondu en bas, masque environ une demi-ligne */
 .hero-description.limited::after {
   content: "";
   position: absolute;
   bottom: 0; left: 0; right: 0;
-  height: 40px;
+  height: 1.5em; /* ~ hauteur de 1,5 ligne */
   background: linear-gradient(to bottom, transparent, var(--card));
   pointer-events: none;
 }
