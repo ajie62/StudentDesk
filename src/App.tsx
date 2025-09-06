@@ -46,8 +46,14 @@ export default function App() {
     setToasts(t => [...t, { id, text }])
     window.setTimeout(() => {
       setToasts(t => t.filter(x => x.id !== id))
-    }, 2200)
+    }, 3000)
   }
+
+  // ✅ État pour bouton "Mettre à jour maintenant"
+  const [updateReady, setUpdateReady] = useState(false)
+
+  // ✅ État version app
+  const [version, setVersion] = useState("")
 
   async function refresh() {
     const list = await window.studentApi.listStudents()
@@ -62,6 +68,15 @@ export default function App() {
   useEffect(() => {
     refresh()
     window.studentApi.onAppFocus(() => refresh())
+    // ✅ récupérer la version de façon asynchrone
+    ;(async () => {
+      try {
+        const v = await window.studentApi.getVersion()
+        setVersion(v || "")
+      } catch {
+        setVersion("")
+      }
+    })()
   }, [])
 
   // Toasts depuis main (store:saved)
@@ -76,6 +91,30 @@ export default function App() {
       pushToast(`${label} • ${where}`)
     })
     return () => { if (typeof unsubscribe === 'function') unsubscribe() }
+  }, [])
+
+  // 🔥 Nouvel effet : écouter les updates depuis main.js
+  useEffect(() => {
+    window.studentApi.onUpdate?.("update:checking", () => {
+      pushToast("🔄 Vérification des mises à jour...")
+      setUpdateReady(false)
+    })
+    window.studentApi.onUpdate?.("update:available", () => {
+      pushToast("⬇️ Mise à jour disponible, téléchargement...")
+      setUpdateReady(false)
+    })
+    window.studentApi.onUpdate?.("update:none", () => {
+      pushToast("✅ Aucune mise à jour disponible")
+      setUpdateReady(false)
+    })
+    window.studentApi.onUpdate?.("update:downloaded", () => {
+      pushToast("📦 Mise à jour prête à installer")
+      setUpdateReady(true)
+    })
+    window.studentApi.onUpdate?.("update:error", (_evt, err) => {
+      pushToast("❌ Erreur de mise à jour: " + err)
+      setUpdateReady(false)
+    })
   }, [])
 
   function closeMenuSmooth() {
@@ -397,12 +436,28 @@ export default function App() {
           )}
         </div>
 
+        {/* ✅ Version affichée */}
+        <div className="app-version">v{version}</div>
+
         {/* Toasts */}
         <div className="toast-container">
           {toasts.map(t => (
             <div key={t.id} className="toast">{t.text}</div>
           ))}
         </div>
+
+        {/* ✅ Bannière de mise à jour */}
+        {updateReady && (
+          <div className="update-banner">
+            🚀 Nouvelle version téléchargée&nbsp;
+            <button
+              className="btn small"
+              onClick={() => window.studentApi.installUpdateNow()}
+            >
+              Mettre à jour maintenant
+            </button>
+          </div>
+        )}
       </main>
 
       {showNew && (

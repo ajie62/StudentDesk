@@ -10,11 +10,27 @@ import Papa from 'papaparse'
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
 
+import updater from 'electron-updater'
+const { autoUpdater } = updater
+
 const APP_DIR_NAME = 'StudentDesk'
 const STORE_NAME = 'studentdesk-data'
 const BACKUPS_DIR_NAME = 'backups'
 const MAX_BACKUPS = 10
 
+/* -------------------- Logger for updates -------------------- */
+function logUpdate(message) {
+  const logFile = path.join(os.homedir(), 'studentdesk-updater.log')
+  const fullMessage = `[${new Date().toISOString()}] ${message}\n`
+  console.log('[Updater]', message) // visible dans console + Console.app
+  try {
+    fs.appendFileSync(logFile, fullMessage)
+  } catch (e) {
+    console.warn('Impossible d’écrire le log updater:', e)
+  }
+}
+
+/* -------------------- Data dirs -------------------- */
 function iCloudRootPath() {
   const home = os.homedir()
   const p = path.join(home, 'Library', 'Mobile Documents', 'com~apple~CloudDocs')
@@ -96,12 +112,9 @@ function initStore() {
   })
 }
 
-function uid() {
-  return uuidv4()
-}
-function loadStudents() {
-  return store.get('students')
-}
+/* -------------------- Helpers -------------------- */
+function uid() { return uuidv4() }
+function loadStudents() { return store.get('students') }
 function saveStudents(students, action = 'write') {
   store.set('students', students)
   writeBackup(dataDirs.backupsDir, { students })
@@ -117,11 +130,9 @@ function saveStudents(students, action = 'write') {
     console.error('Failed to send store:saved event:', e)
   }
 }
-function findStudentIndex(students, id) {
-  return students.findIndex(s => s.id === id)
-}
+function findStudentIndex(students, id) { return students.findIndex(s => s.id === id) }
 
-/* -------------------- Helpers: photos -------------------- */
+/* -------------------- Photos -------------------- */
 function deletePhotoIfExists(photoPath) {
   if (!photoPath) return
   try {
@@ -134,24 +145,21 @@ function deletePhotoIfExists(photoPath) {
   }
 }
 
-/* -------------------- Helpers: billing progression -------------------- */
+/* -------------------- Billing -------------------- */
 function recomputeBillingProgress(student) {
   const history = Array.isArray(student.billingHistory) ? student.billingHistory : []
   const lessons = Array.isArray(student.lessons) ? student.lessons : []
-
   const countById = new Map()
   for (const l of lessons) {
     if (!l?.deletedAt && l?.billingId) {
       countById.set(l.billingId, (countById.get(l.billingId) || 0) + 1)
     }
   }
-
   const nowISO = new Date().toISOString()
   for (const c of history) {
     const total = c.mode === 'package' ? (c.totalLessons || 0) : 1
     const consumed = countById.get(c.id) || 0
     const isCompleted = total > 0 && consumed >= total
-
     c.consumedLessons = consumed
     c.completed = isCompleted
     if (isCompleted && !c.completedAt) c.completedAt = nowISO
@@ -165,7 +173,7 @@ function latestOpenContract(student) {
   return sorted.find(c => !c.completed)
 }
 
-/* -------------------- App window -------------------- */
+/* -------------------- Window -------------------- */
 async function createWindow() {
   mainWindow = new BrowserWindow({
     width: 1200,
@@ -199,9 +207,35 @@ async function createWindow() {
   mainWindow.on('focus', () => mainWindow.webContents.send('app:focus'))
 }
 
+/* -------------------- App lifecycle -------------------- */
 app.whenReady().then(() => {
   initStore()
   createWindow()
+
+  // Auto-update
+  autoUpdater.checkForUpdatesAndNotify()
+
+  autoUpdater.on('checking-for-update', () => {
+    logUpdate('Vérification de mise à jour...')
+    if (mainWindow) mainWindow.webContents.send('update:checking')
+  })
+  autoUpdater.on('update-available', () => {
+    logUpdate('Mise à jour disponible, téléchargement en cours...')
+    if (mainWindow) mainWindow.webContents.send('update:available')
+  })
+  autoUpdater.on('update-not-available', () => {
+    logUpdate('Pas de nouvelle mise à jour.')
+    if (mainWindow) mainWindow.webContents.send('update:none')
+  })
+  autoUpdater.on('update-downloaded', () => {
+    logUpdate('Mise à jour téléchargée, sera installée au redémarrage.')
+    if (mainWindow) mainWindow.webContents.send('update:downloaded')
+  })
+  autoUpdater.on('error', (err) => {
+    logUpdate('Erreur de mise à jour: ' + err.toString())
+    if (mainWindow) mainWindow.webContents.send('update:error', err.toString())
+  })
+
   app.on('activate', function () {
     if (BrowserWindow.getAllWindows().length === 0) createWindow()
   })
@@ -418,3 +452,11 @@ ipcMain.handle('students:importCSV', async () => {
   saveStudents(students, 'students:importCSV')
   return { count }
 })
+
+// ⚡ Permet d’installer la mise à jour immédiatement
+ipcMain.handle("update:installNow", () => {
+  logUpdate("Installation immédiate de la mise à jour demandée.")
+  autoUpdater.quitAndInstall()
+})
+
+ipcMain.handle("app:getVersion", () => app.getVersion())

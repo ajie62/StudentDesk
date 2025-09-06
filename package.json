@@ -1,6 +1,6 @@
 {
   "name": "studentdesk",
-  "version": "0.1.0",
+  "version": "0.1.5",
   "description": "Minimal modern student manager desktop app (Electron + React + Vite).",
   "main": "electron/main.js",
   "author": "",
@@ -9,9 +9,10 @@
   "scripts": {
     "dev": "concurrently -k \"vite\" \"wait-on http://localhost:5173 && cross-env ELECTRON_START_URL=http://localhost:5173 electron .\"",
     "build:renderer": "vite build",
-    "build": "vite build && electron-builder -m",
+    "build": "vite build && electron-builder --mac",
     "start": "electron .",
-    "lint": "echo \"(Optional) Add ESLint and run linting here.\""
+    "lint": "echo \"(Optional) Add ESLint and run linting here.\"",
+    "release": "npm run build:renderer && GH_TOKEN=$GH_TOKEN electron-builder --mac --publish always"
   },
   "devDependencies": {
     "@types/node": "^22.0.0",
@@ -28,6 +29,7 @@
   },
   "dependencies": {
     "electron-store": "^8.2.0",
+    "electron-updater": "^6.6.2",
     "fuse.js": "^7.1.0",
     "papaparse": "^5.5.3",
     "react": "^18.3.1",
@@ -44,9 +46,17 @@
     ],
     "mac": {
       "target": [
-        "dmg"
+        "dmg",
+        "zip"
       ],
       "category": "public.app-category.productivity"
-    }
+    },
+    "publish": [
+      {
+        "provider": "github",
+        "owner": "ajie62",
+        "repo": "StudentDesk"
+      }
+    ]
   }
 }
