@@ -4,6 +4,7 @@ import { fullName } from './utils'
 import StudentForm from './components/StudentForm'
 import StudentDetail from './components/StudentDetail'
 import Dashboard from './components/Dashboard'
+import Changelog from './components/Changelog'   // ✅ nouveau
 import Fuse from 'fuse.js'
 import './styles.css'
 
@@ -29,6 +30,7 @@ export default function App() {
   const [students, setStudents] = useState<Student[]>([])
   const [selectedId, setSelectedId] = useState<string | null>(null)
   const [showDashboard, setShowDashboard] = useState(true)
+  const [showChangelog, setShowChangelog] = useState(false)   // ✅ nouvel état
 
   const [q, setQ] = useState('')
   const [filterActive, setFilterActive] = useState<'all' | 'active' | 'inactive'>('all')
@@ -39,7 +41,6 @@ export default function App() {
   const [closingMenu, setClosingMenu] = useState(false)
   const [isMobile, setIsMobile] = useState<boolean>(window.innerWidth < 900)
 
-  // Toasts discrets
   const [toasts, setToasts] = useState<Toast[]>([])
   function pushToast(text: string) {
     const id = Math.random().toString(36).slice(2)
@@ -49,10 +50,7 @@ export default function App() {
     }, 3000)
   }
 
-  // ✅ État pour bouton "Mettre à jour maintenant"
   const [updateReady, setUpdateReady] = useState(false)
-
-  // ✅ État version app
   const [version, setVersion] = useState("")
 
   async function refresh() {
@@ -62,13 +60,13 @@ export default function App() {
     if (!list.length) {
       setSelectedId(null)
       setShowDashboard(true)
+      setShowChangelog(false)
     }
   }
 
   useEffect(() => {
     refresh()
     window.studentApi.onAppFocus(() => refresh())
-    // ✅ récupérer la version de façon asynchrone
     ;(async () => {
       try {
         const v = await window.studentApi.getVersion()
@@ -79,7 +77,6 @@ export default function App() {
     })()
   }, [])
 
-  // Toasts depuis main (store:saved)
   useEffect(() => {
     const unsubscribe = window.studentApi.onStoreSaved?.(({ action, icloud }) => {
       const where = icloud ? '☁️ iCloud' : '💾 local'
@@ -93,7 +90,6 @@ export default function App() {
     return () => { if (typeof unsubscribe === 'function') unsubscribe() }
   }, [])
 
-  // 🔥 Nouvel effet : écouter les updates depuis main.js
   useEffect(() => {
     window.studentApi.onUpdate?.("update:checking", () => {
       pushToast("🔄 Vérification des mises à jour...")
@@ -146,7 +142,6 @@ export default function App() {
     return () => window.removeEventListener('resize', onResize)
   }, [])
 
-  // Recherche fuzzy + filtre
   const filtered = useMemo(() => {
     let results = students
     const term = q.trim()
@@ -170,7 +165,6 @@ export default function App() {
     return results
   }, [q, students, filterActive])
 
-  // Stats
   const stats: Stats = useMemo(() => {
     const total = students.length
     const active = students.filter(s => s.isActive).length
@@ -197,12 +191,10 @@ export default function App() {
     return { total, active, inactive, lessons, lastStudent, lastLesson, topStudent }
   }, [students])
 
-  // Génération d’événements récents
   const events: ActivityItem[] = useMemo(() => {
     const evts: ActivityItem[] = []
 
     students.forEach(s => {
-      // Création
       evts.push({
         id: `stu-${s.id}-created`,
         kind: 'student:create',
@@ -210,8 +202,6 @@ export default function App() {
         when: s.sheet.createdAt,
         studentId: s.id
       })
-
-      // Mise à jour
       if (s.updatedAt) {
         evts.push({
           id: `stu-${s.id}-updated`,
@@ -221,8 +211,6 @@ export default function App() {
           studentId: s.id
         })
       }
-
-      // Suppression
       if (s.deletedAt) {
         evts.push({
           id: `stu-${s.id}-deleted`,
@@ -232,10 +220,7 @@ export default function App() {
           studentId: s.id
         })
       }
-
-      // Leçons
       s.lessons.forEach(l => {
-        // Création
         evts.push({
           id: `les-${s.id}-${l.id}-created`,
           kind: 'lesson:add',
@@ -243,8 +228,6 @@ export default function App() {
           when: l.createdAt,
           studentId: s.id
         })
-
-        // Mise à jour
         if (l.updatedAt) {
           evts.push({
             id: `les-${s.id}-${l.id}-updated`,
@@ -254,8 +237,6 @@ export default function App() {
             studentId: s.id
           })
         }
-
-        // Suppression
         if (l.deletedAt) {
           evts.push({
             id: `les-${s.id}-${l.id}-deleted`,
@@ -293,7 +274,11 @@ export default function App() {
         <button
           className="btn ghost"
           style={{ marginBottom: '16px', width: '100%' }}
-          onClick={() => { setSelectedId(null); setShowDashboard(true) }}
+          onClick={() => {
+            setSelectedId(null)
+            setShowDashboard(true)
+            setShowChangelog(false)
+          }}
         >
           🏠 Accueil
         </button>
@@ -361,6 +346,7 @@ export default function App() {
             onClick={() => {
               setSelectedId(s.id)
               setShowDashboard(false)
+              setShowChangelog(false)
               if (mobileMenuOpen) closeMenuSmooth()
             }}
             role="button"
@@ -416,13 +402,16 @@ export default function App() {
         </div>
 
         <div className="container">
-          {showDashboard ? (
+          {showChangelog ? (
+            <Changelog />
+          ) : showDashboard ? (
             <Dashboard
               stats={stats}
               events={events}
               onOpenStudent={(id) => {
                 setSelectedId(id)
                 setShowDashboard(false)
+                setShowChangelog(false)
               }}
             />
           ) : !selectedId ? (
@@ -436,17 +425,25 @@ export default function App() {
           )}
         </div>
 
-        {/* ✅ Version affichée */}
-        <div className="app-version">v{version}</div>
+        {/* ✅ Version affichée avec lien vers changelog */}
+        <div
+          className="app-version window-no-drag"
+          onClick={() => {
+            console.log('Clic sur version détecté !')
+            setSelectedId(null)
+            setShowDashboard(false)
+            setShowChangelog(true)
+          }}
+        >
+          v{version}
+        </div>
 
-        {/* Toasts */}
         <div className="toast-container">
           {toasts.map(t => (
             <div key={t.id} className="toast">{t.text}</div>
           ))}
         </div>
 
-        {/* ✅ Bannière de mise à jour */}
         {updateReady && (
           <div className="update-banner">
             🚀 Nouvelle version téléchargée&nbsp;

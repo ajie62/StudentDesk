@@ -841,11 +841,14 @@ button, .btn, input, textarea, label, select, a, .burger { -webkit-app-region: n
 }
 
 .app-version {
-  position: absolute;
+  position: fixed;
   top: 8px;
   right: 12px;
+  z-index: 100;
   font-size: 12px;
   color: #888;
   user-select: none;
-  pointer-events: none;
+  cursor: pointer;
+  -webkit-app-region: no-drag;
+  /* pointer-events: auto; */
 }

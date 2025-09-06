@@ -1,0 +1,56 @@
+.changelog {
+  max-width: 700px;
+  margin: 0 auto;
+  padding: 24px;
+  color: #ddd;
+}
+
+.changelog-title {
+  font-size: 22px;
+  margin-bottom: 20px;
+  text-align: center;
+  color: #fff;
+}
+
+.changelog-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.changelog-item {
+  background: #1b1b1b;
+  border-radius: 12px;
+  padding: 16px;
+  margin-bottom: 16px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.4);
+}
+
+.changelog-header {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+
+.changelog-version {
+  font-weight: bold;
+  color: #4cafef;
+}
+
+.changelog-date {
+  font-size: 12px;
+  color: #aaa;
+}
+
+.changelog-notes {
+  font-size: 14px;
+  line-height: 1.4;
+}
+
+.changelog-pagination {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 12px;
+  margin-top: 20px;
+}
