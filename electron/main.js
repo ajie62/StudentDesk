@@ -181,6 +181,9 @@ function deletePhotoIfExists(photoPath) {
 /* -------------------- IPC: Students CRUD -------------------- */
 ipcMain.handle('students:list', async () => {
   const students = loadStudents()
+    // masquer les étudiants supprimés
+    .filter(s => !s.deletedAt)
+
   return [...students].sort((a, b) => {
     const ln = a.lastName.localeCompare(b.lastName)
     if (ln !== 0) return ln
@@ -229,7 +232,6 @@ ipcMain.handle('students:delete', async (_evt, id) => {
 
   const student = students[idx]
   student.deletedAt = new Date().toISOString()
-  // supprimer photo du disque si elle existe
   deletePhotoIfExists(student.photo)
 
   saveStudents(students, 'students:delete')
@@ -238,9 +240,14 @@ ipcMain.handle('students:delete', async (_evt, id) => {
 
 ipcMain.handle('students:get', async (_evt, id) => {
   const students = loadStudents()
-  const s = students.find(x => x.id === id)
+  const s = students.find(x => x.id === id && !x.deletedAt)
   if (!s) throw new Error('Student not found')
-  const lessons = [...s.lessons].sort((a, b) => b.createdAt.localeCompare(a.createdAt))
+
+  // filtrer les leçons supprimées
+  const lessons = [...s.lessons]
+    .filter(l => !l.deletedAt)
+    .sort((a, b) => b.createdAt.localeCompare(a.createdAt))
+
   return { ...s, lessons }
 })
 
@@ -261,7 +268,9 @@ ipcMain.handle('lessons:add', async (_evt, studentId, payload) => {
   }
   students[idx].lessons.push(lesson)
   saveStudents(students, 'lessons:add')
-  const lessons = [...students[idx].lessons].sort((a, b) => b.createdAt.localeCompare(a.createdAt))
+  const lessons = [...students[idx].lessons]
+    .filter(l => !l.deletedAt)
+    .sort((a, b) => b.createdAt.localeCompare(a.createdAt))
   return { ...students[idx], lessons }
 })
 
@@ -321,7 +330,7 @@ ipcMain.handle('students:importCSV', async () => {
   let count = 0
 
   for (const row of data) {
-    if (!row.firstName && !row.lastName) continue // ignorer lignes vides
+    if (!row.firstName && !row.lastName) continue
 
     const now = new Date().toISOString()
     const student = {

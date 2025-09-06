@@ -274,6 +274,18 @@ export default function App() {
           📂 Importer CSV
         </button>
 
+        {/* Texte d’aide sur le schéma CSV */}
+        <div style={{ 
+            fontSize: '11px', 
+            color: '#aaa', 
+            marginBottom: '16px', 
+            paddingLeft: '4px',
+            lineHeight: 1.4
+        }}>
+            Schéma du CSV attendu :<br/>
+            <code>firstName, lastName, description, email, isActive</code>
+        </div>
+
         <input
           className="search"
           placeholder="Rechercher des étudiants…"
