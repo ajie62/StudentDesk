@@ -25,7 +25,10 @@ out/
 *.rpm
 *.pkg
 *.blockmap
-*.yml
+
+# Electron-builder YAML metadata
+latest-*.yml
+builder-debug.yml
 
 # macOS
 .DS_Store
