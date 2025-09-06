@@ -202,22 +202,32 @@ body {
 .hero {
   border-radius: var(--r-xl);
   padding: var(--s-6);
+  /* dégradé limité au hero */
   background:
-    radial-gradient(1200px 800px at 20% -40%, rgba(229,9,20,0.25), transparent 60%),
+    radial-gradient(1200px 800px at 20% -40%, rgba(229, 9, 20, 0.25), transparent 60%),
     linear-gradient(180deg, #1a1a1c, #0f0f11 90%);
   border: 1px solid var(--soft);
   margin-bottom: var(--s-6);
   position: relative;
-  overflow: hidden;
+  overflow: hidden; /* évite les débordements du dégradé en dehors du hero */
 }
+
+/* voile rouge en diagonale (au-dessus du fond, sous le contenu) */
 .hero::before {
   content: "";
   position: absolute;
   inset: 0;
-  background: linear-gradient(135deg, rgba(229,9,20,0.18), transparent 70%);
+  background: linear-gradient(135deg, rgba(229, 9, 20, 0.18), transparent 70%);
   pointer-events: none;
   z-index: 1;
 }
+
+/* assure que le contenu passe au-dessus du voile */
+.hero > * {
+  position: relative;
+  z-index: 2;
+}
+
 .hero-title {
   font-size: 13px;
   color: var(--muted);
@@ -225,18 +235,21 @@ body {
   margin-top: 18px;
   margin-bottom: 6px;
   position: relative;
-  z-index: 1;
+  z-index: 2;
 }
+
 .hero-row {
   display: flex;
   align-items: flex-start;
   gap: 16px;
 }
+
 .hero-avatar {
   flex-shrink: 0;
   width: 72px;
   height: 72px;
 }
+
 .hero-main {
   flex: 1;
   display: flex;
@@ -251,7 +264,9 @@ body {
   color: var(--muted);
   position: relative;
   max-width: 90%;
+  z-index: 2; /* passe au-dessus du masque */
 }
+
 .hero-description.limited {
   display: -webkit-box;
   line-clamp: 3;
@@ -270,6 +285,7 @@ body {
   background: linear-gradient(to bottom, transparent, var(--card));
   pointer-events: none;
 }
+
 .hero-description-toggle {
   margin-top: 10px;
   font-size: 14px;
@@ -283,6 +299,7 @@ body {
   padding: 0;
   transition: color 0.2s ease;
 }
+
 .hero-description-toggle:hover {
   color: var(--accent);
   text-decoration: underline;
@@ -801,4 +818,9 @@ button, .btn, input, textarea, label, select, a, .burger { -webkit-app-region: n
     linear-gradient(180deg, rgba(255,255,255,0.04), transparent),
     repeating-linear-gradient(90deg, rgba(255,255,255,0.04), rgba(255,255,255,0.04) 1px, transparent 1px, transparent 10px);
   border: 1px dashed var(--soft);
+}
+
+.btn.segment {
+  padding: 7px 12px;
+  font-weight: 600;
 }

@@ -1,4 +1,10 @@
 // Data contracts for the renderer side.
+
+export type LessonDuration = 30 | 45 | 60 | 90 | number
+
+// Niveaux CECRL
+export type CEFR = 'A1' | 'A2' | 'B1' | 'B2' | 'C1' | 'C2'
+
 export interface Lesson {
   id: string
   createdAt: string
@@ -7,6 +13,8 @@ export interface Lesson {
   comment: string
   homework: string
   tags: string[]
+  /** Identifiant du contrat (Cours & facturation) auquel cette leçon est rattachée */
+  billingId?: string | null   // ← optionnel, règle ton erreur
 }
 
 export type StudentSheet = {
@@ -29,8 +37,29 @@ export interface ActivityItem {
   studentId: string
 }
 
-/** CECRL */
-export type CEFR = 'A1' | 'A2' | 'B1' | 'B2' | 'C1' | 'C2'
+/** Contrat de cours & facturation */
+export interface BillingContract {
+  id: string
+  createdAt: string
+  updatedAt: string | null
+  mode: 'single' | 'package'
+  totalLessons: number
+  durationMinutes: LessonDuration
+  customDuration: boolean
+  pricePerLesson: number | null
+  currency: string | null
+  paid: boolean
+  notes: string
+  startDate: string | null
+  endDate: string | null
+
+  consumedLessons?: number
+  completed?: boolean
+  completedAt?: string | null
+
+  /** Nom unique pour différencier plusieurs contrats similaires */
+  displayName: string
+}
 
 export interface Student {
   id: string
@@ -44,12 +73,10 @@ export interface Student {
     createdAt: string
   }
   lessons: Lesson[]
-  updatedAt: string | null
-  deletedAt: string | null
 
-  /** ----- Suivi pédagogique (facultatif / rétrocompatible) ----- */
-  goals?: string                // Objectifs libres
-  progress?: number             // 0..100
+  // suivi (facultatif)
+  goals?: string
+  progress?: number
   cefr?: {
     oral?: CEFR
     ecrit?: CEFR
@@ -57,5 +84,11 @@ export interface Student {
     grammaire?: CEFR
     vocabulaire?: CEFR
   }
-  tags?: string[]               // ex: ["DELF B1", "grammaire"]
+  tags?: string[]
+
+  // facturation
+  billingHistory: BillingContract[]
+
+  updatedAt: string | null
+  deletedAt: string | null
 }

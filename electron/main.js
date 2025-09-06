@@ -121,6 +121,51 @@ function findStudentIndex(students, id) {
   return students.findIndex(s => s.id === id)
 }
 
+/* -------------------- Helpers: photos -------------------- */
+function deletePhotoIfExists(photoPath) {
+  if (!photoPath) return
+  try {
+    if (fs.existsSync(photoPath)) {
+      fs.unlinkSync(photoPath)
+      console.log('[StudentDesk] Photo supprimée:', photoPath)
+    }
+  } catch (e) {
+    console.warn('Erreur suppression photo:', e)
+  }
+}
+
+/* -------------------- Helpers: billing progression -------------------- */
+function recomputeBillingProgress(student) {
+  const history = Array.isArray(student.billingHistory) ? student.billingHistory : []
+  const lessons = Array.isArray(student.lessons) ? student.lessons : []
+
+  const countById = new Map()
+  for (const l of lessons) {
+    if (!l?.deletedAt && l?.billingId) {
+      countById.set(l.billingId, (countById.get(l.billingId) || 0) + 1)
+    }
+  }
+
+  const nowISO = new Date().toISOString()
+  for (const c of history) {
+    const total = c.mode === 'package' ? (c.totalLessons || 0) : 1
+    const consumed = countById.get(c.id) || 0
+    const isCompleted = total > 0 && consumed >= total
+
+    c.consumedLessons = consumed
+    c.completed = isCompleted
+    if (isCompleted && !c.completedAt) c.completedAt = nowISO
+    if (!isCompleted) c.completedAt = null
+    c.updatedAt = nowISO
+  }
+}
+function latestOpenContract(student) {
+  const history = Array.isArray(student.billingHistory) ? student.billingHistory : []
+  const sorted = [...history].sort((a, b) => (b.createdAt || '').localeCompare(a.createdAt || ''))
+  return sorted.find(c => !c.completed)
+}
+
+/* -------------------- App window -------------------- */
 async function createWindow() {
   mainWindow = new BrowserWindow({
     width: 1200,
@@ -165,25 +210,10 @@ app.on('window-all-closed', function () {
   if (process.platform !== 'darwin') app.quit()
 })
 
-/* -------------------- Helpers: photos -------------------- */
-function deletePhotoIfExists(photoPath) {
-  if (!photoPath) return
-  try {
-    if (fs.existsSync(photoPath)) {
-      fs.unlinkSync(photoPath)
-      console.log('[StudentDesk] Photo supprimée:', photoPath)
-    }
-  } catch (e) {
-    console.warn('Erreur suppression photo:', e)
-  }
-}
-
 /* -------------------- IPC: Students CRUD -------------------- */
 ipcMain.handle('students:list', async () => {
   const students = loadStudents()
-    // masquer les étudiants supprimés
     .filter(s => !s.deletedAt)
-
   return [...students].sort((a, b) => {
     const ln = a.lastName.localeCompare(b.lastName)
     if (ln !== 0) return ln
@@ -204,6 +234,7 @@ ipcMain.handle('students:create', async (_evt, payload) => {
     photo: payload.photo || null,
     sheet: { createdAt: now },
     lessons: [],
+    billingHistory: [],
     updatedAt: null,
     deletedAt: null
   }
@@ -216,11 +247,13 @@ ipcMain.handle('students:update', async (_evt, id, patch) => {
   const students = loadStudents()
   const idx = findStudentIndex(students, id)
   if (idx === -1) throw new Error('Student not found')
-  students[idx] = {
-    ...students[idx],
-    ...patch,
-    updatedAt: new Date().toISOString()
+
+  const merged = { ...students[idx], ...patch, updatedAt: new Date().toISOString() }
+  if (patch?.lessons || patch?.billingHistory) {
+    recomputeBillingProgress(merged)
   }
+
+  students[idx] = merged
   saveStudents(students, 'students:update')
   return students[idx]
 })
@@ -243,8 +276,10 @@ ipcMain.handle('students:get', async (_evt, id) => {
   const s = students.find(x => x.id === id && !x.deletedAt)
   if (!s) throw new Error('Student not found')
 
-  // filtrer les leçons supprimées
-  const lessons = [...s.lessons]
+  s.billingHistory ||= []
+  recomputeBillingProgress(s)
+
+  const lessons = [...(s.lessons || [])]
     .filter(l => !l.deletedAt)
     .sort((a, b) => b.createdAt.localeCompare(a.createdAt))
 
@@ -256,7 +291,17 @@ ipcMain.handle('lessons:add', async (_evt, studentId, payload) => {
   const students = loadStudents()
   const idx = findStudentIndex(students, studentId)
   if (idx === -1) throw new Error('Student not found')
+
   const now = new Date().toISOString()
+  const student = students[idx]
+
+  // billingId prioritaire depuis payload, sinon dernier contrat ouvert
+  let targetBillingId = payload.billingId || null
+  if (!targetBillingId) {
+    const targetContract = latestOpenContract(student)
+    targetBillingId = targetContract ? targetContract.id : null
+  }
+
   const lesson = {
     id: uid(),
     createdAt: now,
@@ -264,14 +309,21 @@ ipcMain.handle('lessons:add', async (_evt, studentId, payload) => {
     deletedAt: null,
     comment: payload.comment || '',
     homework: payload.homework || '',
-    tags: payload.tags || []
+    tags: payload.tags || [],
+    billingId: targetBillingId
   }
-  students[idx].lessons.push(lesson)
+
+  student.lessons.push(lesson)
+  recomputeBillingProgress(student)
+
+  students[idx] = student
   saveStudents(students, 'lessons:add')
-  const lessons = [...students[idx].lessons]
+
+  const lessons = [...student.lessons]
     .filter(l => !l.deletedAt)
     .sort((a, b) => b.createdAt.localeCompare(a.createdAt))
-  return { ...students[idx], lessons }
+
+  return { ...student, lessons }
 })
 
 ipcMain.handle('lessons:update', async (_evt, studentId, lessonId, patch) => {
@@ -279,17 +331,23 @@ ipcMain.handle('lessons:update', async (_evt, studentId, lessonId, patch) => {
   const idx = findStudentIndex(students, studentId)
   if (idx === -1) throw new Error('Student not found')
 
-  const lidx = students[idx].lessons.findIndex(l => l.id === lessonId)
+  const student = students[idx]
+  const lidx = (student.lessons || []).findIndex(l => l.id === lessonId)
   if (lidx === -1) throw new Error('Lesson not found')
 
-  students[idx].lessons[lidx] = {
-    ...students[idx].lessons[lidx],
+  student.lessons[lidx] = {
+    ...student.lessons[lidx],
     ...patch,
     updatedAt: new Date().toISOString()
   }
 
+  if ('billingId' in patch) {
+    recomputeBillingProgress(student)
+  }
+
+  students[idx] = student
   saveStudents(students, 'lessons:update')
-  return students[idx].lessons[lidx]
+  return student.lessons[lidx]
 })
 
 ipcMain.handle('lessons:delete', async (_evt, studentId, lessonId) => {
@@ -297,11 +355,14 @@ ipcMain.handle('lessons:delete', async (_evt, studentId, lessonId) => {
   const idx = findStudentIndex(students, studentId)
   if (idx === -1) throw new Error('Student not found')
 
-  const lidx = students[idx].lessons.findIndex(l => l.id === lessonId)
+  const student = students[idx]
+  const lidx = (student.lessons || []).findIndex(l => l.id === lessonId)
   if (lidx === -1) throw new Error('Lesson not found')
 
-  students[idx].lessons[lidx].deletedAt = new Date().toISOString()
+  student.lessons[lidx].deletedAt = new Date().toISOString()
+  recomputeBillingProgress(student)
 
+  students[idx] = student
   saveStudents(students, 'lessons:delete')
   return lessonId
 })
@@ -346,6 +407,7 @@ ipcMain.handle('students:importCSV', async () => {
       photo: null,
       sheet: { createdAt: now },
       lessons: [],
+      billingHistory: [],
       updatedAt: null,
       deletedAt: null
     }

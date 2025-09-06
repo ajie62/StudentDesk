@@ -1,22 +1,28 @@
 import React, { useState } from 'react'
 import LessonForm from './LessonForm'
-import { Lesson } from '../types'
+import { Lesson, BillingContract } from '../types'
 
 type Props = {
   studentId: string
   lesson: Lesson
+  allContracts: BillingContract[]
   onUpdated: () => Promise<void> | void
   onDelete: () => Promise<void> | void
 }
 
-export default function LessonCard({ studentId, lesson, onUpdated, onDelete }: Props) {
+export default function LessonCard({ studentId, lesson, allContracts, onUpdated, onDelete }: Props) {
   const [editing, setEditing] = useState(false)
 
+  const contract = allContracts.find(c => c.id === lesson.billingId)
+
   async function handleSave(patch: Partial<Lesson>) {
-    await window.studentApi.updateLesson(studentId, lesson.id, {
-      comment: patch.comment ?? lesson.comment,
-      homework: patch.homework ?? lesson.homework,
-    })
+    const payload: Partial<Lesson> = {
+        comment: patch.comment ?? lesson.comment,
+        homework: patch.homework ?? lesson.homework,
+        billingId: patch.billingId ?? lesson.billingId,
+    }
+
+    await window.studentApi.updateLesson(studentId, lesson.id, payload)
     setEditing(false)
     await onUpdated()
   }
@@ -34,6 +40,19 @@ export default function LessonCard({ studentId, lesson, onUpdated, onDelete }: P
         </div>
       </div>
 
+      {lesson.billingId && (
+        <div
+          style={{
+            fontSize: 12,
+            color: contract ? 'var(--muted)' : '#f87171',
+            marginBottom: 8,
+          }}
+        >
+          Contrat lié : {contract?.displayName ?? lesson.billingId}{' '}
+          {!contract && <span>(contrat supprimé)</span>}
+        </div>
+      )}
+
       <div className="lesson-actions">
         <button className="btn ghost" onClick={() => setEditing(true)}>Modifier</button>
         <button className="btn" onClick={() => onDelete()}>Supprimer</button>
@@ -43,6 +62,7 @@ export default function LessonCard({ studentId, lesson, onUpdated, onDelete }: P
         <LessonForm
           studentId={studentId}
           initial={lesson}
+          availableContracts={allContracts.filter(c => !c.completed)}
           onClose={() => setEditing(false)}
           onSaved={handleSave}
         />
