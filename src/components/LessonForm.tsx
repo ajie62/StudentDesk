@@ -119,10 +119,10 @@ export default function LessonForm({ studentId, onClose, onSaved, initial, avail
                 >
                 {singlesSorted.length > 0 && (
                     <optgroup label="Cours unitaires">
-                    {singlesSorted.map((c, idx) => (
-                        <option key={c.id} value={c.id}>
-                        {`Cours unitaire (${idx + 1})`}
-                        </option>
+                    {singlesSorted.map((c) => (
+                    <option key={c.id} value={c.id}>
+                        {c.displayName}
+                    </option>
                     ))}
                     </optgroup>
                 )}
@@ -130,12 +130,12 @@ export default function LessonForm({ studentId, onClose, onSaved, initial, avail
                 {packsFlatSorted.length > 0 && (
                     <optgroup label="Packs">
                     {packGroups.sizes.map(size => {
-                        const arr = packGroups.map.get(size) || []
-                        return arr.map((c, idx) => (
+                    const arr = packGroups.map.get(size) || []
+                      return arr.map((c) => (
                         <option key={c.id} value={c.id}>
-                            {`Pack ${size} leçons (${idx + 1})`}
+                        {c.displayName}
                         </option>
-                        ))
+                      ))
                     })}
                     </optgroup>
                 )}

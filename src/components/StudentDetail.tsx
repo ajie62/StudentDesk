@@ -434,10 +434,24 @@ export default function StudentDetail({ studentId, onDeleted, onUpdated }: Props
               }}
               onChange={updateTracking}
             />
-            <div className="actions" style={{ marginTop: 12, display: 'flex', gap: 8 }}>
-              <button className="btn" disabled={!trackDirty} onClick={saveTracking}>💾 Enregistrer</button>
-              <button className="btn ghost" disabled={!trackDirty} onClick={resetTracking}>Annuler</button>
-              {!trackDirty && <span style={{ alignSelf: 'center', color: 'var(--muted)' }}>Aucune modification</span>}
+            <div className="actions" style={{ marginTop: 12, display: 'flex', alignItems: 'center' }}>
+              {!trackDirty && (
+                <span style={{ color: 'var(--muted)' }}>
+                Aucune modification
+                </span>
+              )}
+
+              {/* pousse les boutons complètement à droite */}
+              <div style={{ flex: 1 }} />
+
+              <div className="buttons" style={{ display: 'flex', gap: 8 }}>
+                <button className="btn ghost" disabled={!trackDirty} onClick={resetTracking}>
+                  Annuler
+                </button>
+                <button className="btn" disabled={!trackDirty} onClick={saveTracking}>
+                  💾 Enregistrer
+                </button>
+              </div>
             </div>
           </div>
         )}
@@ -652,13 +666,13 @@ export default function StudentDetail({ studentId, onDeleted, onUpdated }: Props
                   onChange={(patch) => updateBilling(patch)}
                 />
                 <div className="actions">
-                  <button className="btn" disabled={!billingDirty} onClick={saveBilling}>💾 Enregistrer</button>
                   <button
                     className="btn ghost"
                     onClick={() => { setBillingDraft(null); setEditingContract(null); setBillingDirty(false) }}
                   >
                     Annuler
                   </button>
+                  <button className="btn" disabled={!billingDirty} onClick={saveBilling}>💾 Enregistrer</button>
                 </div>
               </div>
             )}
