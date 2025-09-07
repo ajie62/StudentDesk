@@ -31,10 +31,27 @@ type Props = {
 
 const COLORS = ["#10b981", "#ef4444"];
 
+const motivationalQuotes = [
+  "🌱 Chaque leçon est une graine semée dans l'esprit d'un étudiant.",
+  "✨ Inspirer aujourd’hui, c’est changer demain.",
+  "📘 Un élève motivé est un monde qui s’ouvre.",
+  "🌍 Enseigner, c’est laisser une trace dans l’infini.",
+  "💡 Une seule explication claire peut illuminer une vie entière.",
+  "🌟 Derrière chaque progrès d’un étudiant, il y a votre patience.",
+  "🔥 La passion d’enseigner crée la passion d’apprendre.",
+  "🎶 Chaque cours est une note dans la symphonie de leur avenir.",
+  "🌸 Enseigner, c’est semer la confiance en soi.",
+  "🚀 Aujourd’hui, vous changez la trajectoire d’une vie."
+];
+
 export default function Dashboard({ stats, students, events, onOpenStudent }: Props) {
   const [page, setPage] = useState(1);
   const [historyClearedAt, setHistoryClearedAt] = useState<string | null>(null);
   const PAGE_SIZE = 8;
+
+  const randomQuote = useMemo(() => {
+    return motivationalQuotes[Math.floor(Math.random() * motivationalQuotes.length)];
+  }, []);
 
   // Récupère la date de purge (pour masquer les créations/updates antérieures)
   useEffect(() => {
@@ -119,61 +136,116 @@ export default function Dashboard({ stats, students, events, onOpenStudent }: Pr
     <div className="dash">
       <h2>Tableau de bord</h2>
 
+      <p className="motivational-quote">{randomQuote}</p>
+
       {/* ROW 1 : 50/50 charts */}
       <div className="dash-grid">
-        <div className="dashboard-card">
-          <h3>Actifs / Inactifs</h3>
-          <div className="chart-container">
-            <ResponsiveContainer>
+        <div className="dashboard-card pie">
+            <h3>Actifs / Inactifs</h3>
+
+            <div className="chart-container relative">
+                <ResponsiveContainer width="100%" height="100%">
                 <PieChart>
+                    {/* Dégradés & lueur discrète */}
+                    <defs>
+                    <linearGradient id="gradActive" x1="0" y1="0" x2="1" y2="1">
+                        <stop offset="0%" stopColor="#16d39a" />
+                        <stop offset="100%" stopColor="#0ea372" />
+                    </linearGradient>
+                    <linearGradient id="gradInactive" x1="0" y1="0" x2="1" y2="1">
+                        <stop offset="0%" stopColor="#ff6b6b" />
+                        <stop offset="100%" stopColor="#e43f3f" />
+                    </linearGradient>
+
+                    {/* Glow très léger */}
+                    <filter id="softGlow" x="-50%" y="-50%" width="200%" height="200%">
+                        <feGaussianBlur in="SourceGraphic" stdDeviation="2.2" result="blur" />
+                        <feMerge>
+                        <feMergeNode in="blur" />
+                        <feMergeNode in="SourceGraphic" />
+                        </feMerge>
+                    </filter>
+                    </defs>
+
+                    {/* Anneau de fond (piste) */}
                     <Pie
-                    data={pieData}
+                    data={[{ value: 1 }]}
+                    dataKey="value"
+                    cx="50%"
+                    cy="50%"
+                    startAngle={90}
+                    endAngle={-270}
                     innerRadius={70}
                     outerRadius={100}
-                    paddingAngle={4}
+                    stroke="none"
+                    fill="rgba(255,255,255,0.04)"
+                    />
+
+                    {/* Donut principal : angles arrondis + dégradés */}
+                    <Pie
+                    data={[
+                        { name: "Actifs", value: stats.active, fill: "url(#gradActive)" },
+                        { name: "Inactifs", value: stats.inactive, fill: "url(#gradInactive)" },
+                    ]}
+                    cx="50%"
+                    cy="50%"
+                    startAngle={90}
+                    endAngle={-270}        // sens horaire
+                    innerRadius={70}
+                    outerRadius={100}
+                    paddingAngle={2.5}
+                    cornerRadius={10}      // bords arrondis
                     dataKey="value"
+                    stroke="#0f0f11"       // léger trait pour “séparateur”
+                    strokeWidth={2}
+                    filter="url(#softGlow)"
                     >
-                    {pieData.map((entry, i) => (
-                        <Cell key={i} fill={COLORS[i % COLORS.length]} />
-                    ))}
+                    {/* Cell essentielles si tu veux garder la map : on a déjà mis fill dans data */}
                     </Pie>
+
                     <Tooltip
                     contentStyle={{
                         backgroundColor: "rgba(31,31,31,0.95)",
-                        border: "1px solid rgba(255,255,255,0.1)",
-                        borderRadius: "8px",
+                        border: "1px solid rgba(255,255,255,0.08)",
+                        borderRadius: 8,
                         color: "#f9fafb",
+                        fontSize: 13,
                     }}
                     itemStyle={{ color: "#f9fafb" }}
                     />
                 </PieChart>
-            </ResponsiveContainer>
-            <div className="chart-center">
-              <span className="value">{stats.total}</span>
-              <span className="label">Étudiants</span>
+                </ResponsiveContainer>
+
+                {/* Centre parfaitement aligné */}
+                <div className="donut-center">
+                <span className="donut-value">{stats.total}</span>
+                <span className="donut-label">Étudiants</span>
+                </div>
             </div>
-          </div>
+
+            {/* Légende compacte */}
+            <div className="donut-legend">
+                <div className="legend-item">
+                <span className="legend-dot" style={{ background: "linear-gradient(135deg,#16d39a,#0ea372)" }} />
+                <span>Actifs</span>
+                <span className="legend-count">{stats.active}</span>
+                </div>
+                <div className="legend-item">
+                <span className="legend-dot" style={{ background: "linear-gradient(135deg,#ff6b6b,#e43f3f)" }} />
+                <span>Inactifs</span>
+                <span className="legend-count">{stats.inactive}</span>
+                </div>
+            </div>
         </div>
 
         <div className="dashboard-card">
             <h3>Leçons (7 derniers jours)</h3>
             <div className="chart-container">
-                <ResponsiveContainer width="100%" height="100%">
+                <ResponsiveContainer>
                 <BarChart data={days}>
                     <CartesianGrid strokeDasharray="3 3" stroke="#2d2d30" />
-
-                    <XAxis
-                        dataKey="day"
-                        stroke="#9ca3af"
-                        tick={{ fontSize: 12 }}
-                        tickFormatter={(value: string) => {
-                            const todayShort = new Date().toLocaleDateString("fr-FR", { weekday: "short" });
-                            return value === todayShort ? `${value} ⭐` : value;
-                        }}
-                    />
-
-                    <YAxis stroke="#9ca3af" allowDecimals={false} />
-
+                    <XAxis dataKey="day" stroke="#9ca3af" />
+                    <YAxis stroke="#9ca3af" allowDecimals={false} interval={0} />
                     <Tooltip
                     contentStyle={{
                         backgroundColor: "rgba(31,31,31,0.95)",
@@ -182,12 +254,22 @@ export default function Dashboard({ stats, students, events, onOpenStudent }: Pr
                         color: "#f9fafb",
                     }}
                     itemStyle={{ color: "#f9fafb" }}
-                    cursor={{ fill: "rgba(59,130,246,0.15)" }} // hover plus doux
+                    cursor={{ fill: "rgba(59,130,246,0.15)" }}
                     />
-
                     <Bar dataKey="count" fill="#3b82f6" radius={[8, 8, 0, 0]} />
                 </BarChart>
                 </ResponsiveContainer>
+            </div>
+
+            {/* ✅ Total des leçons de la semaine */}
+            <div className="donut-legend donut-legend--center mt-3">
+                <div className="legend-item">
+                    <span className="legend-dot" style={{ background: "#3b82f6" }} />
+                    <span>Total</span>
+                    <span className="legend-count">
+                    {days.reduce((acc, d) => acc + d.count, 0)}
+                    </span>
+                </div>
             </div>
             </div>
       </div>
@@ -267,24 +349,28 @@ export default function Dashboard({ stats, students, events, onOpenStudent }: Pr
         </div>
 
         <div className="activity-list">
-            {paginated.map((ev) => (
-            <div
+            {paginated.length === 0 ? (
+            <div className="empty-state">Aucune activité enregistrée pour l’instant.</div>
+            ) : (
+            paginated.map((ev) => (
+                <div
                 key={ev.id}
                 className="activity-item"
                 onClick={() => onOpenStudent(ev.studentId)}
-            >
+                >
                 <span className="activity-icon">
-                {ev.kind.startsWith("student") ? "👤" : "📘"}
+                    {ev.kind.startsWith("student") ? "👤" : "📘"}
                 </span>
                 <span className="activity-label">{ev.label}</span>
                 <span className="activity-date">
-                {formatDistanceToNow(new Date(ev.when), {
+                    {formatDistanceToNow(new Date(ev.when), {
                     addSuffix: true,
                     locale: fr,
-                })}
+                    })}
                 </span>
-            </div>
-            ))}
+                </div>
+            ))
+            )}
         </div>
 
         {pageCount > 1 && (

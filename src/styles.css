@@ -1001,3 +1001,67 @@ button, .btn, input, textarea, label, select, a, .burger { -webkit-app-region: n
   -webkit-app-region: no-drag;
   /* pointer-events: auto; */
 }
+
+.motivational-quote {
+  margin-top: -4px;
+  margin-bottom: 16px;
+  font-size: 14px;
+  font-style: italic;
+  color: #9ca3af; /* gris clair, élégant */
+  opacity: 0.85;
+}
+
+/* Donut center (ajustement optique) */
+.donut-center {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+  line-height: 1;               /* lignes serrées */
+  transform: translateY(-5px);  /* <- corrige la sensation “un peu trop bas” */
+}
+.donut-value {
+  font-size: 28px;
+  font-weight: 800;
+  color: var(--text);
+  margin-bottom: 2px;           /* espace minimal entre les 2 lignes */
+}
+
+.donut-label {
+  font-size: 13px;
+  color: var(--muted);
+  line-height: 1;
+}
+
+/* Légende compacte sous la chart */
+.donut-legend {
+  display: flex;
+  gap: 14px;
+  margin-top: 10px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+.donut-legend--center { justify-content: center; }
+.legend-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(255,255,255,0.03);
+  border: 1px solid var(--soft);
+  border-radius: 999px;
+  padding: 6px 10px;
+  font-size: 13px;
+  color: var(--text);
+}
+.legend-dot {
+  width: 10px; height: 10px; border-radius: 999px;
+  box-shadow: 0 0 0 2px rgba(255,255,255,0.06) inset;
+}
+.legend-count {
+  opacity: 0.9;
+  font-weight: 700;
+  margin-left: 2px;
+}
