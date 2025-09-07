@@ -22,7 +22,7 @@ const MAX_BACKUPS = 10
 function logUpdate(message) {
   const logFile = path.join(os.homedir(), 'studentdesk-updater.log')
   const fullMessage = `[${new Date().toISOString()}] ${message}\n`
-  console.log('[Updater]', message) // visible dans console + Console.app
+  console.log('[Updater]', message)
   try {
     fs.appendFileSync(logFile, fullMessage)
   } catch (e) {
@@ -110,6 +110,18 @@ function initStore() {
     cwd: dataDirs.baseDir,
     defaults: { students: [] }
   })
+
+  // ✅ Conversion one-shot: transforme d'éventuels soft deletes en hard deletes
+  try {
+    const current = store.get('students') || []
+    const cleaned = hardPurgeDeleted(current)
+    if (JSON.stringify(current) !== JSON.stringify(cleaned)) {
+      saveStudents(cleaned, 'maintenance:hard-purge')
+      console.log('[StudentDesk] Hard purge effectué (soft deletes nettoyés).')
+    }
+  } catch (e) {
+    console.warn('Hard purge failed:', e)
+  }
 }
 
 /* -------------------- Helpers -------------------- */
@@ -132,6 +144,28 @@ function saveStudents(students, action = 'write') {
 }
 function findStudentIndex(students, id) { return students.findIndex(s => s.id === id) }
 
+/* -------------------- Hard purge (sécurité) -------------------- */
+// Supprime définitivement de "students" et "lessons" tout ce qui a un deletedAt
+function hardPurgeDeleted(students) {
+  if (!Array.isArray(students)) return []
+  const cleaned = []
+  for (const s of students) {
+    if (s?.deletedAt) {
+      // étudiant marqué supprimé → on l'ignore (hard delete)
+      continue
+    }
+    const copy = { ...s }
+    // purge des leçons marquées supprimées
+    copy.lessons = Array.isArray(copy.lessons)
+      ? copy.lessons.filter(l => !l?.deletedAt)
+      : []
+    // sécurité: normalise les tableaux utilisés ailleurs
+    copy.billingHistory = Array.isArray(copy.billingHistory) ? copy.billingHistory : []
+    cleaned.push(copy)
+  }
+  return cleaned
+}
+
 /* -------------------- Photos -------------------- */
 function deletePhotoIfExists(photoPath) {
   if (!photoPath) return
@@ -151,7 +185,7 @@ function recomputeBillingProgress(student) {
   const lessons = Array.isArray(student.lessons) ? student.lessons : []
   const countById = new Map()
   for (const l of lessons) {
-    if (!l?.deletedAt && l?.billingId) {
+    if (l?.billingId) {
       countById.set(l.billingId, (countById.get(l.billingId) || 0) + 1)
     }
   }
@@ -247,7 +281,6 @@ app.on('window-all-closed', function () {
 /* -------------------- IPC: Students CRUD -------------------- */
 ipcMain.handle('students:list', async () => {
   const students = loadStudents()
-    .filter(s => !s.deletedAt)
   return [...students].sort((a, b) => {
     const ln = a.lastName.localeCompare(b.lastName)
     if (ln !== 0) return ln
@@ -269,8 +302,7 @@ ipcMain.handle('students:create', async (_evt, payload) => {
     sheet: { createdAt: now },
     lessons: [],
     billingHistory: [],
-    updatedAt: null,
-    deletedAt: null
+    updatedAt: null
   }
   students.push(student)
   saveStudents(students, 'students:create')
@@ -298,23 +330,24 @@ ipcMain.handle('students:delete', async (_evt, id) => {
   if (idx === -1) throw new Error('Student not found')
 
   const student = students[idx]
-  student.deletedAt = new Date().toISOString()
+  // supprime la photo éventuelle
   deletePhotoIfExists(student.photo)
 
-  saveStudents(students, 'students:delete')
-  return student.id
+  // ✅ HARD DELETE: on retire l'étudiant du tableau
+  students.splice(idx, 1)
+  saveStudents(students, 'students:delete:hard')
+  return id
 })
 
 ipcMain.handle('students:get', async (_evt, id) => {
   const students = loadStudents()
-  const s = students.find(x => x.id === id && !x.deletedAt)
+  const s = students.find(x => x.id === id)
   if (!s) throw new Error('Student not found')
 
   s.billingHistory ||= []
   recomputeBillingProgress(s)
 
   const lessons = [...(s.lessons || [])]
-    .filter(l => !l.deletedAt)
     .sort((a, b) => b.createdAt.localeCompare(a.createdAt))
 
   return { ...s, lessons }
@@ -340,7 +373,6 @@ ipcMain.handle('lessons:add', async (_evt, studentId, payload) => {
     id: uid(),
     createdAt: now,
     updatedAt: null,
-    deletedAt: null,
     comment: payload.comment || '',
     homework: payload.homework || '',
     tags: payload.tags || [],
@@ -354,7 +386,6 @@ ipcMain.handle('lessons:add', async (_evt, studentId, payload) => {
   saveStudents(students, 'lessons:add')
 
   const lessons = [...student.lessons]
-    .filter(l => !l.deletedAt)
     .sort((a, b) => b.createdAt.localeCompare(a.createdAt))
 
   return { ...student, lessons }
@@ -390,14 +421,19 @@ ipcMain.handle('lessons:delete', async (_evt, studentId, lessonId) => {
   if (idx === -1) throw new Error('Student not found')
 
   const student = students[idx]
-  const lidx = (student.lessons || []).findIndex(l => l.id === lessonId)
+  const lessons = Array.isArray(student.lessons) ? student.lessons : []
+  const lidx = lessons.findIndex(l => l.id === lessonId)
   if (lidx === -1) throw new Error('Lesson not found')
 
-  student.lessons[lidx].deletedAt = new Date().toISOString()
+  // ✅ HARD DELETE: on retire la leçon du tableau
+  lessons.splice(lidx, 1)
+
+  // Recalcule la facturation liée
   recomputeBillingProgress(student)
 
+  student.lessons = lessons
   students[idx] = student
-  saveStudents(students, 'lessons:delete')
+  saveStudents(students, 'lessons:delete:hard')
   return lessonId
 })
 
@@ -442,8 +478,7 @@ ipcMain.handle('students:importCSV', async () => {
       sheet: { createdAt: now },
       lessons: [],
       billingHistory: [],
-      updatedAt: null,
-      deletedAt: null
+      updatedAt: null
     }
     students.push(student)
     count++
@@ -460,3 +495,30 @@ ipcMain.handle("update:installNow", () => {
 })
 
 ipcMain.handle("app:getVersion", () => app.getVersion())
+
+// Efface l'historique : supprime updatedAt partout et fixe un cutoff
+ipcMain.handle('history:clear', async () => {
+  const students = loadStudents() || []
+  const now = new Date().toISOString()
+
+  for (const s of students) {
+    // hard delete de l'historique de modifs
+    s.updatedAt = null
+    if (Array.isArray(s.lessons)) {
+      for (const l of s.lessons) {
+        l.updatedAt = null
+      }
+    }
+  }
+
+  // on sauvegarde les students
+  saveStudents(students, 'history:clear')
+
+  // on enregistre un cutoff global pour masquer les créations antérieures
+  store.set('historyClearedAt', now)
+  return { clearedAt: now }
+})
+
+ipcMain.handle('history:getClearedAt', async () => {
+  return store.get('historyClearedAt') || null
+})

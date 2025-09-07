@@ -32,4 +32,6 @@ contextBridge.exposeInMainWorld("studentApi", {
   installUpdateNow: () => ipcRenderer.invoke("update:installNow"),
 
   getVersion: () => ipcRenderer.invoke("app:getVersion"),
+  clearHistory: () => ipcRenderer.invoke('history:clear'),
+  getHistoryClearedAt: () => ipcRenderer.invoke('history:getClearedAt')
 })

@@ -17,6 +17,8 @@ declare global {
       onUpdate?: (channel: string, cb: (event: any, payload?: any) => void) => () => void
       installUpdateNow: () => Promise<void>
       getVersion: () => Promise<string>
+      clearHistory: () => Promise<{ clearedAt: string }>
+      getHistoryClearedAt: () => Promise<string | null>
     }
   }
 }

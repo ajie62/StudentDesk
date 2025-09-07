@@ -1,12 +1,13 @@
-import React, { useEffect, useMemo, useState } from 'react'
+import React, { useEffect, useMemo, useState, Suspense, lazy } from 'react'
 import { Student, ActivityItem } from './types'
 import { fullName } from './utils'
 import StudentForm from './components/StudentForm'
 import StudentDetail from './components/StudentDetail'
-import Dashboard from './components/Dashboard'
 import Changelog from './components/Changelog'   // ✅ nouveau
 import Fuse from 'fuse.js'
 import './styles.css'
+
+const Dashboard = lazy(() => import('./components/Dashboard'))
 
 function initialsOf(s: Pick<Student, 'firstName' | 'lastName'>) {
   const a = (s.firstName || '').trim()[0] || ''
@@ -405,15 +406,18 @@ export default function App() {
           {showChangelog ? (
             <Changelog />
           ) : showDashboard ? (
-            <Dashboard
-              stats={stats}
-              events={events}
-              onOpenStudent={(id) => {
-                setSelectedId(id)
-                setShowDashboard(false)
-                setShowChangelog(false)
-              }}
-            />
+            <Suspense fallback={<div className="empty">Chargement du tableau de bord...</div>}>
+              <Dashboard
+                stats={stats}
+                students={students}
+                events={events}
+                onOpenStudent={(id) => {
+                  setSelectedId(id)
+                  setShowDashboard(false)
+                  setShowChangelog(false)
+                }}
+              />
+            </Suspense>
           ) : !selectedId ? (
             <div className="empty">Sélectionnez un étudiant pour afficher sa fiche.</div>
           ) : (
