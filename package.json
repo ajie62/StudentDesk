@@ -1,6 +1,6 @@
 {
   "name": "studentdesk",
-  "version": "0.1.11",
+  "version": "0.2.0",
   "description": "Minimal modern student manager desktop app (Electron + React + Vite).",
   "main": "electron/main.js",
   "author": "",
