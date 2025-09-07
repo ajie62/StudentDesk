@@ -54,8 +54,16 @@
         "zip"
       ],
       "icon": "build/icon.icns",
-      "category": "public.app-category.productivity",
+      "category": "public.app-category.education",
       "artifactName": "${productName}-${version}-${arch}.${ext}"
+    },
+    "dmg": {
+      "icon": "build/icon.icns",
+      "backgroundColor": "#0e0e10",
+      "contents": [
+        { "x": 140, "y": 170, "type": "file" },
+        { "x": 380, "y": 170, "type": "link", "path": "/Applications" }
+      ]
     },
     "publish": [
       {
