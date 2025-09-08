@@ -17,6 +17,7 @@ const APP_DIR_NAME = 'StudentDesk'
 const STORE_NAME = 'studentdesk-data'
 const BACKUPS_DIR_NAME = 'backups'
 const MAX_BACKUPS = 10
+const HISTORY_KEY = 'historyClearedAt';
 
 /* -------------------- Logger for updates -------------------- */
 function logUpdate(message) {
@@ -108,7 +109,7 @@ function initStore() {
   store = new Store({
     name: STORE_NAME,
     cwd: dataDirs.baseDir,
-    defaults: { students: [] }
+    defaults: { students: [], [HISTORY_KEY]: null }
   })
 
   // ✅ Conversion one-shot: transforme d'éventuels soft deletes en hard deletes
@@ -488,7 +489,7 @@ ipcMain.handle('students:importCSV', async () => {
   return { count }
 })
 
-// ⚡ Permet d’installer la mise à jour immédiatement
+/* -------------------- IPC: Updates -------------------- */
 ipcMain.handle("update:installNow", () => {
   logUpdate("Installation immédiate de la mise à jour demandée.")
   autoUpdater.quitAndInstall()
@@ -496,13 +497,12 @@ ipcMain.handle("update:installNow", () => {
 
 ipcMain.handle("app:getVersion", () => app.getVersion())
 
-// Efface l'historique : supprime updatedAt partout et fixe un cutoff
+/* -------------------- IPC: History -------------------- */
 ipcMain.handle('history:clear', async () => {
   const students = loadStudents() || []
   const now = new Date().toISOString()
 
   for (const s of students) {
-    // hard delete de l'historique de modifs
     s.updatedAt = null
     if (Array.isArray(s.lessons)) {
       for (const l of s.lessons) {
@@ -511,14 +511,17 @@ ipcMain.handle('history:clear', async () => {
     }
   }
 
-  // on sauvegarde les students
   saveStudents(students, 'history:clear')
+  store.set(HISTORY_KEY, now)
 
-  // on enregistre un cutoff global pour masquer les créations antérieures
-  store.set('historyClearedAt', now)
+  // ✅ Notify renderer immédiatement
+  if (mainWindow && !mainWindow.isDestroyed()) {
+    mainWindow.webContents.send('history:cleared', { clearedAt: now })
+  }
+
   return { clearedAt: now }
 })
 
 ipcMain.handle('history:getClearedAt', async () => {
-  return store.get('historyClearedAt') || null
+  return store.get(HISTORY_KEY) || null
 })

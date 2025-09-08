@@ -32,6 +32,14 @@ contextBridge.exposeInMainWorld("studentApi", {
   installUpdateNow: () => ipcRenderer.invoke("update:installNow"),
 
   getVersion: () => ipcRenderer.invoke("app:getVersion"),
-  clearHistory: () => ipcRenderer.invoke('history:clear'),
-  getHistoryClearedAt: () => ipcRenderer.invoke('history:getClearedAt')
+
+  /* -------------------- Historique -------------------- */
+  clearHistory: () => ipcRenderer.invoke("history:clear"),
+  getHistoryClearedAt: () => ipcRenderer.invoke("history:getClearedAt"),
+
+  onHistoryCleared: (cb) => {
+    const listener = (_evt, payload) => cb(payload)
+    ipcRenderer.on("history:cleared", listener)
+    return () => ipcRenderer.removeListener("history:cleared", listener)
+  }
 })

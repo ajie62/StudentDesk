@@ -63,3 +63,5 @@ logs
 # Electron Store (user data)
 studentdesk-data.json
 StudentDesk/
+
+src/art/icon.iconset/
