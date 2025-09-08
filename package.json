@@ -45,10 +45,14 @@
     "files": [
       "dist/**",
       "electron/**",
-      "package.json",
-      "src/art/icon.icns"
+      "package.json"
     ],
-    "asar": false,
+    "asar": true,
+    "asarUnpack": [
+      "node_modules/electron-store/**",
+      "node_modules/papaparse/**",
+      "node_modules/uuid/**"
+    ],
     "mac": {
       "target": [
         "dmg",
@@ -62,17 +66,8 @@
       "icon": "src/art/icon.icns",
       "backgroundColor": "#0e0e10",
       "contents": [
-        {
-          "x": 140,
-          "y": 170,
-          "type": "file"
-        },
-        {
-          "x": 380,
-          "y": 170,
-          "type": "link",
-          "path": "/Applications"
-        }
+        { "x": 140, "y": 170, "type": "file" },
+        { "x": 380, "y": 170, "type": "link", "path": "/Applications" }
       ]
     },
     "publish": [
