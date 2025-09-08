@@ -46,16 +46,16 @@
       "dist/**",
       "electron/**",
       "package.json",
-      "src/art/icon.icns"
+      "src/art/icon.icns",
+      "!**/node_modules/*/{test,__tests__,docs,example,examples}/**",
+      "!**/*.map"
     ],
     "asarUnpack": [
-      "node_modules/electron-store/**"
+      "node_modules/electron-store/**",
+      "node_modules/uuid/**"
     ],
     "mac": {
-      "target": [
-        "dmg",
-        "zip"
-      ],
+      "target": ["dmg", "zip"],
       "icon": "src/art/icon.icns",
       "category": "public.app-category.education",
       "artifactName": "${productName}-${version}-${arch}.${ext}"
