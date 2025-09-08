@@ -1,6 +1,6 @@
 {
   "name": "studentdesk",
-  "version": "0.3.10",
+  "version": "0.3.11",
   "description": "Minimal modern student manager desktop app (Electron + React + Vite).",
   "main": "electron/main.js",
   "author": "",
@@ -66,8 +66,17 @@
       "icon": "src/art/icon.icns",
       "backgroundColor": "#0e0e10",
       "contents": [
-        { "x": 140, "y": 170, "type": "file" },
-        { "x": 380, "y": 170, "type": "link", "path": "/Applications" }
+        {
+          "x": 140,
+          "y": 170,
+          "type": "file"
+        },
+        {
+          "x": 380,
+          "y": 170,
+          "type": "link",
+          "path": "/Applications"
+        }
       ]
     },
     "publish": [
