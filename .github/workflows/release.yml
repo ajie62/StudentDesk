@@ -12,9 +12,6 @@ permissions:
 jobs:
   build-macos:
     runs-on: macos-latest
-    strategy:
-      matrix:
-        arch: [x64, arm64]
 
     steps:
       - name: Checkout code
@@ -28,9 +25,9 @@ jobs:
       - name: Install dependencies
         run: npm install
 
-      - name: Build & Release
+      - name: Build & Release (x64 + arm64)
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           npm run build:renderer
-          npx electron-builder --mac --${{ matrix.arch }} --publish always
+          npx electron-builder --mac --x64 --arm64 --publish always
