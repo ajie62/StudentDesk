@@ -51,7 +51,8 @@
     "asarUnpack": [
       "node_modules/electron-store/**",
       "node_modules/papaparse/**",
-      "node_modules/uuid/**"
+      "node_modules/uuid/**",
+      "node_modules/electron-updater/**"
     ],
     "mac": {
       "target": [
