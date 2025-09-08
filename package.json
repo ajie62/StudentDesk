@@ -1,6 +1,6 @@
 {
   "name": "studentdesk",
-  "version": "0.3.9",
+  "version": "0.3.8",
   "description": "Minimal modern student manager desktop app (Electron + React + Vite).",
   "main": "electron/main.js",
   "author": "",
@@ -48,9 +48,7 @@
       "package.json",
       "src/art/icon.icns"
     ],
-    "asarUnpack": [
-      "node_modules/**/package.json"
-    ],
+    "asar": false,
     "mac": {
       "target": [
         "dmg",
