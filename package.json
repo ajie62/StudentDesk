@@ -46,7 +46,7 @@
       "dist/**",
       "electron/**",
       "package.json",
-      "build/icon.icns"
+      "src/art/icon.icns"
     ],
     "asarUnpack": [
       "node_modules/**/package.json"
@@ -56,12 +56,12 @@
         "dmg",
         "zip"
       ],
-      "icon": "build/icon.icns",
+      "icon": "src/art/icon.icns",
       "category": "public.app-category.education",
       "artifactName": "${productName}-${version}-${arch}.${ext}"
     },
     "dmg": {
-      "icon": "build/icon.icns",
+      "icon": "src/art/icon.icns",
       "backgroundColor": "#0e0e10",
       "contents": [
         {
