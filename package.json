@@ -10,7 +10,7 @@
     "dev": "concurrently -k \"vite\" \"wait-on http://localhost:5173 && cross-env ELECTRON_START_URL=http://localhost:5173 electron .\"",
     "build:renderer": "vite build",
     "build": "vite build && electron-builder --mac",
-    "build:all": "vite build && electron-builder --mac --x64 && electron-builder --mac --arm64",
+    "build:mac": "vite build && electron-builder --mac --x64 --arm64",
     "start": "electron .",
     "lint": "echo \"(Optional) Add ESLint and run linting here.\"",
     "release": "npm run build:renderer && GH_TOKEN=$GH_TOKEN electron-builder --mac --publish always"
