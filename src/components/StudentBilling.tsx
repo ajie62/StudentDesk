@@ -1,5 +1,5 @@
-import React, { useMemo } from 'react'
-import { BillingContract, Lesson } from '../types'
+import React, { useMemo, useState, useEffect } from "react"
+import { BillingContract, Lesson } from "../types"
 
 type ViewModel = {
   firstName: string
@@ -15,28 +15,65 @@ type Props = {
 
 export default function StudentBilling({ viewModel, onChange }: Props) {
   const c = viewModel.billing
+  const [settings, setSettings] = useState<{ lessonDuration: number; currency: string } | null>(null)
+
+  // Charger les réglages et appliquer uniquement si valeurs absentes
+  useEffect(() => {
+  let mounted = true;
+  (async () => {
+    try {
+      const prefs = await window.studentApi.getSettings?.();
+      if (prefs && mounted) {
+        setSettings(prefs);
+
+        // ✅ n’appliquer la durée que si elle n’est pas déjà définie
+        if (!c.durationMinutes || c.durationMinutes <= 0) {
+          onChange({ durationMinutes: prefs.lessonDuration ?? 60 });
+        }
+
+        // ✅ idem pour la devise
+        if (!c.currency) {
+          onChange({ currency: prefs.currency ?? "EUR" });
+        }
+      }
+    } catch (e) {
+      console.error("Impossible de charger les réglages", e);
+
+      if (mounted) {
+        if (!c.durationMinutes || c.durationMinutes <= 0) {
+          onChange({ durationMinutes: 60 });
+        }
+        if (!c.currency) {
+          onChange({ currency: "EUR" });
+        }
+      }
+    }
+  })();
+  return () => {
+    mounted = false;
+  };
+}, []);
 
   // ---- Validation (durée + prix requis)
   const isValid = useMemo(() => {
-    const hasDuration = typeof c.durationMinutes === 'number' && c.durationMinutes > 0
-    const hasPrice = typeof c.pricePerLesson === 'number' && c.pricePerLesson > 0
+    const hasDuration = typeof c.durationMinutes === "number" && c.durationMinutes > 0
+    const hasPrice = typeof c.pricePerLesson === "number" && c.pricePerLesson > 0
     return hasDuration && hasPrice
   }, [c.durationMinutes, c.pricePerLesson])
 
-  function setMode(mode: BillingContract['mode']) {
+  function setMode(mode: BillingContract["mode"]) {
     onChange({ mode })
   }
 
   function handleDurationSelect(value: string) {
-    if (value === 'custom') {
+    if (value === "custom") {
       onChange({ customDuration: true })
-      // si aucune durée, proposer 60 par défaut
-      if (!c.durationMinutes || c.durationMinutes <= 0) {
-        onChange({ durationMinutes: 60 })
-      }
     } else {
       const num = Number(value)
-      onChange({ customDuration: false, durationMinutes: isFinite(num) ? num : 60 })
+      onChange({
+        customDuration: false,
+        durationMinutes: isFinite(num) ? num : settings?.lessonDuration ?? 60,
+      })
     }
   }
 
@@ -45,7 +82,7 @@ export default function StudentBilling({ viewModel, onChange }: Props) {
     if (isFinite(num) && num > 0) {
       onChange({ durationMinutes: num })
     } else {
-      onChange({ durationMinutes: 0 }) // force invalid tant que 0/NaN
+      onChange({ durationMinutes: 0 })
     }
   }
 
@@ -67,26 +104,26 @@ export default function StudentBilling({ viewModel, onChange }: Props) {
       {/* Type de contrat */}
       <div className="field">
         <label className="label">Type de contrat</label>
-        <div style={{ display: 'flex', gap: 8 }}>
-            <button
-                type="button"
-                className={`btn ghost ${c.mode === 'single' ? 'active' : ''}`}
-                onClick={() => setMode('single')}
-            >
-                Leçon unitaire
-            </button>
-            <button
-                type="button"
-                className={`btn ghost ${c.mode === 'package' ? 'active' : ''}`}
-                onClick={() => setMode('package')}
-            >
-                Pack de leçons
-            </button>
+        <div style={{ display: "flex", gap: 8 }}>
+          <button
+            type="button"
+            className={`btn ghost ${c.mode === "single" ? "active" : ""}`}
+            onClick={() => setMode("single")}
+          >
+            Leçon unitaire
+          </button>
+          <button
+            type="button"
+            className={`btn ghost ${c.mode === "package" ? "active" : ""}`}
+            onClick={() => setMode("package")}
+          >
+            Pack de leçons
+          </button>
         </div>
       </div>
 
       {/* Nombre de leçons (pack) */}
-      {c.mode === 'package' && (
+      {c.mode === "package" && (
         <div className="field">
           <label className="label">Nombre de leçons dans le pack</label>
           <input
@@ -94,64 +131,70 @@ export default function StudentBilling({ viewModel, onChange }: Props) {
             type="number"
             min={1}
             value={c.totalLessons ?? 1}
-            onChange={(e) => onChange({ totalLessons: Math.max(1, Number(e.target.value || 1)) })}
+            onChange={(e) =>
+              onChange({ totalLessons: Math.max(1, Number(e.target.value || 1)) })
+            }
           />
         </div>
       )}
 
       {/* Durée */}
       <div className="field">
-        <label className="label">Durée des cours (minutes) <span style={{color:'var(--accent)'}}>*</span></label>
+        <label className="label">
+            Durée des cours (minutes) <span style={{ color: "var(--accent)" }}>*</span>
+        </label>
 
         <select
-          className="input"
-          value={c.customDuration ? 'custom' : String(c.durationMinutes ?? '')}
-          onChange={(e) => handleDurationSelect(e.target.value)}
-        >
-          <option value="30">30</option>
-          <option value="45">45</option>
-          <option value="60">60</option>
-          <option value="90">90</option>
-          <option value="custom">Autre…</option>
-        </select>
+  className="input"
+  value={c.customDuration ? "custom" : String(c.durationMinutes ?? settings?.lessonDuration ?? 60)}
+  onChange={(e) => handleDurationSelect(e.target.value)}
+>
+  <option value="30">30</option>
+  <option value="45">45</option>
+  <option value="60">60</option>
+  <option value="90">90</option>
+  <option value="custom">Autre…</option>
+</select>
 
         {c.customDuration && (
-          <div style={{ marginTop: 8 }}>
+            <div style={{ marginTop: 8 }}>
             <input
-              className="input"
-              type="number"
-              min={1}
-              placeholder="Durée personnalisée (en minutes)"
-              value={c.durationMinutes ?? ''}
-              onChange={(e) => handleCustomDuration(e.target.value)}
+                className="input"
+                type="number"
+                min={1}
+                placeholder="Durée personnalisée (en minutes)"
+                value={c.durationMinutes ?? ""}
+                onChange={(e) => handleCustomDuration(e.target.value)}
             />
-          </div>
+            </div>
         )}
-      </div>
+        </div>
 
       {/* Prix / Devise */}
       <div className="field">
-        <label className="label">Prix / leçon <span style={{color:'var(--accent)'}}>*</span></label>
-        <div style={{ display: 'flex', gap: 8 }}>
+        <label className="label">
+          Prix / leçon <span style={{ color: "var(--accent)" }}>*</span>
+        </label>
+        <div style={{ display: "flex", gap: 8 }}>
           <input
             className="input"
             type="number"
             min={0}
             step="0.01"
             placeholder="ex. 40"
-            value={c.pricePerLesson ?? ''}
+            value={c.pricePerLesson ?? ""}
             onChange={(e) => handlePrice(e.target.value)}
           />
           <select
             className="input"
             style={{ maxWidth: 120 }}
-            value={c.currency ?? 'EUR'}
+            value={c.currency ?? settings?.currency ?? "EUR"}
             onChange={(e) => onChange({ currency: e.target.value })}
           >
-            <option value="EUR">EUR</option>
-            <option value="USD">USD</option>
-            <option value="CHF">CHF</option>
-            <option value="GBP">GBP</option>
+            <option value="EUR">EUR (€)</option>
+            <option value="USD">USD ($)</option>
+            <option value="GBP">GBP (£)</option>
+            <option value="CNY">CNY (¥)</option>
           </select>
         </div>
       </div>
@@ -161,8 +204,8 @@ export default function StudentBilling({ viewModel, onChange }: Props) {
         <label className="label">Statut du paiement</label>
         <select
           className="input"
-          value={c.paid ? 'paid' : 'unpaid'}
-          onChange={(e) => onChange({ paid: e.target.value === 'paid' })}
+          value={c.paid ? "paid" : "unpaid"}
+          onChange={(e) => onChange({ paid: e.target.value === "paid" })}
         >
           <option value="unpaid">Non payé</option>
           <option value="paid">Payé</option>
@@ -175,14 +218,14 @@ export default function StudentBilling({ viewModel, onChange }: Props) {
         <textarea
           className="textarea"
           placeholder="Informations complémentaires…"
-          value={c.notes ?? ''}
+          value={c.notes ?? ""}
           onChange={(e) => onChange({ notes: e.target.value })}
         />
       </div>
 
       {/* Aide validation */}
       {!isValid && (
-        <div style={{ marginTop: 8, fontSize: 13, color: 'var(--accent)' }}>
+        <div style={{ marginTop: 8, fontSize: 13, color: "var(--accent)" }}>
           La <strong>durée</strong> et le <strong>prix</strong> sont obligatoires.
         </div>
       )}
