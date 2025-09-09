@@ -3,8 +3,10 @@ import { Student, ActivityItem } from './types'
 import { fullName } from './utils'
 import StudentForm from './components/StudentForm'
 import StudentDetail from './components/StudentDetail'
-import Changelog from './components/Changelog'   // ✅ nouveau
+import Changelog from './components/Changelog'
+import SettingsPage from "./components/Settings"
 import Fuse from 'fuse.js'
+import { SettingsIcon } from "lucide-react"
 import './styles.css'
 
 const Dashboard = lazy(() => import('./components/Dashboard'))
@@ -31,12 +33,13 @@ export default function App() {
   const [students, setStudents] = useState<Student[]>([])
   const [selectedId, setSelectedId] = useState<string | null>(null)
   const [showDashboard, setShowDashboard] = useState(true)
-  const [showChangelog, setShowChangelog] = useState(false)   // ✅ nouvel état
+  const [showChangelog, setShowChangelog] = useState(false)
 
   const [q, setQ] = useState('')
   const [filterActive, setFilterActive] = useState<'all' | 'active' | 'inactive'>('all')
 
   const [showNew, setShowNew] = useState(false)
+  const [showSettings, setShowSettings] = useState(false)
 
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const [closingMenu, setClosingMenu] = useState(false)
@@ -86,6 +89,7 @@ export default function App() {
       if (action === 'students:delete') label = 'Étudiant supprimé'
       if (action?.startsWith('lessons')) label = 'Leçon enregistrée'
       if (action === 'lessons:delete') label = 'Leçon supprimée'
+      if (action === 'settings') label = 'Réglages sauvegardés'
       pushToast(`${label} • ${where}`)
     })
     return () => { if (typeof unsubscribe === 'function') unsubscribe() }
@@ -261,14 +265,36 @@ export default function App() {
           <div className="brand window-no-drag">STUDENTDESK</div>
           <div style={{ flex: 1 }} />
           {!isMobile && (
-            <button
-              className="btn icon window-no-drag"
-              title="Nouvel étudiant"
-              aria-label="Nouvel étudiant"
-              onClick={() => setShowNew(true)}
-            >
-              +
-            </button>
+            <>
+                <button
+                className="btn icon window-no-drag settings-icon"
+                title="Réglages"
+                aria-label="Réglages"
+                onClick={() => {
+                    setSelectedId(null)
+                    setShowDashboard(false)
+                    setShowChangelog(false)
+                    setShowNew(false)
+                    setShowSettings(true)
+                }}
+                >
+                  <SettingsIcon size={14} />
+                </button>
+
+                <button
+                className="btn icon window-no-drag"
+                title="Nouvel étudiant"
+                aria-label="Nouvel étudiant"
+                onClick={() => {
+                    setShowNew(true)
+                    setShowDashboard(false)
+                    setShowChangelog(false)
+                    setShowSettings(false)
+                }}
+                >
+                +
+                </button>
+            </>
           )}
         </div>
 
@@ -279,6 +305,7 @@ export default function App() {
             setSelectedId(null)
             setShowDashboard(true)
             setShowChangelog(false)
+            setShowSettings(false)
           }}
         >
           🏠 Accueil
@@ -348,6 +375,7 @@ export default function App() {
               setSelectedId(s.id)
               setShowDashboard(false)
               setShowChangelog(false)
+              setShowSettings(false)
               if (mobileMenuOpen) closeMenuSmooth()
             }}
             role="button"
@@ -415,9 +443,12 @@ export default function App() {
                   setSelectedId(id)
                   setShowDashboard(false)
                   setShowChangelog(false)
+                  setShowSettings(false)
                 }}
               />
             </Suspense>
+          ) : showSettings ? (
+            <SettingsPage/>
           ) : !selectedId ? (
             <div className="empty">Sélectionnez un étudiant pour afficher sa fiche.</div>
           ) : (

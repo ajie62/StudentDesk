@@ -238,10 +238,17 @@ export default function StudentDetail({ studentId, onDeleted, onUpdated }: Props
   }
 
   // ---- Billing (historique)
-  function ensureDraftDefaults(prev: BillingContract | null): BillingContract {
+  async function ensureDraftDefaults(prev: BillingContract | null): Promise<BillingContract> {
     const history = student?.billingHistory ?? []
     const mode = prev?.mode ?? 'single'
     const lessons = prev?.totalLessons ?? 1
+
+    let prefs: { lessonDuration: number; currency: string } | null = null
+    try {
+      prefs = await window.studentApi.getSettings?.()
+    } catch (e) {
+      console.error("Impossible de charger les réglages", e)
+    }
 
     return prev ?? {
       id: uuidv4(),
@@ -249,10 +256,10 @@ export default function StudentDetail({ studentId, onDeleted, onUpdated }: Props
       updatedAt: null,
       mode,
       totalLessons: lessons,
-      durationMinutes: 60,
+      durationMinutes: prefs?.lessonDuration ?? 60,
       customDuration: false,
       pricePerLesson: null,
-      currency: null,
+      currency: prefs?.currency ?? "EUR",
       paid: false,
       notes: '',
       startDate: null,
@@ -261,22 +268,20 @@ export default function StudentDetail({ studentId, onDeleted, onUpdated }: Props
     }
   }
 
-  function updateBilling(patch: Partial<BillingContract>) {
-    setBillingDraft(prev => {
-        const base = ensureDraftDefaults(prev)
-        let next: BillingContract = { ...base, ...patch }
+  async function updateBilling(patch: Partial<BillingContract>) {
+    const base = await ensureDraftDefaults(billingDraft) // ⚡ attendre les prefs par défaut
+    let next: BillingContract = { ...base, ...patch }
 
-        // Si le mode ou le total de leçons change → recalculer un displayName unique
-        if (patch.mode || patch.totalLessons) {
+    // Si le mode ou le total de leçons change → recalculer un displayName unique
+    if (patch.mode || patch.totalLessons) {
         const history = student?.billingHistory ?? []
         const mode = patch.mode ?? base.mode
         const lessons = patch.totalLessons ?? base.totalLessons
         next.displayName = generateDisplayName(mode, lessons, history)
-        }
+    }
 
-        setBillingDirty(!isContractEqual(next, editingContract))
-        return next
-    })
+    setBillingDraft(next)
+    setBillingDirty(!isContractEqual(next, editingContract))
   }
 
   async function saveBilling() {
@@ -462,12 +467,13 @@ export default function StudentDetail({ studentId, onDeleted, onUpdated }: Props
               <h3>Historique des contrats</h3>
               <button
                 className="btn"
-                onClick={() => {
-                  setEditingContract(null)
-                  setBillingDraft(ensureDraftDefaults(null))
-                  setBillingDirty(true)
+                onClick={async () => {
+                    setEditingContract(null)
+                    const draft = await ensureDraftDefaults(null) // ⚡ on attend les réglages
+                    setBillingDraft(draft)
+                    setBillingDirty(true)
                 }}
-              >
+                >
                 + Ajouter
               </button>
             </div>

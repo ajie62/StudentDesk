@@ -41,5 +41,9 @@ contextBridge.exposeInMainWorld("studentApi", {
     const listener = (_evt, payload) => cb(payload)
     ipcRenderer.on("history:cleared", listener)
     return () => ipcRenderer.removeListener("history:cleared", listener)
-  }
+  },
+
+  /* -------------------- Settings -------------------- */
+  getSettings: () => ipcRenderer.invoke("settings:get"),
+  saveSettings: (settings) => ipcRenderer.invoke("settings:save", settings),
 })

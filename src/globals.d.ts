@@ -19,6 +19,8 @@ declare global {
       getVersion: () => Promise<string>
       clearHistory: () => Promise<{ clearedAt: string }>
       getHistoryClearedAt: () => Promise<string | null>
+      getSettings: () => Promise<{ theme: string; lessonDuration: number; currency: string }>
+      saveSettings: (settings: Partial<{ theme: string; lessonDuration: number; currency: string }>) => Promise<{ theme: string; lessonDuration: number; currency: string }>
     }
   }
 }

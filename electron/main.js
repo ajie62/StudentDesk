@@ -525,3 +525,33 @@ ipcMain.handle('history:clear', async () => {
 ipcMain.handle('history:getClearedAt', async () => {
   return store.get(HISTORY_KEY) || null
 })
+
+/* -------------------- IPC: Settings -------------------- */
+ipcMain.handle("settings:get", () => {
+  return {
+    theme: store.get("theme", "dark"),
+    lessonDuration: store.get("lessonDuration", 60),
+    currency: store.get("currency", "EUR"), // ⚡ changé "€" en code standard
+  }
+})
+
+ipcMain.handle("settings:save", (_evt, newSettings) => {
+  if (newSettings.theme !== undefined) store.set("theme", newSettings.theme)
+  if (newSettings.lessonDuration !== undefined) store.set("lessonDuration", newSettings.lessonDuration)
+  if (newSettings.currency !== undefined) store.set("currency", newSettings.currency)
+
+  const updated = {
+    theme: store.get("theme", "dark"),
+    lessonDuration: store.get("lessonDuration", 60),
+    currency: store.get("currency", "EUR"),
+  }
+
+  // 🔔 notifier le renderer (App.tsx) → toast
+  mainWindow?.webContents.send("store:saved", {
+    action: "settings",
+    icloud: !!dataDirs?.isICloud,
+    when: new Date().toISOString()
+  })
+
+  return updated
+})
