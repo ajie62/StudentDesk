@@ -13,7 +13,10 @@
     "build:all": "vite build && electron-builder --mac --x64 && electron-builder --mac --arm64",
     "start": "electron .",
     "lint": "echo \"(Optional) Add ESLint and run linting here.\"",
-    "release": "npm run build:renderer && GH_TOKEN=$GH_TOKEN electron-builder --mac --x64 --arm64 --publish always"
+    "release:prep": "npm run build:renderer",
+    "release:x64": "GH_TOKEN=$GH_TOKEN electron-builder --mac --x64 --publish always",
+    "release:arm64": "GH_TOKEN=$GH_TOKEN electron-builder --mac --arm64 --publish always",
+    "release:both": "npm run release:prep && npm run release:x64 && npm run release:arm64"
   },
   "devDependencies": {
     "@playwright/test": "^1.55.0",

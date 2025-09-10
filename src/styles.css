@@ -60,6 +60,7 @@ body {
   background: #101013;
   padding: var(--s-5);
   overflow: auto;
+  padding-top: 30px;
 }
 .sidebar.open {
   position: fixed;
@@ -356,40 +357,86 @@ body {
   font-weight: 600;
 }
 
-/* Mobile Topbar */
+/* ==================== */
+/* Topbar mobile (burger seul à droite) */
+/* ==================== */
+
+/* cachée par défaut */
 .mobile-topbar {
   display: none;
-  align-items: center;
-  gap: 12px;
-  padding: 10px 16px;
-  border-bottom: 1px solid var(--soft);
-  background: #101013;
 }
 
-/* Burger button */
-.burger {
-  width: 28px;
-  height: 22px;
-  position: relative;
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-  background: none;
-  border: none;
-  cursor: pointer;
-  padding: 0;
+@media (max-width: 900px) {
+  .mobile-topbar {
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    height: 48px;
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;   /* Burger aligné à droite */
+    padding: 0 12px;
+    border-bottom: 1px solid var(--soft);
+    background: #101013;
+    z-index: 1000;
+    -webkit-app-region: drag;
+  }
+
+  /* Décale le contenu sous la topbar */
+  .content {
+    padding-top: 70px;
+  }
+
+  /* Sidebar header reste visible en mobile */
+  .sidebar .header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 8px 0;
+  }
+
+  .sidebar .header .brand,
+  .sidebar .header .btn {
+    -webkit-app-region: no-drag;
+  }
+  .sidebar .header .btn {
+    -webkit-app-region: no-drag;
+  }
 }
+
+/* ==================== */
+/* Burger button */
+/* ==================== */
+.burger {
+  position: relative;
+  width: 28px;
+  height: 24px;
+  display: inline-block;
+  background: none;
+  border: 0;
+  padding: 0;
+  cursor: pointer;
+  -webkit-app-region: no-drag;  /* cliquable */
+}
+
 .burger span {
-  display: block;
-  height: 3px;
-  width: 100%;
+  position: absolute;
+  left: 0; right: 0;
+  height: 2px;
   background: var(--text);
   border-radius: 2px;
-  transition: all 0.15s ease;
+  transform-origin: 50% 50%;
+  transition: transform .18s ease, opacity .12s ease;
 }
-.burger.active span:nth-child(1) { transform: rotate(45deg) translate(5px, 5px); }
-.burger.active span:nth-child(2) { opacity: 0; }
-.burger.active span:nth-child(3) { transform: rotate(-45deg) translate(5px, -5px); }
+
+/* positions des barres */
+.burger span:nth-child(1) { top: 50%; transform: translateY(-6px); }
+.burger span:nth-child(2) { top: 50%; transform: translateY(0); }
+.burger span:nth-child(3) { top: 50%; transform: translateY(6px); }
+
+/* état "croix" – parfaitement centrée */
+.burger.active span:nth-child(1) { transform: translateY(0) rotate(45deg); }
+.burger.active span:nth-child(2) { opacity: 0; transform: scaleX(.6); }
+.burger.active span:nth-child(3) { transform: translateY(0) rotate(-45deg); }
 
 /* Overlay */
 .overlay {
@@ -796,7 +843,9 @@ body {
 .window-drag { -webkit-app-region: drag; }
 /* Tout élément interactif à l’intérieur d’une zone draggable doit être no-drag */
 .window-no-drag,
-button, .btn, input, textarea, label, select, a, .burger { -webkit-app-region: no-drag; }
+button, .btn, input, textarea, label, select, a, .burger {
+    -webkit-app-region: no-drag;
+}
 
 /* --- Global drag bar côté contenu (alignée avec les pastilles mac) --- */
 .title-drag {

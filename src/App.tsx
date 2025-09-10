@@ -1,12 +1,12 @@
 import React, { useEffect, useMemo, useState, Suspense, lazy } from 'react'
 import { Student, ActivityItem } from './types'
 import { fullName } from './utils'
+import { Sidebar } from './components/Sidebar'
 import StudentForm from './components/StudentForm'
 import StudentDetail from './components/StudentDetail'
 import Changelog from './components/Changelog'
 import SettingsPage from "./components/Settings"
 import Fuse from 'fuse.js'
-import { SettingsIcon } from "lucide-react"
 import './styles.css'
 
 const Dashboard = lazy(() => import('./components/Dashboard'))
@@ -259,146 +259,26 @@ export default function App() {
 
   return (
     <div className="app-shell">
-      {/* Sidebar */}
-      <aside className={`sidebar ${mobileMenuOpen ? 'open' : ''} ${closingMenu ? 'closing' : ''}`}>
-        <div className={`header ${isMobile ? '' : 'window-drag'}`}>
-          <div className="brand window-no-drag">STUDENTDESK</div>
-          <div style={{ flex: 1 }} />
-          {!isMobile && (
-            <>
-                <button
-                className="btn icon window-no-drag settings-icon"
-                title="Réglages"
-                aria-label="Réglages"
-                onClick={() => {
-                    setSelectedId(null)
-                    setShowDashboard(false)
-                    setShowChangelog(false)
-                    setShowNew(false)
-                    setShowSettings(true)
-                }}
-                >
-                  <SettingsIcon size={14} />
-                </button>
-
-                <button
-                className="btn icon window-no-drag"
-                title="Nouvel étudiant"
-                aria-label="Nouvel étudiant"
-                onClick={() => {
-                    setShowNew(true)
-                    setShowDashboard(false)
-                    setShowChangelog(false)
-                    setShowSettings(false)
-                }}
-                >
-                +
-                </button>
-            </>
-          )}
-        </div>
-
-        <button
-          className="btn ghost"
-          style={{ marginBottom: '16px', width: '100%' }}
-          onClick={() => {
-            setSelectedId(null)
-            setShowDashboard(true)
-            setShowChangelog(false)
-            setShowSettings(false)
-          }}
-        >
-          🏠 Accueil
-        </button>
-
-        {/* 👇 Bouton import CSV */}
-        <button
-          className="btn ghost"
-          style={{ marginBottom: '16px', width: '100%' }}
-          onClick={async () => {
-            const result = await window.studentApi.importCSV()
-            if (result?.count) {
-              pushToast(`Importé ${result.count} étudiants • 💾 local`)
-              refresh()
-            }
-          }}
-        >
-          📂 Importer CSV
-        </button>
-
-        {/* Texte d’aide sur le schéma CSV */}
-        <div style={{ 
-            fontSize: '11px', 
-            color: '#aaa', 
-            marginBottom: '16px', 
-            paddingLeft: '4px',
-            lineHeight: 1.4
-        }}>
-            Schéma du CSV attendu :<br/>
-            <code>firstName, lastName, description, email, isActive</code>
-        </div>
-
-        <input
-          className="search"
-          placeholder="Rechercher des étudiants…"
-          value={q}
-          onChange={(e) => setQ(e.target.value)}
-          aria-label="Rechercher des étudiants"
-        />
-
-        <div className="filter-row">
-          <button
-            className={`btn ghost ${filterActive === 'all' ? 'active' : ''}`}
-            onClick={() => setFilterActive('all')}
-          >
-            Tous
-          </button>
-          <button
-            className={`btn ghost ${filterActive === 'active' ? 'active' : ''}`}
-            onClick={() => setFilterActive('active')}
-          >
-            Actifs
-          </button>
-          <button
-            className={`btn ghost ${filterActive === 'inactive' ? 'active' : ''}`}
-            onClick={() => setFilterActive('inactive')}
-          >
-            Inactifs
-          </button>
-        </div>
-
-        {filtered.map(s => (
-          <div
-            key={s.id}
-            className={['student-item', selectedId === s.id ? 'active' : ''].join(' ')}
-            onClick={() => {
-              setSelectedId(s.id)
-              setShowDashboard(false)
-              setShowChangelog(false)
-              setShowSettings(false)
-              if (mobileMenuOpen) closeMenuSmooth()
-            }}
-            role="button"
-            tabIndex={0}
-          >
-            <div className="student-row">
-              <div className="avatar avatar--sm" aria-hidden="true">
-                {s.photo ? (
-                  <img src={s.photo} alt="" />
-                ) : (
-                  <div className="avatar__placeholder">{initialsOf(s)}</div>
-                )}
-              </div>
-              <div className="student-meta">
-                <div className="student-name">{fullName(s)}</div>
-                <div className="student-state">{s.isActive ? 'Actif' : 'Inactif'}</div>
-              </div>
-            </div>
-          </div>
-        ))}
-
-        {!filtered.length && <div className="empty">Aucun étudiant trouvé.</div>}
-      </aside>
+      <Sidebar
+        isMobile={isMobile}
+        mobileMenuOpen={mobileMenuOpen}
+        closingMenu={closingMenu}
+        setMobileMenuOpen={setMobileMenuOpen}
+        closeMenuSmooth={closeMenuSmooth}
+        selectedId={selectedId}
+        setSelectedId={setSelectedId}
+        students={filtered}
+        filterActive={filterActive}
+        setFilterActive={setFilterActive}
+        setShowDashboard={setShowDashboard}
+        setShowChangelog={setShowChangelog}
+        setShowSettings={setShowSettings}
+        setShowNew={setShowNew}
+        q={q}
+        setQ={setQ}
+        refresh={refresh}
+        pushToast={pushToast}
+      />
 
       {/* Main content */}
       <main className="content">
@@ -415,18 +295,6 @@ export default function App() {
             <span />
             <span />
             <span />
-          </button>
-          <div className="brand window-no-drag">STUDENTDESK</div>
-          <div style={{ flex: 1 }} />
-          <button
-            className="btn small window-no-drag"
-            onClick={() => {
-              if (mobileMenuOpen) closeMenuSmooth()
-              setShowNew(true)
-            }}
-            aria-label="Créer un étudiant"
-          >
-            +
           </button>
         </div>
 
