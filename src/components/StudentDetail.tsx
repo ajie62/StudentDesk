@@ -740,7 +740,6 @@ export default function StudentDetail({ studentId, onDeleted, onUpdated }: Props
 
           {addingLesson && (
             <LessonForm
-              studentId={student!.id}
               availableContracts={openContracts}
               onClose={() => setAddingLesson(false)}
               onSaved={async (payload) => {

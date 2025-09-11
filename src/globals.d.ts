@@ -11,7 +11,7 @@ declare global {
       getStudent: (id: string) => Promise<Student>
 
       // === Lessons ===
-      addLesson: (studentId: string, payload: Lesson) => Promise<Student>
+      addLesson: (studentId: string, payload: Partial<Lesson>) => Promise<Student>
       updateLesson: (studentId: string, lessonId: string, patch: Partial<Lesson>) => Promise<Lesson>
       deleteLesson: (studentId: string, lessonId: string) => Promise<string>
 
