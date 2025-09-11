@@ -6,7 +6,6 @@ interface SidebarProps {
   isMobile: boolean
   mobileMenuOpen: boolean
   closingMenu: boolean
-  setMobileMenuOpen: (v: boolean) => void
   closeMenuSmooth: () => void
   selectedId: string | null
   setSelectedId: (id: string | null) => void
@@ -28,7 +27,6 @@ export function Sidebar({
   mobileMenuOpen,
   closingMenu,
   closeMenuSmooth,
-  setMobileMenuOpen,
   selectedId,
   setSelectedId,
   students,

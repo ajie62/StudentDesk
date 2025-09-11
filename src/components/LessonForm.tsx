@@ -2,14 +2,13 @@ import React, { useEffect, useMemo, useState } from 'react'
 import { Lesson, BillingContract } from '../types'
 
 type Props = {
-  studentId: string
   onClose: () => void
   onSaved: (payload: Partial<Lesson>) => Promise<void>
   initial?: Lesson // si présent → mode édition
   availableContracts?: BillingContract[] // contrats ouverts passés par le parent
 }
 
-export default function LessonForm({ studentId, onClose, onSaved, initial, availableContracts = [] }: Props) {
+export default function LessonForm({ onClose, onSaved, initial, availableContracts = [] }: Props) {
   const [comment, setComment] = useState(initial?.comment || '')
   const [homework, setHomework] = useState(initial?.homework || '')
   const [billingId, setBillingId] = useState<string | null>(initial?.billingId ?? null)

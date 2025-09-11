@@ -7,7 +7,7 @@ type Props = {
   onSaved: (payload: Partial<Student>) => Promise<void> | void
 }
 
-export default function StudentForm({ initial, onClose, onSaved }: Props) {
+export default function StudentForm({ initial, onClose, onSaved }: Props): JSX.Element {
   const [firstName, setFirstName] = useState(initial?.firstName ?? '')
   const [lastName, setLastName] = useState(initial?.lastName ?? '')
   const [description, setDescription] = useState(initial?.description ?? '')

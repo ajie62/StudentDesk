@@ -129,8 +129,8 @@ export default function StudentTracking({ viewModel, onChange }: Props) {
                 <span style={{ display:'block', fontSize:12, color:'#999' }}>{label}</span>
                 <select
                   className="input"
-                  value={(cefr?.[key as keyof NonNullable<ViewModel['cefr']>] as CEFR) || ''}
-                  onChange={(e)=> updateCEFR(key as any, (e.target.value || undefined) as CEFR|undefined)}
+                  value={(cefr?.[key as keyof ViewModel['cefr']] as CEFR) || ''}
+                  onChange={(e)=> updateCEFR(key as keyof ViewModel['cefr'], (e.target.value || undefined) as CEFR|undefined)}
                 >
                   <option value="">—</option>
                   {CEFR_LEVELS.map(l => <option key={l} value={l}>{l}</option>)}

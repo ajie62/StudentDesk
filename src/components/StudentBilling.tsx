@@ -13,7 +13,7 @@ type Props = {
   onChange: (patch: Partial<BillingContract>) => void
 }
 
-export default function StudentBilling({ viewModel, onChange }: Props) {
+export default function StudentBilling({ viewModel, onChange }: Props): JSX.Element {
   const c = viewModel.billing
   const [settings, setSettings] = useState<{ lessonDuration: number; currency: string } | null>(null)
 

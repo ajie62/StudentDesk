@@ -75,12 +75,6 @@ export default function Dashboard({ stats, students, events, onOpenStudent }: Pr
     return recent.slice(start, start + PAGE_SIZE);
   }, [recent, page]);
 
-  // Données graphiques
-  const pieData = [
-    { name: "Actifs", value: stats.active },
-    { name: "Inactifs", value: stats.inactive },
-  ];
-
   const today = new Date();
   const days = Array.from({ length: 7 }, (_, i) => {
     const d = new Date();

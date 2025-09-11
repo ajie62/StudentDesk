@@ -53,7 +53,7 @@ function makeTrackingDraft(s: Student): TrackingDraft {
 }
 
 function isTrackingEqual(d: TrackingDraft, s: Student): boolean {
-  const eq = (a: any, b: any) => JSON.stringify(a) === JSON.stringify(b)
+  const eq = (a: unknown, b: unknown) => JSON.stringify(a) === JSON.stringify(b)
   return (
     (d.goals ?? '') === (s.goals ?? '') &&
     (d.progress ?? 0) === (s.progress ?? 0) &&
@@ -118,7 +118,7 @@ export default function StudentDetail({ studentId, onDeleted, onUpdated }: Props
 
   async function load(resetPage = false) {
     const s = await window.studentApi.getStudent(studentId)
-    if (!Array.isArray(s.billingHistory)) (s as any).billingHistory = []
+    if (!Array.isArray(s.billingHistory)) (s as Student).billingHistory = []
     setStudent(s)
 
     if (resetPage) {
@@ -227,7 +227,7 @@ export default function StudentDetail({ studentId, onDeleted, onUpdated }: Props
       progress: trackDraft.progress,
       cefr: trackDraft.cefr,
       tags: trackDraft.tags
-    } as any)
+    } as Partial<Student>)
     await load(false)
     onUpdated()
   }
@@ -307,7 +307,7 @@ export default function StudentDetail({ studentId, onDeleted, onUpdated }: Props
       history.unshift({ ...billingDraft })
     }
 
-    await window.studentApi.updateStudent(student!.id, { billingHistory: history } as any)
+    await window.studentApi.updateStudent(student!.id, { billingHistory: history } as Partial<Student>)
     await load(false)
     onUpdated()
   }
@@ -315,7 +315,7 @@ export default function StudentDetail({ studentId, onDeleted, onUpdated }: Props
   async function deleteBilling(id: string) {
     if (!confirm('Supprimer ce contrat ? Cette action est irréversible.')) return
     const history = (student!.billingHistory ?? []).filter(c => c.id !== id)
-    await window.studentApi.updateStudent(student!.id, { billingHistory: history } as any)
+    await window.studentApi.updateStudent(student!.id, { billingHistory: history } as Partial<Student>)
     await load(false)
     onUpdated()
   }
@@ -758,7 +758,7 @@ export default function StudentDetail({ studentId, onDeleted, onUpdated }: Props
           initial={student!}
           onClose={() => setEditing(false)}
           onSaved={async (patch) => {
-            await window.studentApi.updateStudent(student!.id, patch as any)
+            await window.studentApi.updateStudent(student!.id, patch as Partial<Student>)
             setEditing(false)
             await handleListUpdated()
           }}

@@ -11,12 +11,6 @@ import './styles.css'
 
 const Dashboard = lazy(() => import('./components/Dashboard'))
 
-function initialsOf(s: Pick<Student, 'firstName' | 'lastName'>) {
-  const a = (s.firstName || '').trim()[0] || ''
-  const b = (s.lastName || '').trim()[0] || ''
-  return (a + b).toUpperCase() || '•'
-}
-
 type Stats = {
   total: number
   active: number
@@ -364,7 +358,7 @@ export default function App() {
         <StudentForm
           onClose={() => setShowNew(false)}
           onSaved={async (payload) => {
-            await window.studentApi.createStudent(payload as any)
+            await window.studentApi.createStudent(payload as Partial<Student>)
             setShowNew(false)
             await refresh()
           }}
