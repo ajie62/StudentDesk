@@ -3,11 +3,9 @@ import { useState } from "react"
 import { fullName, initialsOf } from "../utils"
 import { Student } from "../types"
 
+type FilterKind = "all" | "active" | "inactive" | "contracts"
+
 interface SidebarProps {
-  isMobile: boolean
-  mobileMenuOpen: boolean
-  closingMenu: boolean
-  closeMenuSmooth: () => void
   students: Student[]
   selectedId: string | null
   setSelectedId: (id: string | null) => void
@@ -17,13 +15,11 @@ interface SidebarProps {
   setShowNew: (v: boolean) => void
   refresh: () => Promise<void>
   pushToast: (msg: string) => void
+  filterActive: FilterKind
+  setFilterActive: (v: FilterKind) => void
 }
 
 export function Sidebar({
-  isMobile,
-  mobileMenuOpen,
-  closingMenu,
-  closeMenuSmooth,
   students,
   selectedId,
   setSelectedId,
@@ -33,9 +29,10 @@ export function Sidebar({
   setShowNew,
   refresh,
   pushToast,
+  filterActive,
+  setFilterActive,
 }: SidebarProps) {
   const [q, setQ] = useState("")
-  const [filterActive, setFilterActive] = useState<"all" | "active" | "inactive" | "contracts">("all")
 
   const filtered = students.filter((s) => {
     if (filterActive === "active" && !s.isActive) return false
@@ -62,40 +59,38 @@ export function Sidebar({
   })
 
   return (
-    <aside className={`sidebar ${mobileMenuOpen ? "open" : ""} ${closingMenu ? "closing" : ""}`}>
+    <aside className="sidebar">
       <div className="header window-drag">
         <div className="brand window-no-drag">STUDENTDESK</div>
         <div style={{ flex: 1 }} />
 
         <button
-            className="btn icon window-no-drag"
-            title="Réglages"
-            aria-label="Réglages"
-            onClick={() => {
+          className="btn icon window-no-drag"
+          title="Réglages"
+          aria-label="Réglages"
+          onClick={() => {
             setSelectedId(null)
             setShowDashboard(false)
             setShowChangelog(false)
             setShowNew(false)
             setShowSettings(true)
-            if (isMobile) closeMenuSmooth()
-            }}
+          }}
         >
-            <Settings size={16} strokeWidth={1.5} />
+          <Settings size={16} strokeWidth={1.5} />
         </button>
 
         <button
-            className="btn icon window-no-drag"
-            title="Nouvel étudiant"
-            aria-label="Nouvel étudiant"
-            onClick={() => {
+          className="btn icon window-no-drag"
+          title="Nouvel étudiant"
+          aria-label="Nouvel étudiant"
+          onClick={() => {
             setShowNew(true)
             setShowDashboard(false)
             setShowChangelog(false)
             setShowSettings(false)
-            if (isMobile) closeMenuSmooth()
-            }}
+          }}
         >
-            <Plus size={16} strokeWidth={1.5} />
+          <Plus size={16} strokeWidth={1.5} />
         </button>
       </div>
 
@@ -149,26 +144,24 @@ export function Sidebar({
         aria-label="Rechercher des étudiants"
       />
 
-      {/* Nouveau dropdown moderne */}
-      <div style={{ margin: "12px 0" }}>
-        <div style={{ margin: "12px 0" }} className="filter-select-wrapper">
-            <select
-                value={filterActive}
-                onChange={(e) =>
-                setFilterActive(e.target.value as "all" | "active" | "inactive" | "contracts")
-                }
-                className="filter-select"
-            >
-                <option value="all">Tous</option>
-                <option value="active">Actifs</option>
-                <option value="inactive">Inactifs</option>
-                <option value="contracts">Contrat(s) actif(s)</option>
-            </select>
-        </div>
+      {/* Dropdown filtre */}
+      <div className="filter-select-wrapper" style={{ margin: "12px 0" }}>
+        <select
+          value={filterActive}
+          onChange={(e) =>
+            setFilterActive(e.target.value as FilterKind)
+          }
+          className="filter-select"
+        >
+          <option value="all">Tous</option>
+          <option value="active">Actifs</option>
+          <option value="inactive">Inactifs</option>
+          <option value="contracts">Contrat(s) actif(s)</option>
+        </select>
       </div>
 
       {filtered.map((s) => {
-        let activeContracts =
+        const activeContracts =
           typeof s.billingActiveCount === "number"
             ? s.billingActiveCount
             : Array.isArray(s.billingHistory)
@@ -190,7 +183,6 @@ export function Sidebar({
               setShowDashboard(false)
               setShowChangelog(false)
               setShowSettings(false)
-              if (mobileMenuOpen) closeMenuSmooth()
             }}
             role="button"
             tabIndex={0}

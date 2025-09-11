@@ -213,8 +213,8 @@ async function createWindow() {
   mainWindow = new BrowserWindow({
     width: 1200,
     height: 800,
-    minWidth: 720,
-    minHeight: 480,
+    minWidth: 1024,
+    minHeight: 600,
     backgroundColor: '#0b0b0b',
     titleBarStyle: 'hiddenInset',
     trafficLightPosition: { x: 12, y: 12 },

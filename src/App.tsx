@@ -23,6 +23,9 @@ type Stats = {
 
 type Toast = { id: string; text: string }
 
+// ✅ On définit FilterKind ici
+type FilterKind = 'all' | 'active' | 'inactive' | 'contracts'
+
 export default function App() {
   const [students, setStudents] = useState<Student[]>([])
   const [selectedId, setSelectedId] = useState<string | null>(null)
@@ -30,14 +33,10 @@ export default function App() {
   const [showChangelog, setShowChangelog] = useState(false)
 
   const [q, setQ] = useState('')
-  const [filterActive, setFilterActive] = useState<'all' | 'active' | 'inactive'>('all')
+  const [filterActive, setFilterActive] = useState<FilterKind>('all')
 
   const [showNew, setShowNew] = useState(false)
   const [showSettings, setShowSettings] = useState(false)
-
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
-  const [closingMenu, setClosingMenu] = useState(false)
-  const [isMobile, setIsMobile] = useState<boolean>(window.innerWidth < 900)
 
   const [toasts, setToasts] = useState<Toast[]>([])
   function pushToast(text: string) {
@@ -110,35 +109,6 @@ export default function App() {
       pushToast("❌ Erreur de mise à jour: " + err)
       setUpdateReady(false)
     })
-  }, [])
-
-  function closeMenuSmooth() {
-    setClosingMenu(true)
-    window.setTimeout(() => {
-      setClosingMenu(false)
-      setMobileMenuOpen(false)
-    }, 250)
-  }
-
-  useEffect(() => {
-    function onKey(e: KeyboardEvent) {
-      if (e.key === 'Escape' && mobileMenuOpen) closeMenuSmooth()
-    }
-    window.addEventListener('keydown', onKey)
-    return () => window.removeEventListener('keydown', onKey)
-  }, [mobileMenuOpen])
-
-  useEffect(() => {
-    function onResize() {
-      const mobile = window.innerWidth < 900
-      setIsMobile(mobile)
-      if (!mobile) {
-        setMobileMenuOpen(false)
-        setClosingMenu(false)
-      }
-    }
-    window.addEventListener('resize', onResize)
-    return () => window.removeEventListener('resize', onResize)
   }, [])
 
   const filtered = useMemo(() => {
@@ -254,11 +224,6 @@ export default function App() {
   return (
     <div className="app-shell">
       <Sidebar
-        isMobile={isMobile}
-        mobileMenuOpen={mobileMenuOpen}
-        closingMenu={closingMenu}
-        setMobileMenuOpen={setMobileMenuOpen}
-        closeMenuSmooth={closeMenuSmooth}
         selectedId={selectedId}
         setSelectedId={setSelectedId}
         students={filtered}
@@ -268,8 +233,6 @@ export default function App() {
         setShowChangelog={setShowChangelog}
         setShowSettings={setShowSettings}
         setShowNew={setShowNew}
-        q={q}
-        setQ={setQ}
         refresh={refresh}
         pushToast={pushToast}
       />
@@ -277,20 +240,6 @@ export default function App() {
       {/* Main content */}
       <main className="content">
         <div className="title-drag window-drag" />
-        <div className="mobile-topbar window-drag">
-          <button
-            className={`burger ${mobileMenuOpen && !closingMenu ? 'active' : ''}`}
-            onClick={() => {
-              if (mobileMenuOpen) closeMenuSmooth()
-              else setMobileMenuOpen(true)
-            }}
-            aria-label="Ouvrir le menu"
-          >
-            <span />
-            <span />
-            <span />
-          </button>
-        </div>
 
         <div className="container">
           {showChangelog ? (
@@ -326,7 +275,6 @@ export default function App() {
         <div
           className="app-version window-no-drag"
           onClick={() => {
-            console.log('Clic sur version détecté !')
             setSelectedId(null)
             setShowDashboard(false)
             setShowChangelog(true)
@@ -362,13 +310,6 @@ export default function App() {
             setShowNew(false)
             await refresh()
           }}
-        />
-      )}
-
-      {mobileMenuOpen && (
-        <div
-          className={`overlay ${closingMenu ? 'fade-out' : 'fade-in'}`}
-          onClick={closeMenuSmooth}
         />
       )}
     </div>
