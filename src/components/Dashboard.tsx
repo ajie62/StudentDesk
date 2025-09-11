@@ -96,16 +96,29 @@ export default function Dashboard({ stats, students, events, onOpenStudent }: Pr
   const weeklyTotal = days.reduce((acc, d) => acc + d.count, 0);
 
   // Top 3 étudiants
-  const top3 = useMemo(() => {
-    return [...students]
-      .map((s) => ({
-        id: s.id,
-        name: `${s.firstName} ${s.lastName}`.trim(),
-        lessons: (s.lessons || []).length,
-      }))
-      .sort((a, b) => b.lessons - a.lessons)
-      .slice(0, 3);
-  }, [students]);
+  // Top 3 étudiants (seulement ceux avec ≥1 leçon), complété avec "—"
+const top3 = useMemo(() => {
+  const ranked = [...students]
+    .map(s => ({
+      id: s.id,
+      name: `${s.firstName ?? ""} ${s.lastName ?? ""}`.trim() || "—",
+      lessons: Array.isArray(s.lessons) ? s.lessons.length : 0,
+    }))
+    .filter(s => s.lessons > 0)          // ⬅️ on exclut ceux à 0 leçon
+    .sort((a, b) => b.lessons - a.lessons)
+    .slice(0, 3);
+
+  // Complète jusqu'à 3 avec des placeholders "—"
+  while (ranked.length < 3) {
+    ranked.push({
+      id: `placeholder-${ranked.length + 1}`,
+      name: "—",
+      lessons: 0,
+    });
+  }
+
+  return ranked;
+}, [students]);
 
   async function handleClearHistory() {
     const ok = window.confirm(
