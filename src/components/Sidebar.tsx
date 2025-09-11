@@ -1,24 +1,21 @@
 import { Settings, Plus } from "lucide-react"
+import { useState } from "react"
+import { fullName, initialsOf } from "../utils"
 import { Student } from "../types"
-import { initialsOf, fullName } from "../utils"
 
 interface SidebarProps {
   isMobile: boolean
   mobileMenuOpen: boolean
   closingMenu: boolean
   closeMenuSmooth: () => void
+  students: Student[]
   selectedId: string | null
   setSelectedId: (id: string | null) => void
-  students: Student[]
-  filterActive: "all" | "active" | "inactive"
-  setFilterActive: (f: "all" | "active" | "inactive") => void
   setShowDashboard: (v: boolean) => void
   setShowChangelog: (v: boolean) => void
   setShowSettings: (v: boolean) => void
   setShowNew: (v: boolean) => void
-  q: string
-  setQ: (q: string) => void
-  refresh: () => void
+  refresh: () => Promise<void>
   pushToast: (msg: string) => void
 }
 
@@ -27,143 +24,173 @@ export function Sidebar({
   mobileMenuOpen,
   closingMenu,
   closeMenuSmooth,
+  students,
   selectedId,
   setSelectedId,
-  students,
-  filterActive,
-  setFilterActive,
   setShowDashboard,
   setShowChangelog,
   setShowSettings,
   setShowNew,
-  q,
-  setQ,
   refresh,
   pushToast,
 }: SidebarProps) {
+  const [q, setQ] = useState("")
+  const [filterActive, setFilterActive] = useState<"all" | "active" | "inactive" | "contracts">("all")
+
+  const filtered = students.filter((s) => {
+    if (filterActive === "active" && !s.isActive) return false
+    if (filterActive === "inactive" && s.isActive) return false
+    if (filterActive === "contracts") {
+      const activeContracts =
+        typeof s.billingActiveCount === "number"
+          ? s.billingActiveCount
+          : Array.isArray(s.billingHistory)
+          ? s.billingHistory.filter((c) => {
+              const doneByFlag = c.completed === true
+              const consumed = c.consumedLessons ?? 0
+              const total = c.totalLessons ?? 0
+              const doneByCount = total > 0 && consumed >= total
+              return !(doneByFlag || doneByCount)
+            }).length
+          : 0
+      if (activeContracts === 0) return false
+    }
+    return (
+      fullName(s).toLowerCase().includes(q.toLowerCase()) ||
+      s.description?.toLowerCase().includes(q.toLowerCase())
+    )
+  })
+
   return (
-    <>
-      {isMobile && mobileMenuOpen && (
-        <div
-          className={`overlay ${closingMenu ? "fade-out" : "fade-in"}`}
-          onClick={closeMenuSmooth}
-        />
-      )}
+    <aside className={`sidebar ${mobileMenuOpen ? "open" : ""} ${closingMenu ? "closing" : ""}`}>
+      <div className="header window-drag">
+        <div className="brand window-no-drag">STUDENTDESK</div>
+        <div style={{ flex: 1 }} />
 
-      <aside
-        className={`sidebar ${mobileMenuOpen ? "open" : ""} ${
-          closingMenu ? "closing" : ""
-        }`}
-      >
-        <div className="header window-drag">
-            <div className="brand window-no-drag">STUDENTDESK</div>
-            <div style={{ flex: 1 }} />
-            <button
-                className="btn icon window-no-drag"
-                title="Réglages"
-                aria-label="Réglages"
-                onClick={() => {
-                setSelectedId(null);
-                setShowDashboard(false);
-                setShowChangelog(false);
-                setShowNew(false);
-                setShowSettings(true);
-                if (isMobile) closeMenuSmooth();
-                }}
-            >
-                <Settings size={14} />
-            </button>
-            <button
-                className="btn icon window-no-drag"
-                title="Nouvel étudiant"
-                aria-label="Nouvel étudiant"
-                onClick={() => {
-                setShowNew(true);
-                setShowDashboard(false);
-                setShowChangelog(false);
-                setShowSettings(false);
-                if (isMobile) closeMenuSmooth();
-                }}
-            >
-                <Plus size={14} />
-            </button>
-        </div>
-
-        {/* 🏠 Accueil */}
         <button
-          className="btn ghost"
-          style={{ marginBottom: "16px", width: "100%" }}
-          onClick={() => {
+            className="btn icon window-no-drag"
+            title="Réglages"
+            aria-label="Réglages"
+            onClick={() => {
             setSelectedId(null)
-            setShowDashboard(true)
+            setShowDashboard(false)
+            setShowChangelog(false)
+            setShowNew(false)
+            setShowSettings(true)
+            if (isMobile) closeMenuSmooth()
+            }}
+        >
+            <Settings size={16} strokeWidth={1.5} />
+        </button>
+
+        <button
+            className="btn icon window-no-drag"
+            title="Nouvel étudiant"
+            aria-label="Nouvel étudiant"
+            onClick={() => {
+            setShowNew(true)
+            setShowDashboard(false)
             setShowChangelog(false)
             setShowSettings(false)
             if (isMobile) closeMenuSmooth()
-          }}
+            }}
         >
-          🏠 Accueil
+            <Plus size={16} strokeWidth={1.5} />
         </button>
+      </div>
 
-        {/* 📂 Import CSV */}
-        <button
-          className="btn ghost"
-          style={{ marginBottom: "16px", width: "100%" }}
-          onClick={async () => {
-            const result = await window.studentApi.importCSV()
-            if (result?.count) {
-              pushToast(`Importé ${result.count} étudiants • 💾 local`)
-              refresh()
-            }
-          }}
-        >
-          📂 Importer CSV
-        </button>
+      <button
+        className="btn ghost"
+        style={{ marginBottom: "16px", width: "100%" }}
+        onClick={() => {
+          setSelectedId(null)
+          setShowDashboard(true)
+          setShowChangelog(false)
+          setShowSettings(false)
+        }}
+      >
+        🏠 Accueil
+      </button>
 
-        {/* 🔎 Recherche */}
-        <input
-          className="search"
-          placeholder="Rechercher des étudiants…"
-          value={q}
-          onChange={(e) => setQ(e.target.value)}
-          aria-label="Rechercher des étudiants"
-        />
+      {/* 👇 Bouton import CSV */}
+      <button
+        className="btn ghost"
+        style={{ marginBottom: "16px", width: "100%" }}
+        onClick={async () => {
+          const result = await window.studentApi.importCSV()
+          if (result?.count) {
+            pushToast(`Importé ${result.count} étudiants • 💾 local`)
+            refresh()
+          }
+        }}
+      >
+        📂 Importer CSV
+      </button>
 
-        {/* Filtres */}
-        <div className="filter-row">
-          <button
-            className={`btn ghost ${filterActive === "all" ? "active" : ""}`}
-            onClick={() => setFilterActive("all")}
-          >
-            Tous
-          </button>
-          <button
-            className={`btn ghost ${filterActive === "active" ? "active" : ""}`}
-            onClick={() => setFilterActive("active")}
-          >
-            Actifs
-          </button>
-          <button
-            className={`btn ghost ${filterActive === "inactive" ? "active" : ""}`}
-            onClick={() => setFilterActive("inactive")}
-          >
-            Inactifs
-          </button>
+      {/* Texte d’aide sur le schéma CSV */}
+      <div
+        style={{
+          fontSize: "11px",
+          color: "#aaa",
+          marginBottom: "16px",
+          paddingLeft: "4px",
+          lineHeight: 1.4,
+        }}
+      >
+        Schéma du CSV attendu :<br />
+        <code>firstName, lastName, description, email, isActive</code>
+      </div>
+
+      <input
+        className="search"
+        placeholder="Rechercher des étudiants…"
+        value={q}
+        onChange={(e) => setQ(e.target.value)}
+        aria-label="Rechercher des étudiants"
+      />
+
+      {/* Nouveau dropdown moderne */}
+      <div style={{ margin: "12px 0" }}>
+        <div style={{ margin: "12px 0" }} className="filter-select-wrapper">
+            <select
+                value={filterActive}
+                onChange={(e) =>
+                setFilterActive(e.target.value as "all" | "active" | "inactive" | "contracts")
+                }
+                className="filter-select"
+            >
+                <option value="all">Tous</option>
+                <option value="active">Actifs</option>
+                <option value="inactive">Inactifs</option>
+                <option value="contracts">Contrat(s) actif(s)</option>
+            </select>
         </div>
+      </div>
 
-        {/* Liste étudiants */}
-        {students.map((s) => (
+      {filtered.map((s) => {
+        let activeContracts =
+          typeof s.billingActiveCount === "number"
+            ? s.billingActiveCount
+            : Array.isArray(s.billingHistory)
+            ? s.billingHistory.filter((c) => {
+                const doneByFlag = c.completed === true
+                const consumed = c.consumedLessons ?? 0
+                const total = c.totalLessons ?? 0
+                const doneByCount = total > 0 && consumed >= total
+                return !(doneByFlag || doneByCount)
+              }).length
+            : 0
+
+        return (
           <div
             key={s.id}
-            className={[
-              "student-item",
-              selectedId === s.id ? "active" : "",
-            ].join(" ")}
+            className={["student-item", selectedId === s.id ? "active" : ""].join(" ")}
             onClick={() => {
               setSelectedId(s.id)
               setShowDashboard(false)
               setShowChangelog(false)
               setShowSettings(false)
-              if (isMobile) closeMenuSmooth()
+              if (mobileMenuOpen) closeMenuSmooth()
             }}
             role="button"
             tabIndex={0}
@@ -173,25 +200,38 @@ export function Sidebar({
                 {s.photo ? (
                   <img src={s.photo} alt="" />
                 ) : (
-                  <div className="avatar__placeholder">
-                    {initialsOf(s)}
-                  </div>
+                  <div className="avatar__placeholder">{initialsOf(s)}</div>
                 )}
               </div>
               <div className="student-meta">
                 <div className="student-name">{fullName(s)}</div>
-                <div className="student-state">
-                  {s.isActive ? "Actif" : "Inactif"}
+                <div
+                  className="student-state"
+                  style={{ display: "flex", alignItems: "center", gap: 6 }}
+                >
+                  <span
+                    style={{
+                      display: "inline-block",
+                      width: 8,
+                      height: 8,
+                      borderRadius: "50%",
+                      backgroundColor: s.isActive ? "limegreen" : "red",
+                    }}
+                  />
+                  {activeContracts > 0 && (
+                    <span style={{ fontSize: 12, color: "#aaa" }}>
+                      {activeContracts} contrat{activeContracts > 1 ? "s" : ""} actif
+                      {activeContracts > 1 ? "s" : ""}
+                    </span>
+                  )}
                 </div>
               </div>
             </div>
           </div>
-        ))}
+        )
+      })}
 
-        {!students.length && (
-          <div className="empty">Aucun étudiant trouvé.</div>
-        )}
-      </aside>
-    </>
+      {!filtered.length && <div className="empty">Aucun étudiant trouvé.</div>}
+    </aside>
   )
 }

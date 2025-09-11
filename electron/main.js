@@ -282,7 +282,25 @@ app.on('window-all-closed', function () {
 /* -------------------- IPC: Students CRUD -------------------- */
 ipcMain.handle('students:list', async () => {
   const students = loadStudents()
-  return [...students].sort((a, b) => {
+
+  const enriched = students.map(s => {
+    const activeCount = Array.isArray(s.billingHistory)
+      ? s.billingHistory.filter(c => {
+          const doneByFlag = c.completed === true
+          const consumed = c.consumedLessons ?? 0
+          const total = c.totalLessons ?? 0
+          const doneByCount = total > 0 && consumed >= total
+          return !(doneByFlag || doneByCount)
+        }).length
+      : 0
+
+    return {
+      ...s,
+      billingActiveCount: activeCount,
+    }
+  })
+
+  return enriched.sort((a, b) => {
     const ln = a.lastName.localeCompare(b.lastName)
     if (ln !== 0) return ln
     return a.firstName.localeCompare(b.firstName)

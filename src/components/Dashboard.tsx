@@ -95,7 +95,6 @@ export default function Dashboard({ stats, students, events, onOpenStudent }: Pr
 
   const weeklyTotal = days.reduce((acc, d) => acc + d.count, 0);
 
-  // Top 3 étudiants
   // Top 3 étudiants (seulement ceux avec ≥1 leçon), complété avec "—"
 const top3 = useMemo(() => {
   const ranked = [...students]

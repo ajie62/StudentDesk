@@ -123,6 +123,45 @@ body {
   margin-bottom: var(--s-6);
 }
 
+.filter-select {
+  width: 100%;
+  padding: 6px 32px 6px 10px; /* espace à droite pour la flèche */
+  border-radius: 8px;
+  border: 1px solid var(--soft);
+  background: #111;
+  color: var(--text);
+  font-size: 13px;
+  appearance: none;
+  outline: none;
+  cursor: pointer;
+  transition: border-color 0.2s, background 0.2s;
+  position: relative;
+}
+
+/* Conteneur pour la flèche custom */
+.filter-select-wrapper {
+  position: relative;
+  display: inline-block;
+  width: 100%;
+}
+
+.filter-select-wrapper::after {
+  content: "▼";
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 10px;
+  color: var(--text);
+  pointer-events: none;
+  transition: transform 0.2s;
+}
+
+/* Quand le select est focus (ouvert), flèche vers le haut */
+.filter-select:focus + .filter-select-wrapper::after {
+  content: "▲";
+}
+
 /* Buttons */
 .btn {
   border: 1px solid var(--soft);

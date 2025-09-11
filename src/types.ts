@@ -88,6 +88,7 @@ export interface Student {
 
   // facturation
   billingHistory: BillingContract[]
+  billingActiveCount?: number
 
   updatedAt: string | null
   deletedAt: string | null
