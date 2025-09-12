@@ -6,6 +6,7 @@ import os from 'node:os'
 import Store from 'electron-store'
 import { v4 as uuidv4 } from 'uuid'
 import Papa from 'papaparse'
+import PDFDocument from "pdfkit"
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
@@ -572,4 +573,46 @@ ipcMain.handle("settings:save", (_evt, newSettings) => {
   })
 
   return updated
+})
+
+/* -------------------- IPC: Tracking PDF -------------------- */
+ipcMain.handle("student:export-tracking-report", async (_evt, payload) => {
+  const { studentId, goals, progress, cefr, tags } = payload
+
+  const { filePath } = await dialog.showSaveDialog({
+    title: "Enregistrer le bilan PDF",
+    defaultPath: `bilan-${studentId}.pdf`,
+    filters: [{ name: "PDF Files", extensions: ["pdf"] }],
+  })
+  if (!filePath) return
+
+  const doc = new PDFDocument({ margin: 40 })
+  const stream = fs.createWriteStream(filePath)
+  doc.pipe(stream)
+
+  doc.fontSize(20).text("Bilan de suivi", { align: "center" })
+  doc.moveDown()
+
+  doc.fontSize(14).text(`Étudiant ID : ${studentId}`)
+  doc.text(`Progression : ${progress ?? 0}%`)
+  doc.moveDown()
+
+  doc.fontSize(14).text("Objectifs :")
+  doc.fontSize(12).text(goals || "—")
+  doc.moveDown()
+
+  doc.fontSize(14).text("Niveaux CECRL :")
+  ;(["oral", "ecrit", "interaction", "grammaire", "vocabulaire"]).forEach(k => {
+    doc.fontSize(12).text(`${k} : ${cefr?.[k] ?? "—"}`)
+  })
+  doc.moveDown()
+
+  doc.fontSize(14).text("Tags :")
+  doc.fontSize(12).text((tags && tags.length > 0 ? tags.join(", ") : "—"))
+
+  doc.end()
+
+  return new Promise(resolve => {
+    stream.on("finish", () => resolve(filePath))
+  })
 })

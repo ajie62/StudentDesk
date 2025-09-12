@@ -3,7 +3,7 @@ import { Student, ActivityItem } from './types'
 import { fullName } from './utils'
 import { Sidebar } from './components/Sidebar'
 import StudentForm from './components/StudentForm'
-import StudentDetail from './components/StudentDetail'
+import StudentDetail from './components/student-detail/StudentDetail'
 import Changelog from './components/Changelog'
 import SettingsPage from "./components/Settings"
 import Fuse from 'fuse.js'

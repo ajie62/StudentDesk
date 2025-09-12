@@ -12,6 +12,8 @@ contextBridge.exposeInMainWorld("studentApi", {
     ipcRenderer.invoke("lessons:update", studentId, lessonId, patch),
   deleteLesson: (studentId, lessonId) =>
     ipcRenderer.invoke("lessons:delete", studentId, lessonId),
+  
+  exportTrackingReport: (payload) => ipcRenderer.invoke("student:export-tracking-report", payload),
 
   importCSV: () => ipcRenderer.invoke("students:importCSV"),
 

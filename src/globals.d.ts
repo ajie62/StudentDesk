@@ -15,6 +15,20 @@ declare global {
       updateLesson: (studentId: string, lessonId: string, patch: Partial<Lesson>) => Promise<Lesson>
       deleteLesson: (studentId: string, lessonId: string) => Promise<string>
 
+      exportTrackingReport: (payload: {
+        studentId: string
+        goals?: string
+        progress?: number
+        cefr?: {
+          oral?: import("./types").CEFR
+          ecrit?: import("./types").CEFR
+          interaction?: import("./types").CEFR
+          grammaire?: import("./types").CEFR
+          vocabulaire?: import("./types").CEFR
+        }
+        tags?: string[]
+      }) => Promise<void>
+
       // === CSV Import ===
       importCSV: () => Promise<{ count: number }>
 
