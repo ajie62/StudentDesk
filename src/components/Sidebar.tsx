@@ -85,9 +85,6 @@ export function Sidebar({
           aria-label="Nouvel étudiant"
           onClick={() => {
             setShowNew(true)
-            setShowDashboard(false)
-            setShowChangelog(false)
-            setShowSettings(false)
           }}
         >
           <Plus size={16} strokeWidth={1.5} />
