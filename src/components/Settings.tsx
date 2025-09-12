@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react"
-import { CURRENCIES } from "../constants"
+import { FAVORITES, OTHERS } from "../constants"
+import Select from "react-select"
 
 // Types de réglages
 type Tab = "appearance" | "lessons" | "data"
@@ -83,7 +84,10 @@ export default function SettingsPage() {
         <div className="settings-section">
           <label>
             Thème :
-            <select value={theme} onChange={(e) => handleChange("theme", e.target.value)}>
+            <select 
+              className="input"
+              value={theme}
+              onChange={(e) => handleChange("theme", e.target.value)}>
               <option value="light">Clair</option>
               <option value="dark">Sombre</option>
             </select>
@@ -96,6 +100,7 @@ export default function SettingsPage() {
           <label>
             Durée par défaut d’une leçon :
             <select
+              className="input"
               value={lessonDuration}
               onChange={(e) => handleChange("lessonDuration", Number(e.target.value))}
             >
@@ -108,13 +113,70 @@ export default function SettingsPage() {
 
           <label>
             Devise :
-            <select value={currency} onChange={(e) => handleChange("currency", e.target.value)}>
-              {CURRENCIES.map((c) => (
-                <option key={c.code} value={c.code}>
-                    {c.label}
-                </option>
-              ))}
-            </select>
+            <Select
+                value={[...FAVORITES, ...OTHERS].find(opt => opt.value === currency)}
+                onChange={(opt) => handleChange("currency", opt?.value ?? "EUR")}
+                options={[
+                  { label: "Favoris", options: FAVORITES },
+                  { label: "Autres devises", options: OTHERS },
+                ]}
+                isSearchable
+                styles={{
+                  control: (base) => ({
+                    ...base,
+                    backgroundColor: "var(--card)",
+                    borderColor: "var(--soft)",
+                    borderRadius: "var(--r)",
+                    color: "var(--fg)",
+                    fontSize: "14px",
+                    minHeight: "32px",
+                  }),
+                  valueContainer: (base) => ({
+                    ...base,
+                    color: "var(--fg)",
+                    fontSize: "14px",
+                  }),
+                  input: (base) => ({
+                    ...base,
+                    color: "var(--fg)",        // texte de saisie en couleur visible
+                    fontSize: "14px",
+                    margin: 0,
+                    padding: 0,
+                  }),
+                  singleValue: (base) => ({
+                    ...base,
+                    color: "var(--fg)",        // texte de la devise sélectionnée
+                    fontSize: "14px",
+                  }),
+                  placeholder: (base) => ({
+                    ...base,
+                    color: "var(--muted)",
+                    fontSize: "14px",
+                  }),
+                  menu: (base) => ({
+                    ...base,
+                    backgroundColor: "var(--card)",
+                    border: "1px solid var(--soft)",
+                    borderRadius: "var(--r)",
+                    zIndex: 100,
+                  }),
+                  option: (base, state) => ({
+                    ...base,
+                    backgroundColor: state.isFocused ? "var(--soft)" : "transparent",
+                    color: "var(--fg)",
+                    fontSize: "14px",
+                    cursor: "pointer",
+                  }),
+                  groupHeading: (base) => ({
+                    ...base,
+                    color: "var(--muted)",
+                    fontSize: "12px",
+                    fontWeight: 600,
+                    textTransform: "uppercase",
+                    padding: "4px 8px",
+                  }),
+                }}
+            />
           </label>
         </div>
       )}

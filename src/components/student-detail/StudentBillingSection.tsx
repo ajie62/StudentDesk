@@ -1,6 +1,7 @@
 import React, { useMemo, useState, useEffect } from "react"
 import { Student, BillingContract } from "../../types"
 import StudentBilling from "../StudentBilling"
+import { getCurrencyLabel } from "../../constants"
 import { formatDate } from "../../utils"
 import { v4 as uuidv4 } from "uuid"
 
@@ -272,7 +273,7 @@ export default function StudentBillingSection({ student, onUpdated }: Props) {
                       {c.pricePerLesson != null && (
                         <>
                           {" "}
-                          • Prix/Leçon&nbsp;: {c.pricePerLesson}{" "}
+                          • Prix/Leçon : {c.pricePerLesson} {getCurrencyLabel(c.currency)}
                           {c.currency ?? ""}
                         </>
                       )}

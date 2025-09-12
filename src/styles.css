@@ -47,6 +47,22 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 
+select.input {
+  background-color: var(--card);
+  border: 1px solid var(--soft);
+  border-radius: var(--r);
+  color: var(--fg);
+  padding: 6px 10px;
+  font-size: 14px;
+  appearance: none; /* enlève le style système moche */
+}
+
+select.input:focus {
+  outline: none;
+  border-color: inherit;
+  box-shadow: none;
+}
+
 /* --- Layout --- */
 .app-shell {
   display: grid;
@@ -1053,10 +1069,19 @@ button, .btn, input, textarea, label, select, a, .burger {
   border-color: #3b82f6; /* bleu clair */
 }
 
-.settings-section {
+.settings-section label {
   display: flex;
-  flex-direction: column;
-  gap: 10px; /* espace réduit */
+  align-items: center;
+  flex-direction: space-between;
+  gap: 10px;
+  margin-bottom: 16px;
+  font-size: 14px;
+  color: var(--muted);
+}
+
+.settings-section select.input {
+  flex: 1;
+  max-width: 300px;
 }
 
 .settings-section label {

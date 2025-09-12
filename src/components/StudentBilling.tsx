@@ -1,5 +1,7 @@
 import React, { useMemo, useState, useEffect } from "react"
 import { BillingContract, Lesson } from "../types"
+import { FAVORITES, OTHERS } from "../constants"
+import Select from "react-select"
 
 type ViewModel = {
   firstName: string
@@ -145,16 +147,16 @@ export default function StudentBilling({ viewModel, onChange }: Props): JSX.Elem
         </label>
 
         <select
-  className="input"
-  value={c.customDuration ? "custom" : String(c.durationMinutes ?? settings?.lessonDuration ?? 60)}
-  onChange={(e) => handleDurationSelect(e.target.value)}
->
-  <option value="30">30</option>
-  <option value="45">45</option>
-  <option value="60">60</option>
-  <option value="90">90</option>
-  <option value="custom">Autre…</option>
-</select>
+            className="input"
+            value={c.customDuration ? "custom" : String(c.durationMinutes ?? settings?.lessonDuration ?? 60)}
+            onChange={(e) => handleDurationSelect(e.target.value)}
+            >
+            <option value="30">30</option>
+            <option value="45">45</option>
+            <option value="60">60</option>
+            <option value="90">90</option>
+            <option value="custom">Autre…</option>
+        </select>
 
         {c.customDuration && (
             <div style={{ marginTop: 8 }}>
@@ -185,17 +187,71 @@ export default function StudentBilling({ viewModel, onChange }: Props): JSX.Elem
             value={c.pricePerLesson ?? ""}
             onChange={(e) => handlePrice(e.target.value)}
           />
-          <select
-            className="input"
-            style={{ maxWidth: 120 }}
-            value={c.currency ?? settings?.currency ?? "EUR"}
-            onChange={(e) => onChange({ currency: e.target.value })}
-          >
-            <option value="EUR">EUR (€)</option>
-            <option value="USD">USD ($)</option>
-            <option value="GBP">GBP (£)</option>
-            <option value="CNY">CNY (¥)</option>
-          </select>
+          <Select
+            value={[...FAVORITES, ...OTHERS].find(opt => opt.value === (c.currency ?? settings?.currency ?? "EUR"))}
+            onChange={(opt) => onChange({ currency: opt?.value ?? "EUR" })}
+            options={[
+                { label: "Favoris", options: FAVORITES },
+                { label: "Autres devises", options: OTHERS },
+            ]}
+            isSearchable
+            styles={{
+                container: (base) => ({
+                    ...base,
+                    minWidth: "200px",   // largeur mini plus grande
+                    maxWidth: "280px",   // tu peux ajuster selon ton layout
+                    flex: "none",        // évite que ça se compresse trop
+                }),
+                control: (base) => ({
+                ...base,
+                backgroundColor: "var(--card)",
+                borderColor: "var(--soft)",
+                borderRadius: "var(--r)",
+                color: "var(--fg)",
+                fontSize: "14px",
+                minHeight: "32px",
+                }),
+                valueContainer: (base) => ({
+                ...base,
+                color: "var(--fg)",
+                fontSize: "14px",
+                }),
+                input: (base) => ({
+                ...base,
+                color: "var(--fg)",
+                fontSize: "14px",
+                margin: 0,
+                padding: 0,
+                }),
+                singleValue: (base) => ({
+                ...base,
+                color: "var(--fg)",
+                fontSize: "14px",
+                }),
+                menu: (base) => ({
+                ...base,
+                backgroundColor: "var(--card)",
+                border: "1px solid var(--soft)",
+                borderRadius: "var(--r)",
+                zIndex: 100,
+                }),
+                option: (base, state) => ({
+                ...base,
+                backgroundColor: state.isFocused ? "var(--soft)" : "transparent",
+                color: "var(--fg)",
+                fontSize: "14px",
+                cursor: "pointer",
+                }),
+                groupHeading: (base) => ({
+                ...base,
+                color: "var(--muted)",
+                fontSize: "12px",
+                fontWeight: 600,
+                textTransform: "uppercase",
+                padding: "4px 8px",
+                }),
+            }}
+          />
         </div>
       </div>
 
