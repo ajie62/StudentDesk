@@ -722,6 +722,11 @@ select.input:focus {
   justify-content: center;
 }
 
+.chart-container:focus,
+.chart-container *:focus {
+  outline: none !important;
+}
+
 .chart-center {
   position: absolute;
   top: 50%; left: 50%;
