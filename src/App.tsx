@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState, Suspense, lazy } from "react";
-import { Student, ActivityItem } from "./types";
+import { Student, ActivityItem, AppSettings, FilterKind } from "./types";
 import { fullName } from "./utils";
 import { Sidebar } from "./components/Sidebar";
 import StudentForm from "./components/StudentForm";
@@ -22,9 +22,6 @@ type Stats = {
 };
 
 type Toast = { id: string; text: string };
-
-// ✅ On définit FilterKind ici
-type FilterKind = "all" | "active" | "inactive" | "contracts";
 
 export default function App() {
   const [students, setStudents] = useState<Student[]>([]);
@@ -72,6 +69,28 @@ export default function App() {
         setVersion("");
       }
     })();
+  }, []);
+
+  useEffect(() => {
+    (async () => {
+      try {
+        const prefs: AppSettings | undefined = await window.studentApi.getSettings?.();
+        if (prefs?.defaultStudentFilter) {
+          setFilterActive(prefs.defaultStudentFilter);
+        }
+      } catch (e) {
+        console.error("Impossible de charger defaultStudentFilter :", e);
+      }
+    })();
+  }, []);
+
+  useEffect(() => {
+    const handler = (e: any) => {
+      setFilterActive(e.detail); // applique direct le changement depuis Settings
+    };
+    window.addEventListener("studentFilterChanged", handler);
+
+    return () => window.removeEventListener("studentFilterChanged", handler);
   }, []);
 
   useEffect(() => {

@@ -555,7 +555,8 @@ ipcMain.handle("settings:get", () => {
   return {
     theme: store.get("theme", "dark"),
     lessonDuration: store.get("lessonDuration", 60),
-    currency: store.get("currency", "EUR"), // ⚡ changé "€" en code standard
+    currency: store.get("currency", "EUR"),
+    defaultStudentFilter: store.get("defaultStudentFilter", "all"),
   };
 });
 
@@ -564,11 +565,14 @@ ipcMain.handle("settings:save", (_evt, newSettings) => {
   if (newSettings.lessonDuration !== undefined)
     store.set("lessonDuration", newSettings.lessonDuration);
   if (newSettings.currency !== undefined) store.set("currency", newSettings.currency);
+  if (newSettings.defaultStudentFilter !== undefined)
+    store.set("defaultStudentFilter", newSettings.defaultStudentFilter);
 
   const updated = {
     theme: store.get("theme", "dark"),
     lessonDuration: store.get("lessonDuration", 60),
     currency: store.get("currency", "EUR"),
+    defaultStudentFilter: store.get("defaultStudentFilter", "all"),
   };
 
   // 🔔 notifier le renderer (App.tsx) → toast

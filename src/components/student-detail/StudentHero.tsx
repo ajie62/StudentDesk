@@ -80,7 +80,8 @@ export default function StudentHero({
               <button
                 className="btn ghost"
                 style={{ backgroundColor: "#121214", color: "#fff" }}
-                onClick={onEdit}>
+                onClick={onEdit}
+              >
                 Modifier l’étudiant
               </button>
               <button

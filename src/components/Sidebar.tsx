@@ -1,5 +1,5 @@
 import { Settings, Plus } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { fullName, initialsOf } from "../utils";
 import { Student } from "../types";
 
@@ -57,6 +57,17 @@ export function Sidebar({
       s.description?.toLowerCase().includes(q.toLowerCase())
     );
   });
+
+  useEffect(() => {
+    const handler = (e: any) => {
+      setFilterActive(e.detail);
+    };
+    window.addEventListener("studentFilterChanged", handler);
+
+    return () => {
+      window.removeEventListener("studentFilterChanged", handler);
+    };
+  }, [setFilterActive]);
 
   return (
     <aside className="sidebar">

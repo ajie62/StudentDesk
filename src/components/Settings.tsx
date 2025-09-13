@@ -1,26 +1,29 @@
 import React, { useState, useEffect } from "react";
+import { AppSettings } from "../types";
 import { FAVORITES, OTHERS } from "../constants";
 import Select from "react-select";
 
 // Types de réglages
-type Tab = "appearance" | "lessons" | "data";
+type Tab = "app" | "lessons" | "data";
 
 export default function SettingsPage() {
-  const [activeTab, setActiveTab] = useState<Tab>("appearance");
+  const [activeTab, setActiveTab] = useState<Tab>("app");
 
   const [theme, setTheme] = useState("dark");
   const [lessonDuration, setLessonDuration] = useState(60);
   const [currency, setCurrency] = useState("EUR"); // ⚡ normalisation
+  const [defaultStudentFilter, setDefaultStudentFilter] = useState("all");
 
   // Charger réglages depuis electron-store
   useEffect(() => {
     (async () => {
       try {
-        const prefs = await window.studentApi.getSettings?.();
+        const prefs: AppSettings | undefined = await window.studentApi.getSettings?.();
         if (prefs) {
           setTheme(prefs.theme ?? "dark");
           setLessonDuration(prefs.lessonDuration ?? 60);
           setCurrency(prefs.currency ?? "EUR");
+          setDefaultStudentFilter(prefs.defaultStudentFilter ?? "all");
         }
       } catch (e) {
         console.error("Impossible de charger les réglages :", e);
@@ -30,13 +33,14 @@ export default function SettingsPage() {
 
   // Sauvegarde côté Electron
   async function handleChange(
-    key: "theme" | "lessonDuration" | "currency",
+    key: "theme" | "lessonDuration" | "currency" | "defaultStudentFilter",
     value: string | number
   ) {
     const newSettings = {
       theme,
       lessonDuration,
       currency,
+      defaultStudentFilter,
       [key]: value,
     };
 
@@ -44,10 +48,13 @@ export default function SettingsPage() {
     if (key === "theme") setTheme(value as string);
     if (key === "lessonDuration") setLessonDuration(value as number);
     if (key === "currency") setCurrency(value as string);
+    if (key === "defaultStudentFilter") setDefaultStudentFilter(value as string);
 
     // Sauvegarde → le toast est déclenché par App.tsx quand "store-saved" est reçu
     try {
       await window.studentApi.saveSettings?.(newSettings);
+
+      window.dispatchEvent(new CustomEvent("studentFilterChanged", { detail: value }));
     } catch (e) {
       console.error("Erreur de sauvegarde des réglages :", e);
     }
@@ -59,11 +66,8 @@ export default function SettingsPage() {
 
       {/* Onglets */}
       <div className="tabs">
-        <button
-          className={activeTab === "appearance" ? "active" : ""}
-          onClick={() => setActiveTab("appearance")}
-        >
-          Apparence
+        <button className={activeTab === "app" ? "active" : ""} onClick={() => setActiveTab("app")}>
+          App
         </button>
         <button
           className={activeTab === "lessons" ? "active" : ""}
@@ -80,7 +84,7 @@ export default function SettingsPage() {
       </div>
 
       {/* Contenu des onglets */}
-      {activeTab === "appearance" && (
+      {activeTab === "app" && (
         <div className="settings-section">
           <label>
             Thème :
@@ -91,6 +95,20 @@ export default function SettingsPage() {
             >
               <option value="light">Clair</option>
               <option value="dark">Sombre</option>
+            </select>
+          </label>
+
+          <label>
+            Catégorie étudiant par défaut :
+            <select
+              className="input"
+              value={defaultStudentFilter}
+              onChange={(e) => handleChange("defaultStudentFilter", e.target.value)}
+            >
+              <option value="all">Tous</option>
+              <option value="active">Actifs</option>
+              <option value="inactive">Inactifs</option>
+              <option value="contracts">Contrat(s) actif(s)</option>
             </select>
           </label>
         </div>

@@ -4,6 +4,14 @@ export type LessonDuration = 30 | 45 | 60 | 90 | number;
 
 // Niveaux CECRL
 export type CEFR = "A1" | "A2" | "B1" | "B2" | "C1" | "C2";
+export type FilterKind = "all" | "active" | "inactive" | "contracts";
+
+export type AppSettings = {
+  theme: string;
+  lessonDuration: number;
+  currency: string;
+  defaultStudentFilter?: FilterKind;
+};
 
 export interface Lesson {
   id: string;
