@@ -19,22 +19,22 @@ export default function LessonForm({ onClose, onSaved, initial, availableContrac
   const [billingId, setBillingId] = useState<string | null>(initial?.billingId ?? null);
   const [loading, setLoading] = useState(false);
 
-  const commentRef = useRef<HTMLTextAreaElement | null>(null)
-  const homeworkRef = useRef<HTMLTextAreaElement | null>(null)
+  const commentRef = useRef<HTMLTextAreaElement | null>(null);
+  const homeworkRef = useRef<HTMLTextAreaElement | null>(null);
 
   useEffect(() => {
     if (commentRef.current) {
-        commentRef.current.style.height = "auto"
-        commentRef.current.style.height = commentRef.current.scrollHeight + "px"
+      commentRef.current.style.height = "auto";
+      commentRef.current.style.height = commentRef.current.scrollHeight + "px";
     }
-  }, [comment])
+  }, [comment]);
 
   useEffect(() => {
     if (homeworkRef.current) {
-        homeworkRef.current.style.height = "auto"
-        homeworkRef.current.style.height = homeworkRef.current.scrollHeight + "px"
+      homeworkRef.current.style.height = "auto";
+      homeworkRef.current.style.height = homeworkRef.current.scrollHeight + "px";
     }
-  }, [homework])
+  }, [homework]);
 
   // Groupes triés (ASC) + numérotation
   const singlesSorted = useMemo(() => {

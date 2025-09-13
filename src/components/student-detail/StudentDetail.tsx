@@ -39,9 +39,7 @@ export default function StudentDetail({ studentId, onDeleted, onUpdated }: Props
       />
 
       {/* Contenu par onglet */}
-      {tab === "fiche" && (
-        <StudentLessons student={student} onUpdated={handleListUpdated} />
-      )}
+      {tab === "fiche" && <StudentLessons student={student} onUpdated={handleListUpdated} />}
       {tab === "suivi" && (
         <StudentTrackingSection student={student} onUpdated={handleListUpdated} />
       )}
@@ -69,7 +67,7 @@ export default function StudentDetail({ studentId, onDeleted, onUpdated }: Props
           availableContracts={student.billingHistory ?? []}
           onClose={() => setEditingLesson(null)}
           onSaved={async (patch) => {
-            await window.studentApi.updateLesson(student.id, editingLesson.id, patch)
+            await window.studentApi.updateLesson(student.id, editingLesson.id, patch);
             setEditingLesson(null);
             await handleListUpdated();
           }}

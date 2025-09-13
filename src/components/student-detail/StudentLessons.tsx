@@ -14,17 +14,24 @@ export default function StudentLessons({ student, onUpdated }: Props) {
   const [page, setPage] = useState(1);
   const [addingLesson, setAddingLesson] = useState(false);
 
+  const lastLessonId = useMemo(() => {
+    const lessons = (student.lessons ?? []).filter((l) => !l.deletedAt);
+    if (lessons.length === 0) return null;
+    return lessons.reduce((a, b) => (new Date(a.createdAt) > new Date(b.createdAt) ? a : b)).id;
+  }, [student.lessons]);
+
   // pagination leçons
   const pageCount = useMemo(() => {
-    return Math.max(1, Math.ceil((student.lessons?.length ?? 0) / PAGE_SIZE_LESSONS));
-  }, [student]);
+    const total = (student.lessons?.length ?? 0) - (lastLessonId ? 1 : 0);
+    return Math.max(1, Math.ceil(total / PAGE_SIZE_LESSONS));
+  }, [student, lastLessonId]);
 
   useEffect(() => {
     setPage((p) => Math.min(p, pageCount));
   }, [pageCount]);
 
   const currentLessons = useMemo(() => {
-    const list = student.lessons ?? [];
+    const list = (student.lessons ?? []).filter((l) => l.id !== lastLessonId);
     const start = (page - 1) * PAGE_SIZE_LESSONS;
     const end = start + PAGE_SIZE_LESSONS;
     return list.slice(start, end);
