@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState, useRef } from "react";
 import { Lesson, BillingContract } from "../types";
 
 type Props = {
@@ -18,6 +18,23 @@ export default function LessonForm({ onClose, onSaved, initial, availableContrac
   );
   const [billingId, setBillingId] = useState<string | null>(initial?.billingId ?? null);
   const [loading, setLoading] = useState(false);
+
+  const commentRef = useRef<HTMLTextAreaElement | null>(null)
+  const homeworkRef = useRef<HTMLTextAreaElement | null>(null)
+
+  useEffect(() => {
+    if (commentRef.current) {
+        commentRef.current.style.height = "auto"
+        commentRef.current.style.height = commentRef.current.scrollHeight + "px"
+    }
+  }, [comment])
+
+  useEffect(() => {
+    if (homeworkRef.current) {
+        homeworkRef.current.style.height = "auto"
+        homeworkRef.current.style.height = homeworkRef.current.scrollHeight + "px"
+    }
+  }, [homework])
 
   // Groupes triés (ASC) + numérotation
   const singlesSorted = useMemo(() => {
@@ -82,20 +99,24 @@ export default function LessonForm({ onClose, onSaved, initial, availableContrac
           <div className="field">
             <label className="label">Commentaire</label>
             <textarea
+              ref={commentRef}
               className="textarea"
               value={comment}
               onChange={(e) => setComment(e.target.value)}
               placeholder="Notes sur la leçon..."
+              style={{ resize: "none", overflow: "hidden" }}
             />
           </div>
 
           <div className="field">
             <label className="label">Devoirs</label>
             <textarea
+              ref={homeworkRef}
               className="textarea"
               value={homework}
               onChange={(e) => setHomework(e.target.value)}
               placeholder="Travail à faire..."
+              style={{ resize: "none", overflow: "hidden" }}
             />
           </div>
 

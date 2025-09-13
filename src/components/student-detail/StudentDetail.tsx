@@ -1,6 +1,7 @@
-import React from "react";
-import { Student } from "../../types";
+import React, { useState } from "react";
+import { Student, Lesson } from "../../types";
 import StudentForm from "../StudentForm";
+import LessonForm from "../LessonForm";
 import StudentHero from "./StudentHero";
 import StudentLessons from "./StudentLessons";
 import StudentTrackingSection from "./StudentTrackingSection";
@@ -20,21 +21,27 @@ export default function StudentDetail({ studentId, onDeleted, onUpdated }: Props
     onUpdated
   );
 
+  const [editingLesson, setEditingLesson] = useState<Lesson | null>(null);
+
   if (!student) return null;
 
   return (
     <div style={{ display: "grid", gap: 16 }}>
-      {/* Hero avec avatar, onglets, actions globales */}
+      {/* Hero avec avatar, dernière leçon, onglets */}
       <StudentHero
         student={student}
         tab={tab}
         setTab={setTab}
         onEdit={() => setEditing(true)}
         onDelete={onDeleted}
+        onLessonsUpdated={handleListUpdated}
+        onEditLesson={(lesson) => setEditingLesson(lesson)}
       />
 
-      {/* Contenu conditionnel selon l’onglet actif */}
-      {tab === "fiche" && <StudentLessons student={student} onUpdated={handleListUpdated} />}
+      {/* Contenu par onglet */}
+      {tab === "fiche" && (
+        <StudentLessons student={student} onUpdated={handleListUpdated} />
+      )}
       {tab === "suivi" && (
         <StudentTrackingSection student={student} onUpdated={handleListUpdated} />
       )}
@@ -42,7 +49,7 @@ export default function StudentDetail({ studentId, onDeleted, onUpdated }: Props
         <StudentBillingSection student={student} onUpdated={handleListUpdated} />
       )}
 
-      {/* Modal édition étudiant */}
+      {/* Modale : édition de l'étudiant */}
       {editing && (
         <StudentForm
           initial={student}
@@ -50,6 +57,20 @@ export default function StudentDetail({ studentId, onDeleted, onUpdated }: Props
           onSaved={async (patch) => {
             await window.studentApi.updateStudent(student.id, patch as Partial<Student>);
             setEditing(false);
+            await handleListUpdated();
+          }}
+        />
+      )}
+
+      {/* Modale : édition de la leçon */}
+      {editingLesson && (
+        <LessonForm
+          initial={editingLesson}
+          availableContracts={student.billingHistory ?? []}
+          onClose={() => setEditingLesson(null)}
+          onSaved={async (patch) => {
+            await window.studentApi.updateLesson(student.id, editingLesson.id, patch)
+            setEditingLesson(null);
             await handleListUpdated();
           }}
         />

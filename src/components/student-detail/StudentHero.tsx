@@ -1,5 +1,5 @@
-import React, { useRef, useState, useEffect } from "react";
-import { Student } from "../../types";
+import React, { useRef, useState, useEffect, useMemo } from "react";
+import { Student, Lesson } from "../../types";
 import { formatDate, fullName } from "../../utils";
 
 type Props = {
@@ -8,6 +8,8 @@ type Props = {
   setTab: (tab: "fiche" | "suivi" | "billing") => void;
   onEdit: () => void;
   onDelete: () => void;
+  onLessonsUpdated: () => void;
+  onEditLesson: (lesson: Lesson) => void;
 };
 
 function initials(s: Student) {
@@ -16,10 +18,24 @@ function initials(s: Student) {
   return (a + b).toUpperCase() || "•";
 }
 
-export default function StudentHero({ student, tab, setTab, onEdit, onDelete }: Props) {
+export default function StudentHero({
+  student,
+  tab,
+  setTab,
+  onEdit,
+  onDelete,
+  onLessonsUpdated,
+  onEditLesson,
+}: Props) {
   const descRef = useRef<HTMLDivElement | null>(null);
   const [showFullDesc, setShowFullDesc] = useState(false);
   const [needClamp, setNeedClamp] = useState(false);
+
+  const lastLesson = useMemo(() => {
+    const lessons = (student.lessons ?? []).filter((l) => !l.deletedAt);
+    if (lessons.length === 0) return null;
+    return lessons.reduce((a, b) => (new Date(a.createdAt) > new Date(b.createdAt) ? a : b));
+  }, [student.lessons]);
 
   // clamp description sur 3 lignes
   useEffect(() => {
@@ -68,6 +84,106 @@ export default function StudentHero({ student, tab, setTab, onEdit, onDelete }: 
           )}
         </div>
       </div>
+
+      {/* DERNIÈRE LEÇON */}
+      {lastLesson && (
+        <div
+          className="card"
+          style={{ marginTop: 12, backgroundColor: "rgba(255, 255, 255, 0.05)" }}
+        >
+          <div
+            style={{
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+              marginBottom: 6,
+            }}
+          >
+            {/* Titre */}
+            <div
+              style={{
+                fontSize: 11,
+                letterSpacing: 1,
+                fontWeight: 800,
+                color: "var(--muted)",
+                opacity: 0.9,
+              }}
+            >
+              DERNIÈRE LEÇON
+            </div>
+
+            {/* Date + actions */}
+            <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+              <div
+                style={{
+                  fontSize: 11,
+                  color: "var(--muted)",
+                  opacity: 0.8,
+                }}
+              >
+                {formatDate(lastLesson.createdAt)}
+              </div>
+
+              <button
+                className="btn ghost small"
+                onClick={() => onEditLesson(lastLesson)}
+                title="Modifier la leçon"
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  padding: "4px 8px", // zone cliquable plus grande
+                  fontSize: 14, // taille du symbole
+                  lineHeight: 1,
+                }}
+              >
+                ✏️
+              </button>
+
+              <button
+                className="btn ghost small danger"
+                onClick={async () => {
+                  if (confirm("Supprimer cette leçon ?")) {
+                    await window.studentApi.deleteLesson(student.id, lastLesson.id);
+                    await onLessonsUpdated();
+                  }
+                }}
+                title="Supprimer la leçon"
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  padding: "4px 8px",
+                  fontSize: 14,
+                  lineHeight: 1,
+                }}
+              >
+                🗑️
+              </button>
+            </div>
+          </div>
+
+          <div style={{ display: "grid", gap: 8 }}>
+            {/* Commentaire */}
+            <div>
+              <div style={{ fontSize: 12, color: "var(--muted)", marginBottom: 2 }}>
+                Commentaire
+              </div>
+              <div>
+                {lastLesson.comment?.trim() || <span style={{ color: "var(--muted)" }}>—</span>}
+              </div>
+            </div>
+
+            {/* Devoirs */}
+            <div>
+              <div style={{ fontSize: 12, color: "var(--muted)", marginBottom: 2 }}>Devoirs</div>
+              <div>
+                {lastLesson.homework?.trim() || <span style={{ color: "var(--muted)" }}>—</span>}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Onglets + actions globales */}
       <div className="sep" />
