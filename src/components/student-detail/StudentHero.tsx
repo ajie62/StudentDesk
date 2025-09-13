@@ -1,6 +1,7 @@
 import React, { useRef, useState, useEffect, useMemo } from "react";
 import { Student, Lesson } from "../../types";
 import { formatDate, fullName } from "../../utils";
+import { Edit3, Trash2 } from "lucide-react";
 
 type Props = {
   student: Student;
@@ -66,7 +67,36 @@ export default function StudentHero({
         </div>
 
         <div className="hero-main">
-          <h2 style={{ margin: "0 0 2px 0" }}>{fullName(student)}</h2>
+          <div
+            style={{
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+              marginBottom: 2,
+            }}
+          >
+            <h2 style={{ margin: 0 }}>{fullName(student)}</h2>
+            <div style={{ display: "flex", gap: 8 }}>
+              <button
+                className="btn ghost"
+                style={{ backgroundColor: "#121214", color: "#fff" }}
+                onClick={onEdit}>
+                Modifier l’étudiant
+              </button>
+              <button
+                className="btn"
+                style={{ backgroundColor: "#121214", color: "#fff" }}
+                onClick={async () => {
+                  if (confirm("Supprimer cet étudiant ?")) {
+                    await window.studentApi.deleteStudent(student.id);
+                    onDelete();
+                  }
+                }}
+              >
+                Supprimer l’étudiant
+              </button>
+            </div>
+          </div>
 
           <div
             ref={descRef}
@@ -137,7 +167,7 @@ export default function StudentHero({
                   lineHeight: 1,
                 }}
               >
-                ✏️
+                <Edit3 size={16} strokeWidth={1.5} />
               </button>
 
               <button
@@ -158,12 +188,12 @@ export default function StudentHero({
                   lineHeight: 1,
                 }}
               >
-                🗑️
+                <Trash2 size={16} strokeWidth={1.5} />
               </button>
             </div>
           </div>
 
-          <div style={{ display: "grid", gap: 8 }}>
+          <div style={{ display: "grid", gap: 25 }}>
             {/* Commentaire */}
             <div>
               <div style={{ fontSize: 12, color: "var(--muted)", marginBottom: 2 }}>
@@ -184,55 +214,6 @@ export default function StudentHero({
           </div>
         </div>
       )}
-
-      {/* Onglets + actions globales */}
-      <div className="sep" />
-      <div
-        className="tabs"
-        style={{
-          display: "flex",
-          gap: 8,
-          marginBottom: 4,
-          flexWrap: "wrap",
-          alignItems: "center",
-        }}
-      >
-        <button
-          className={`btn ghost ${tab === "fiche" ? "active" : ""}`}
-          onClick={() => setTab("fiche")}
-        >
-          Fiche
-        </button>
-        <button
-          className={`btn ghost ${tab === "suivi" ? "active" : ""}`}
-          onClick={() => setTab("suivi")}
-        >
-          Suivi
-        </button>
-        <button
-          className={`btn ghost ${tab === "billing" ? "active" : ""}`}
-          onClick={() => setTab("billing")}
-        >
-          Cours & facturation
-        </button>
-
-        <div style={{ marginLeft: "auto", display: "flex", gap: 8 }}>
-          <button className="btn ghost" onClick={onEdit}>
-            Modifier l’étudiant
-          </button>
-          <button
-            className="btn"
-            onClick={async () => {
-              if (confirm("Supprimer cet étudiant ?")) {
-                await window.studentApi.deleteStudent(student.id);
-                onDelete();
-              }
-            }}
-          >
-            Supprimer l’étudiant
-          </button>
-        </div>
-      </div>
     </div>
   );
 }

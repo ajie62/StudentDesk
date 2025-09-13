@@ -26,7 +26,7 @@ export default function StudentDetail({ studentId, onDeleted, onUpdated }: Props
   if (!student) return null;
 
   return (
-    <div style={{ display: "grid", gap: 16 }}>
+    <div style={{ display: "grid", gap: 4 }}>
       {/* Hero avec avatar, dernière leçon, onglets */}
       <StudentHero
         student={student}
@@ -37,6 +37,38 @@ export default function StudentDetail({ studentId, onDeleted, onUpdated }: Props
         onLessonsUpdated={handleListUpdated}
         onEditLesson={(lesson) => setEditingLesson(lesson)}
       />
+
+      <div className="sep" />
+      <div
+        className="tabs"
+        style={{
+          display: "flex",
+          gap: 14,
+          marginTop: 4,
+          marginBottom: 4,
+          flexWrap: "wrap",
+          alignItems: "center",
+        }}
+      >
+        <button
+          className={`btn ghost ${tab === "fiche" ? "active" : ""}`}
+          onClick={() => setTab("fiche")}
+        >
+          Fiche
+        </button>
+        <button
+          className={`btn ghost ${tab === "suivi" ? "active" : ""}`}
+          onClick={() => setTab("suivi")}
+        >
+          Suivi
+        </button>
+        <button
+          className={`btn ghost ${tab === "billing" ? "active" : ""}`}
+          onClick={() => setTab("billing")}
+        >
+          Cours & facturation
+        </button>
+      </div>
 
       {/* Contenu par onglet */}
       {tab === "fiche" && <StudentLessons student={student} onUpdated={handleListUpdated} />}

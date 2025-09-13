@@ -48,7 +48,7 @@ export default function StudentLessons({ student, onUpdated }: Props) {
 
   return (
     <>
-      <div className="lesson-toolbar">
+      <div className="lesson-toolbar" style={{ marginBottom: 16 }}>
         <div className="lesson-toolbar__title">Leçons</div>
         <div className="lesson-toolbar__actions">
           <div className="pagination">
@@ -71,7 +71,7 @@ export default function StudentLessons({ student, onUpdated }: Props) {
             </button>
           </div>
 
-          <div style={{ display: "flex", gap: 8 }}>
+          <div style={{ display: "flex", gap: 12 }}>
             <button
               className={`btn ${openContracts.length === 0 ? "disabled" : ""}`}
               disabled={openContracts.length === 0}
