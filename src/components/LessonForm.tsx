@@ -11,6 +11,11 @@ type Props = {
 export default function LessonForm({ onClose, onSaved, initial, availableContracts = [] }: Props) {
   const [comment, setComment] = useState(initial?.comment || "");
   const [homework, setHomework] = useState(initial?.homework || "");
+  const [date, setDate] = useState(
+    initial?.createdAt
+      ? new Date(initial.createdAt).toISOString().substring(0, 10)
+      : new Date().toISOString().substring(0, 10)
+  );
   const [billingId, setBillingId] = useState<string | null>(initial?.billingId ?? null);
   const [loading, setLoading] = useState(false);
 
@@ -62,7 +67,7 @@ export default function LessonForm({ onClose, onSaved, initial, availableContrac
     e.preventDefault();
     setLoading(true);
     try {
-      await onSaved({ comment, homework, billingId });
+      await onSaved({ comment, homework, billingId, createdAt: new Date(date).toISOString() });
       onClose();
     } finally {
       setLoading(false);
@@ -91,6 +96,16 @@ export default function LessonForm({ onClose, onSaved, initial, availableContrac
               value={homework}
               onChange={(e) => setHomework(e.target.value)}
               placeholder="Travail à faire..."
+            />
+          </div>
+
+          <div className="field">
+            <label className="label">Date de la leçon</label>
+            <input
+              type="date"
+              className="input"
+              value={date}
+              onChange={(e) => setDate(e.target.value)}
             />
           </div>
 

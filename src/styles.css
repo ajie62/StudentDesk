@@ -1238,3 +1238,13 @@ a,
   font-size: 14px;
   color: #eee;
 }
+
+input[type="date"] {
+  background-color: #1f1f1f;
+  color: #f9fafb;
+}
+
+input[type="date"]::-webkit-calendar-picker-indicator {
+  filter: invert(1);
+  cursor: pointer;
+}
