@@ -1,34 +1,34 @@
-import React, { useRef, useState, useEffect } from "react"
-import { Student } from "../../types"
-import { formatDate, fullName } from "../../utils"
+import React, { useRef, useState, useEffect } from "react";
+import { Student } from "../../types";
+import { formatDate, fullName } from "../../utils";
 
 type Props = {
-  student: Student
-  tab: "fiche" | "suivi" | "billing"
-  setTab: (tab: "fiche" | "suivi" | "billing") => void
-  onEdit: () => void
-  onDelete: () => void
-}
+  student: Student;
+  tab: "fiche" | "suivi" | "billing";
+  setTab: (tab: "fiche" | "suivi" | "billing") => void;
+  onEdit: () => void;
+  onDelete: () => void;
+};
 
 function initials(s: Student) {
-  const a = (s.firstName || "").trim()[0] || ""
-  const b = (s.lastName || "").trim()[0] || ""
-  return (a + b).toUpperCase() || "•"
+  const a = (s.firstName || "").trim()[0] || "";
+  const b = (s.lastName || "").trim()[0] || "";
+  return (a + b).toUpperCase() || "•";
 }
 
 export default function StudentHero({ student, tab, setTab, onEdit, onDelete }: Props) {
-  const descRef = useRef<HTMLDivElement | null>(null)
-  const [showFullDesc, setShowFullDesc] = useState(false)
-  const [needClamp, setNeedClamp] = useState(false)
+  const descRef = useRef<HTMLDivElement | null>(null);
+  const [showFullDesc, setShowFullDesc] = useState(false);
+  const [needClamp, setNeedClamp] = useState(false);
 
   // clamp description sur 3 lignes
   useEffect(() => {
-    if (!descRef.current) return
-    const el = descRef.current
-    const lh = parseFloat(getComputedStyle(el).lineHeight || "20")
-    const maxH = lh * 3
-    setNeedClamp(el.scrollHeight > maxH + 2)
-  }, [student, showFullDesc])
+    if (!descRef.current) return;
+    const el = descRef.current;
+    const lh = parseFloat(getComputedStyle(el).lineHeight || "20");
+    const maxH = lh * 3;
+    setNeedClamp(el.scrollHeight > maxH + 2);
+  }, [student, showFullDesc]);
 
   return (
     <div className="hero">
@@ -54,10 +54,7 @@ export default function StudentHero({ student, tab, setTab, onEdit, onDelete }: 
 
           <div
             ref={descRef}
-            className={[
-              "hero-description",
-              needClamp && !showFullDesc ? "limited" : "",
-            ].join(" ")}
+            className={["hero-description", needClamp && !showFullDesc ? "limited" : ""].join(" ")}
           >
             {student.description || (
               <span style={{ color: "var(--muted)" }}>Aucune description.</span>
@@ -65,10 +62,7 @@ export default function StudentHero({ student, tab, setTab, onEdit, onDelete }: 
           </div>
 
           {needClamp && (
-            <div
-              className="hero-description-toggle"
-              onClick={() => setShowFullDesc((v) => !v)}
-            >
+            <div className="hero-description-toggle" onClick={() => setShowFullDesc((v) => !v)}>
               {showFullDesc ? "Voir moins" : "Voir plus"}
             </div>
           )}
@@ -114,8 +108,8 @@ export default function StudentHero({ student, tab, setTab, onEdit, onDelete }: 
             className="btn"
             onClick={async () => {
               if (confirm("Supprimer cet étudiant ?")) {
-                await window.studentApi.deleteStudent(student.id)
-                onDelete()
+                await window.studentApi.deleteStudent(student.id);
+                onDelete();
               }
             }}
           >
@@ -124,5 +118,5 @@ export default function StudentHero({ student, tab, setTab, onEdit, onDelete }: 
         </div>
       </div>
     </div>
-  )
+  );
 }

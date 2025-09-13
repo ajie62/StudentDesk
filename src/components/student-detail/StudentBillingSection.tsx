@@ -1,13 +1,13 @@
-import React, { useMemo, useState, useEffect } from "react"
-import { Student, BillingContract } from "../../types"
-import StudentBilling from "../StudentBilling"
-import { getCurrencyLabel } from "../../constants"
-import { formatDate } from "../../utils"
-import { v4 as uuidv4 } from "uuid"
+import React, { useMemo, useState, useEffect } from "react";
+import { Student, BillingContract } from "../../types";
+import StudentBilling from "../StudentBilling";
+import { getCurrencyLabel } from "../../constants";
+import { formatDate } from "../../utils";
+import { v4 as uuidv4 } from "uuid";
 
 // Helpers
 function isContractEqual(a: BillingContract | null, b: BillingContract | null) {
-  return JSON.stringify(a ?? null) === JSON.stringify(b ?? null)
+  return JSON.stringify(a ?? null) === JSON.stringify(b ?? null);
 }
 
 /** Génération d’un nom unique pour chaque contrat */
@@ -17,89 +17,83 @@ function generateDisplayName(
   existing: BillingContract[]
 ): string {
   if (mode === "single") {
-    const base = "Cours unitaire"
-    const sameType = existing.filter((c) => c.mode === "single")
-    return `${base} (${sameType.length + 1})`
+    const base = "Cours unitaire";
+    const sameType = existing.filter((c) => c.mode === "single");
+    return `${base} (${sameType.length + 1})`;
   }
 
   if (mode === "package") {
-    const base = `Pack de ${totalLessons} leçons`
+    const base = `Pack de ${totalLessons} leçons`;
     const sameType = existing.filter(
       (c) => c.mode === "package" && c.totalLessons === totalLessons
-    )
-    return `${base} (${sameType.length + 1})`
+    );
+    return `${base} (${sameType.length + 1})`;
   }
 
-  return "Contrat"
+  return "Contrat";
 }
 
 // UI Helpers
 function totalFor(c: BillingContract) {
-  return c.mode === "package" ? c.totalLessons || 0 : 1
+  return c.mode === "package" ? c.totalLessons || 0 : 1;
 }
 function consumedFor(c: BillingContract, student: Student) {
-  if (typeof c.consumedLessons === "number") return c.consumedLessons
-  return (student.lessons ?? []).filter((l) => l.billingId === c.id).length
+  if (typeof c.consumedLessons === "number") return c.consumedLessons;
+  return (student.lessons ?? []).filter((l) => l.billingId === c.id).length;
 }
 function percentFor(c: BillingContract, student: Student) {
-  const total = totalFor(c)
-  if (!total) return 0
-  const used = consumedFor(c, student)
-  return Math.min(100, Math.round((used / total) * 100))
+  const total = totalFor(c);
+  if (!total) return 0;
+  const used = consumedFor(c, student);
+  return Math.min(100, Math.round((used / total) * 100));
 }
 
-const PAGE_SIZE_BILLING = 10
+const PAGE_SIZE_BILLING = 10;
 
 type Props = {
-  student: Student
-  onUpdated: () => void
-}
+  student: Student;
+  onUpdated: () => void;
+};
 
 export default function StudentBillingSection({ student, onUpdated }: Props) {
-  const [billingPage, setBillingPage] = useState(1)
-  const [editingContract, setEditingContract] = useState<BillingContract | null>(
-    null
-  )
-  const [billingDraft, setBillingDraft] = useState<BillingContract | null>(null)
-  const [billingDirty, setBillingDirty] = useState(false)
+  const [billingPage, setBillingPage] = useState(1);
+  const [editingContract, setEditingContract] = useState<BillingContract | null>(null);
+  const [billingDraft, setBillingDraft] = useState<BillingContract | null>(null);
+  const [billingDirty, setBillingDirty] = useState(false);
 
   // Historique trié
   const sortedContracts = useMemo(() => {
-    const history = student.billingHistory ?? []
-    return [...history].sort((a, b) =>
-      (b.createdAt ?? "").localeCompare(a.createdAt ?? "")
-    )
-  }, [student])
+    const history = student.billingHistory ?? [];
+    return [...history].sort((a, b) => (b.createdAt ?? "").localeCompare(a.createdAt ?? ""));
+  }, [student]);
 
   const billingPageCount = useMemo(() => {
-    return Math.max(1, Math.ceil(sortedContracts.length / PAGE_SIZE_BILLING))
-  }, [sortedContracts.length])
+    return Math.max(1, Math.ceil(sortedContracts.length / PAGE_SIZE_BILLING));
+  }, [sortedContracts.length]);
 
   useEffect(() => {
-    setBillingPage((p) => Math.min(p, billingPageCount))
-  }, [billingPageCount])
+    setBillingPage((p) => Math.min(p, billingPageCount));
+  }, [billingPageCount]);
 
   const currentContracts = useMemo(() => {
-    const start = (billingPage - 1) * PAGE_SIZE_BILLING
-    const end = start + PAGE_SIZE_BILLING
-    return sortedContracts.slice(start, end)
-  }, [sortedContracts, billingPage])
+    const start = (billingPage - 1) * PAGE_SIZE_BILLING;
+    const end = start + PAGE_SIZE_BILLING;
+    return sortedContracts.slice(start, end);
+  }, [sortedContracts, billingPage]);
 
-  const billingPrevDisabled = billingPage <= 1
-  const billingNextDisabled = billingPage >= billingPageCount
+  const billingPrevDisabled = billingPage <= 1;
+  const billingNextDisabled = billingPage >= billingPageCount;
 
-  async function ensureDraftDefaults(
-    prev: BillingContract | null
-  ): Promise<BillingContract> {
-    const history = student.billingHistory ?? []
-    const mode = prev?.mode ?? "single"
-    const lessons = prev?.totalLessons ?? 1
+  async function ensureDraftDefaults(prev: BillingContract | null): Promise<BillingContract> {
+    const history = student.billingHistory ?? [];
+    const mode = prev?.mode ?? "single";
+    const lessons = prev?.totalLessons ?? 1;
 
-    let prefs: { lessonDuration: number; currency: string } | null = null
+    let prefs: { lessonDuration: number; currency: string } | null = null;
     try {
-      prefs = await window.studentApi.getSettings?.()
+      prefs = await window.studentApi.getSettings?.();
     } catch (e) {
-      console.error("Impossible de charger les réglages", e)
+      console.error("Impossible de charger les réglages", e);
     }
 
     return (
@@ -119,70 +113,68 @@ export default function StudentBillingSection({ student, onUpdated }: Props) {
         endDate: null,
         displayName: generateDisplayName(mode, lessons, history),
       }
-    )
+    );
   }
 
   async function updateBilling(patch: Partial<BillingContract>) {
-    const base = await ensureDraftDefaults(billingDraft)
-    let next: BillingContract = { ...base, ...patch }
+    const base = await ensureDraftDefaults(billingDraft);
+    let next: BillingContract = { ...base, ...patch };
 
     if (patch.mode || patch.totalLessons) {
-      const history = student.billingHistory ?? []
-      const mode = patch.mode ?? base.mode
-      const lessons = patch.totalLessons ?? base.totalLessons
-      next.displayName = generateDisplayName(mode, lessons, history)
+      const history = student.billingHistory ?? [];
+      const mode = patch.mode ?? base.mode;
+      const lessons = patch.totalLessons ?? base.totalLessons;
+      next.displayName = generateDisplayName(mode, lessons, history);
     }
 
-    setBillingDraft(next)
-    setBillingDirty(!isContractEqual(next, editingContract))
+    setBillingDraft(next);
+    setBillingDirty(!isContractEqual(next, editingContract));
   }
 
   async function saveBilling() {
-    if (!billingDraft) return
+    if (!billingDraft) return;
 
     const durationOk =
-      typeof billingDraft.durationMinutes === "number" &&
-      billingDraft.durationMinutes > 0
+      typeof billingDraft.durationMinutes === "number" && billingDraft.durationMinutes > 0;
     const priceOk =
-      typeof billingDraft.pricePerLesson === "number" &&
-      billingDraft.pricePerLesson > 0
+      typeof billingDraft.pricePerLesson === "number" && billingDraft.pricePerLesson > 0;
 
     if (!durationOk || !priceOk) {
-      alert("Veuillez renseigner une durée valide et un prix par leçon.")
-      return
+      alert("Veuillez renseigner une durée valide et un prix par leçon.");
+      return;
     }
 
-    const history = [...(student.billingHistory ?? [])]
+    const history = [...(student.billingHistory ?? [])];
 
     if (editingContract) {
-      const idx = history.findIndex((c) => c.id === editingContract.id)
+      const idx = history.findIndex((c) => c.id === editingContract.id);
       if (idx !== -1) {
         history[idx] = {
           ...editingContract,
           ...billingDraft,
           updatedAt: new Date().toISOString(),
-        }
+        };
       }
     } else {
-      history.unshift({ ...billingDraft })
+      history.unshift({ ...billingDraft });
     }
 
     await window.studentApi.updateStudent(student.id, {
       billingHistory: history,
-    } as Partial<Student>)
-    setBillingDraft(null)
-    setEditingContract(null)
-    setBillingDirty(false)
-    await onUpdated()
+    } as Partial<Student>);
+    setBillingDraft(null);
+    setEditingContract(null);
+    setBillingDirty(false);
+    await onUpdated();
   }
 
   async function deleteBilling(id: string) {
-    if (!confirm("Supprimer ce contrat ? Cette action est irréversible.")) return
-    const history = (student.billingHistory ?? []).filter((c) => c.id !== id)
+    if (!confirm("Supprimer ce contrat ? Cette action est irréversible.")) return;
+    const history = (student.billingHistory ?? []).filter((c) => c.id !== id);
     await window.studentApi.updateStudent(student.id, {
       billingHistory: history,
-    } as Partial<Student>)
-    await onUpdated()
+    } as Partial<Student>);
+    await onUpdated();
   }
 
   return (
@@ -198,19 +190,17 @@ export default function StudentBillingSection({ student, onUpdated }: Props) {
         <button
           className="btn"
           onClick={async () => {
-            setEditingContract(null)
-            const draft = await ensureDraftDefaults(null)
-            setBillingDraft(draft)
-            setBillingDirty(true)
+            setEditingContract(null);
+            const draft = await ensureDraftDefaults(null);
+            setBillingDraft(draft);
+            setBillingDirty(true);
           }}
         >
           + Ajouter
         </button>
       </div>
 
-      {sortedContracts.length === 0 && (
-        <div className="empty">Aucun contrat pour l’instant.</div>
-      )}
+      {sortedContracts.length === 0 && <div className="empty">Aucun contrat pour l’instant.</div>}
 
       {sortedContracts.length > 0 && (
         <>
@@ -223,10 +213,10 @@ export default function StudentBillingSection({ student, onUpdated }: Props) {
             }}
           >
             {currentContracts.map((c) => {
-              const total = totalFor(c)
-              const consumed = consumedFor(c, student)
-              const pct = percentFor(c, student)
-              const done = c.completed || pct === 100
+              const total = totalFor(c);
+              const consumed = consumedFor(c, student);
+              const pct = percentFor(c, student);
+              const done = c.completed || pct === 100;
 
               return (
                 <div
@@ -355,9 +345,7 @@ export default function StudentBillingSection({ student, onUpdated }: Props) {
                         Payé
                       </span>
                     ) : (
-                      <span style={{ fontSize: 13, color: "var(--muted)" }}>
-                        Non payé
-                      </span>
+                      <span style={{ fontSize: 13, color: "var(--muted)" }}>Non payé</span>
                     )}
                   </div>
 
@@ -365,30 +353,24 @@ export default function StudentBillingSection({ student, onUpdated }: Props) {
                     <button
                       className="btn ghost"
                       onClick={() => {
-                        setEditingContract(c)
-                        setBillingDraft({ ...c })
-                        setBillingDirty(false)
+                        setEditingContract(c);
+                        setBillingDraft({ ...c });
+                        setBillingDirty(false);
                       }}
                     >
                       Modifier
                     </button>
-                    <button
-                      className="btn ghost"
-                      onClick={() => deleteBilling(c.id)}
-                    >
+                    <button className="btn ghost" onClick={() => deleteBilling(c.id)}>
                       Supprimer
                     </button>
                   </div>
                 </div>
-              )
+              );
             })}
           </div>
 
           {billingPageCount > 1 && (
-            <div
-              className="pagination"
-              style={{ marginTop: 12, justifyContent: "flex-end" }}
-            >
+            <div className="pagination" style={{ marginTop: 12, justifyContent: "flex-end" }}>
               <span className="counter">
                 Page {billingPage} / {billingPageCount}
               </span>
@@ -426,23 +408,19 @@ export default function StudentBillingSection({ student, onUpdated }: Props) {
             <button
               className="btn ghost"
               onClick={() => {
-                setBillingDraft(null)
-                setEditingContract(null)
-                setBillingDirty(false)
+                setBillingDraft(null);
+                setEditingContract(null);
+                setBillingDirty(false);
               }}
             >
               Annuler
             </button>
-            <button
-              className="btn"
-              disabled={!billingDirty}
-              onClick={saveBilling}
-            >
+            <button className="btn" disabled={!billingDirty} onClick={saveBilling}>
               💾 Enregistrer
             </button>
           </div>
         </div>
       )}
     </div>
-  )
+  );
 }

@@ -1,24 +1,24 @@
-import React, { useState } from "react"
-import { Student, CEFR } from "../../types"
+import React, { useState } from "react";
+import { Student, CEFR } from "../../types";
 
 type TrackingDraft = {
-  goals?: string
-  progress?: number
+  goals?: string;
+  progress?: number;
   cefr?: {
-    oral?: CEFR
-    ecrit?: CEFR
-    interaction?: CEFR
-    grammaire?: CEFR
-    vocabulaire?: CEFR
-  }
-}
+    oral?: CEFR;
+    ecrit?: CEFR;
+    interaction?: CEFR;
+    grammaire?: CEFR;
+    vocabulaire?: CEFR;
+  };
+};
 
 type Props = {
-  student: Student
-  onUpdated: () => void
-}
+  student: Student;
+  onUpdated: () => void;
+};
 
-const CEFR_LEVELS: CEFR[] = ["A1", "A2", "B1", "B2", "C1", "C2"]
+const CEFR_LEVELS: CEFR[] = ["A1", "A2", "B1", "B2", "C1", "C2"];
 
 function makeTrackingDraft(s: Student): TrackingDraft {
   return {
@@ -31,24 +31,22 @@ function makeTrackingDraft(s: Student): TrackingDraft {
       grammaire: s.cefr?.grammaire,
       vocabulaire: s.cefr?.vocabulaire,
     },
-  }
+  };
 }
 
 function isTrackingEqual(d: TrackingDraft, s: Student): boolean {
-  const eq = (a: unknown, b: unknown) => JSON.stringify(a) === JSON.stringify(b)
+  const eq = (a: unknown, b: unknown) => JSON.stringify(a) === JSON.stringify(b);
   return (
     (d.goals ?? "") === (s.goals ?? "") &&
     (d.progress ?? 0) === (s.progress ?? 0) &&
     eq(d.cefr ?? {}, s.cefr ?? {})
-  )
+  );
 }
 
 export default function StudentTrackingSection({ student, onUpdated }: Props) {
-  const [trackDraft, setTrackDraft] = useState<TrackingDraft>(
-    makeTrackingDraft(student)
-  )
-  const [trackDirty, setTrackDirty] = useState(false)
-  const [loadingPDF, setLoadingPDF] = useState(false)
+  const [trackDraft, setTrackDraft] = useState<TrackingDraft>(makeTrackingDraft(student));
+  const [trackDirty, setTrackDirty] = useState(false);
+  const [loadingPDF, setLoadingPDF] = useState(false);
 
   function updateTracking(patch: Partial<TrackingDraft>) {
     setTrackDraft((prev) => {
@@ -56,10 +54,10 @@ export default function StudentTrackingSection({ student, onUpdated }: Props) {
         goals: patch.goals ?? prev.goals,
         progress: patch.progress ?? prev.progress,
         cefr: patch.cefr ? { ...(prev.cefr ?? {}), ...patch.cefr } : prev.cefr,
-      }
-      setTrackDirty(!isTrackingEqual(next, student))
-      return next
-    })
+      };
+      setTrackDirty(!isTrackingEqual(next, student));
+      return next;
+    });
   }
 
   async function saveTracking() {
@@ -67,31 +65,31 @@ export default function StudentTrackingSection({ student, onUpdated }: Props) {
       goals: trackDraft.goals,
       progress: trackDraft.progress,
       cefr: trackDraft.cefr,
-    } as Partial<Student>)
-    setTrackDirty(false)
-    await onUpdated()
+    } as Partial<Student>);
+    setTrackDirty(false);
+    await onUpdated();
   }
 
   function resetTracking() {
-    setTrackDraft(makeTrackingDraft(student))
-    setTrackDirty(false)
+    setTrackDraft(makeTrackingDraft(student));
+    setTrackDirty(false);
   }
 
   async function downloadPDF() {
-    if (loadingPDF) return
+    if (loadingPDF) return;
     try {
-      setLoadingPDF(true)
+      setLoadingPDF(true);
       await window.studentApi.exportTrackingReport({
         studentId: student.id,
         goals: trackDraft.goals,
         progress: trackDraft.progress,
         cefr: trackDraft.cefr,
-      })
+      });
     } catch (err) {
-      console.error("Erreur PDF", err)
-      alert("Impossible de générer le PDF du bilan.")
+      console.error("Erreur PDF", err);
+      alert("Impossible de générer le PDF du bilan.");
     } finally {
-      setLoadingPDF(false)
+      setLoadingPDF(false);
     }
   }
 
@@ -152,26 +150,24 @@ export default function StudentTrackingSection({ student, onUpdated }: Props) {
               ["grammaire", "Grammaire"],
               ["vocabulaire", "Vocabulaire"],
             ].map(([key, label]) => {
-              type CEFRKey = keyof NonNullable<TrackingDraft["cefr"]>
-              const current = trackDraft.cefr?.[key as CEFRKey]
+              type CEFRKey = keyof NonNullable<TrackingDraft["cefr"]>;
+              const current = trackDraft.cefr?.[key as CEFRKey];
               return (
                 <label key={key} className="input-row">
-                  <span style={{ display: "block", fontSize: 12, color: "#999" }}>
-                    {label}
-                  </span>
+                  <span style={{ display: "block", fontSize: 12, color: "#999" }}>{label}</span>
                   <select
                     className="input"
                     value={current ?? ""}
                     onChange={(e) => {
-                      const value = e.target.value as string
-                      let valid: CEFR | undefined = undefined
-                      if (CEFR_LEVELS.includes(value as CEFR)) valid = value as CEFR
+                      const value = e.target.value as string;
+                      let valid: CEFR | undefined = undefined;
+                      if (CEFR_LEVELS.includes(value as CEFR)) valid = value as CEFR;
                       updateTracking({
                         cefr: {
                           ...(trackDraft.cefr || {}),
                           [key]: valid,
                         },
-                      })
+                      });
                     }}
                   >
                     <option value="">—</option>
@@ -182,36 +178,23 @@ export default function StudentTrackingSection({ student, onUpdated }: Props) {
                     ))}
                   </select>
                 </label>
-              )
+              );
             })}
           </div>
         </div>
       </div>
 
       {/* actions */}
-      <div
-        className="actions"
-        style={{ marginTop: 12, display: "flex", alignItems: "center" }}
-      >
-        {!trackDirty && (
-          <span style={{ color: "var(--muted)" }}>Aucune modification</span>
-        )}
+      <div className="actions" style={{ marginTop: 12, display: "flex", alignItems: "center" }}>
+        {!trackDirty && <span style={{ color: "var(--muted)" }}>Aucune modification</span>}
 
         <div style={{ flex: 1 }} />
 
         <div className="buttons" style={{ display: "flex", gap: 8 }}>
-          <button
-            className="btn ghost"
-            disabled={!trackDirty}
-            onClick={resetTracking}
-          >
+          <button className="btn ghost" disabled={!trackDirty} onClick={resetTracking}>
             Annuler
           </button>
-          <button
-            className="btn"
-            disabled={!trackDirty}
-            onClick={saveTracking}
-          >
+          <button className="btn" disabled={!trackDirty} onClick={saveTracking}>
             💾 Enregistrer
           </button>
           <button
@@ -225,5 +208,5 @@ export default function StudentTrackingSection({ student, onUpdated }: Props) {
         </div>
       </div>
     </div>
-  )
+  );
 }

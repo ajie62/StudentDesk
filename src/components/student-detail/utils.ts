@@ -1,18 +1,18 @@
-import { Student, CEFR, BillingContract } from "../../types"
+import { Student, CEFR, BillingContract } from "../../types";
 
 // === Tracking ===
 export type TrackingDraft = {
-  goals?: string
-  progress?: number
+  goals?: string;
+  progress?: number;
   cefr?: {
-    oral?: CEFR
-    ecrit?: CEFR
-    interaction?: CEFR
-    grammaire?: CEFR
-    vocabulaire?: CEFR
-  }
-  tags?: string[]
-}
+    oral?: CEFR;
+    ecrit?: CEFR;
+    interaction?: CEFR;
+    grammaire?: CEFR;
+    vocabulaire?: CEFR;
+  };
+  tags?: string[];
+};
 
 export function makeTrackingDraft(s: Student): TrackingDraft {
   return {
@@ -26,25 +26,22 @@ export function makeTrackingDraft(s: Student): TrackingDraft {
       vocabulaire: s.cefr?.vocabulaire,
     },
     tags: [...(s.tags ?? [])],
-  }
+  };
 }
 
 export function isTrackingEqual(d: TrackingDraft, s: Student): boolean {
-  const eq = (a: unknown, b: unknown) => JSON.stringify(a) === JSON.stringify(b)
+  const eq = (a: unknown, b: unknown) => JSON.stringify(a) === JSON.stringify(b);
   return (
     (d.goals ?? "") === (s.goals ?? "") &&
     (d.progress ?? 0) === (s.progress ?? 0) &&
     eq(d.cefr ?? {}, s.cefr ?? {}) &&
     eq(d.tags ?? [], s.tags ?? [])
-  )
+  );
 }
 
 // === Billing ===
-export function isContractEqual(
-  a: BillingContract | null,
-  b: BillingContract | null
-) {
-  return JSON.stringify(a ?? null) === JSON.stringify(b ?? null)
+export function isContractEqual(a: BillingContract | null, b: BillingContract | null) {
+  return JSON.stringify(a ?? null) === JSON.stringify(b ?? null);
 }
 
 /** Génération d’un nom unique pour chaque contrat */
@@ -54,35 +51,35 @@ export function generateDisplayName(
   existing: BillingContract[]
 ): string {
   if (mode === "single") {
-    const base = "Cours unitaire"
-    const sameType = existing.filter((c) => c.mode === "single")
-    return `${base} (${sameType.length + 1})`
+    const base = "Cours unitaire";
+    const sameType = existing.filter((c) => c.mode === "single");
+    return `${base} (${sameType.length + 1})`;
   }
 
   if (mode === "package") {
-    const base = `Pack de ${totalLessons} leçons`
+    const base = `Pack de ${totalLessons} leçons`;
     const sameType = existing.filter(
       (c) => c.mode === "package" && c.totalLessons === totalLessons
-    )
-    return `${base} (${sameType.length + 1})`
+    );
+    return `${base} (${sameType.length + 1})`;
   }
 
-  return "Contrat"
+  return "Contrat";
 }
 
 // Helpers UI progression
 export function totalFor(c: BillingContract) {
-  return c.mode === "package" ? c.totalLessons || 0 : 1
+  return c.mode === "package" ? c.totalLessons || 0 : 1;
 }
 
 export function consumedFor(c: BillingContract, student: Student) {
-  if (typeof c.consumedLessons === "number") return c.consumedLessons
-  return (student.lessons ?? []).filter((l) => l.billingId === c.id).length
+  if (typeof c.consumedLessons === "number") return c.consumedLessons;
+  return (student.lessons ?? []).filter((l) => l.billingId === c.id).length;
 }
 
 export function percentFor(c: BillingContract, student: Student) {
-  const total = totalFor(c)
-  if (!total) return 0
-  const used = consumedFor(c, student)
-  return Math.min(100, Math.round((used / total) * 100))
+  const total = totalFor(c);
+  if (!total) return 0;
+  const used = consumedFor(c, student);
+  return Math.min(100, Math.round((used / total) * 100));
 }

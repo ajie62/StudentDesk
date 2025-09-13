@@ -38,7 +38,7 @@ const motivationalQuotes = [
   "🔥 La passion d’enseigner crée la passion d’apprendre.",
   "🎶 Chaque cours est une note dans la symphonie de leur avenir.",
   "🌸 Enseigner, c’est semer la confiance en soi.",
-  "🚀 Aujourd’hui, vous changez la trajectoire d’une vie."
+  "🚀 Aujourd’hui, vous changez la trajectoire d’une vie.",
 ];
 
 export default function Dashboard({ stats, students, events, onOpenStudent }: Props) {
@@ -49,6 +49,10 @@ export default function Dashboard({ stats, students, events, onOpenStudent }: Pr
   const randomQuote = useMemo(() => {
     return motivationalQuotes[Math.floor(Math.random() * motivationalQuotes.length)];
   }, []);
+
+  useEffect(() => {
+    console.log("Étudiants ->", students);
+  }, [students]);
 
   // Récupère la date de purge (pour masquer les créations/updates antérieures)
   useEffect(() => {
@@ -65,7 +69,7 @@ export default function Dashboard({ stats, students, events, onOpenStudent }: Pr
   // Filtre l'historique avec cutoff local (effet immédiat après "Vider")
   const recent = useMemo(() => {
     const cutoff = historyClearedAt ? new Date(historyClearedAt).toISOString() : null;
-    const filtered = cutoff ? events.filter(ev => ev.when > cutoff) : events;
+    const filtered = cutoff ? events.filter((ev) => ev.when > cutoff) : events;
     return [...filtered].sort((a, b) => b.when.localeCompare(a.when));
   }, [events, historyClearedAt]);
 
@@ -84,9 +88,8 @@ export default function Dashboard({ stats, students, events, onOpenStudent }: Pr
       count: students.reduce(
         (acc, s) =>
           acc +
-          (s.lessons || []).filter(
-            (l) => new Date(l.createdAt).toDateString() === d.toDateString()
-          ).length,
+          (s.lessons || []).filter((l) => new Date(l.createdAt).toDateString() === d.toDateString())
+            .length,
         0
       ),
       isToday: d.toDateString() === today.toDateString(),
@@ -95,29 +98,81 @@ export default function Dashboard({ stats, students, events, onOpenStudent }: Pr
 
   const weeklyTotal = days.reduce((acc, d) => acc + d.count, 0);
 
-  // Top 3 étudiants (seulement ceux avec ≥1 leçon), complété avec "—"
-const top3 = useMemo(() => {
-  const ranked = [...students]
-    .map(s => ({
-      id: s.id,
-      name: `${s.firstName ?? ""} ${s.lastName ?? ""}`.trim() || "—",
-      lessons: Array.isArray(s.lessons) ? s.lessons.length : 0,
-    }))
-    .filter(s => s.lessons > 0)          // ⬅️ on exclut ceux à 0 leçon
-    .sort((a, b) => b.lessons - a.lessons)
-    .slice(0, 3);
+  const revenueByMonth = useMemo(() => {
+    type RevenueMonth = {
+      month: string;
+      [currency: string]: number | string;
+    };
 
-  // Complète jusqu'à 3 avec des placeholders "—"
-  while (ranked.length < 3) {
-    ranked.push({
-      id: `placeholder-${ranked.length + 1}`,
-      name: "—",
-      lessons: 0,
+    const months: RevenueMonth[] = Array.from({ length: 12 }, (_, i) => ({
+      month: new Date(0, i).toLocaleString("fr-FR", { month: "short" }),
+    }));
+
+    students.forEach((s) => {
+      (s.lessons || []).forEach((lesson) => {
+        const d = new Date(lesson.createdAt);
+        if (d.getFullYear() !== new Date().getFullYear()) return;
+
+        const contract = (s.billingHistory || []).find((c) => c.id === lesson.billingId);
+        if (!contract || !contract.pricePerLesson || !contract.currency) return;
+
+        const m = d.getMonth();
+        months[m][contract.currency] =
+          ((months[m][contract.currency] as number) ?? 0) + contract.pricePerLesson;
+      });
     });
-  }
 
-  return ranked;
-}, [students]);
+    return months;
+  }, [students]);
+
+  // Liste des devises présentes
+  const currencies = useMemo(() => {
+    const set = new Set<string>();
+    revenueByMonth.forEach((row) => {
+      Object.keys(row).forEach((key) => {
+        if (key !== "month") set.add(key);
+      });
+    });
+    return Array.from(set);
+  }, [revenueByMonth]);
+
+  // Palette de couleurs
+  const colors = ["#16d39a", "#3b82f6", "#f59e0b", "#ef4444", "#8b5cf6"];
+
+  // Totaux par devise
+  const totalsByCurrency = useMemo(() => {
+    const totals: Record<string, number> = {};
+    revenueByMonth.forEach((row) => {
+      currencies.forEach((cur) => {
+        totals[cur] = (totals[cur] ?? 0) + ((row[cur] as number) ?? 0);
+      });
+    });
+    return totals;
+  }, [revenueByMonth, currencies]);
+
+  // Top 3 étudiants (seulement ceux avec ≥1 leçon), complété avec "—"
+  const top3 = useMemo(() => {
+    const ranked = [...students]
+      .map((s) => ({
+        id: s.id,
+        name: `${s.firstName ?? ""} ${s.lastName ?? ""}`.trim() || "—",
+        lessons: Array.isArray(s.lessons) ? s.lessons.length : 0,
+      }))
+      .filter((s) => s.lessons > 0) // ⬅️ on exclut ceux à 0 leçon
+      .sort((a, b) => b.lessons - a.lessons)
+      .slice(0, 3);
+
+    // Complète jusqu'à 3 avec des placeholders "—"
+    while (ranked.length < 3) {
+      ranked.push({
+        id: `placeholder-${ranked.length + 1}`,
+        name: "—",
+        lessons: 0,
+      });
+    }
+
+    return ranked;
+  }, [students]);
 
   async function handleClearHistory() {
     const ok = window.confirm(
@@ -145,6 +200,123 @@ const top3 = useMemo(() => {
 
       {/* ROW 1 : 50/50 charts */}
       <div className="dash-grid">
+        {/* ROW 2 : Podium */}
+        <div className="dashboard-card full-width">
+          <h3>Top 3 étudiants (leçons)</h3>
+
+          {top3.length === 0 || top3.every((s) => s.lessons === 0) ? (
+            <div className="empty-state">Aucune leçon enregistrée pour l’instant.</div>
+          ) : (
+            <div className="podium-wrap">
+              {/* 2e place */}
+              {top3[1] ? (
+                <div
+                  className="podium-step step-2"
+                  title={`${top3[1].name} • ${top3[1].lessons} leçons`}
+                >
+                  <div className="step-rank">2</div>
+                  <div className="step-name">{top3[1].name}</div>
+                  <div className="step-meta">{top3[1].lessons} leçons</div>
+                </div>
+              ) : (
+                <div className="podium-step step-2 placeholder">
+                  <div className="step-rank">2</div>
+                  <div className="step-name muted">—</div>
+                  <div className="step-meta muted">—</div>
+                </div>
+              )}
+
+              {/* 1re place */}
+              {top3[0] ? (
+                <div
+                  className="podium-step step-1"
+                  title={`${top3[0].name} • ${top3[0].lessons} leçons`}
+                >
+                  <div className="crown">🥇</div>
+                  <div className="step-rank">1</div>
+                  <div className="step-name">{top3[0].name}</div>
+                  <div className="step-meta">{top3[0].lessons} leçons</div>
+                </div>
+              ) : (
+                <div className="podium-step step-1 placeholder">
+                  <div className="step-rank">1</div>
+                  <div className="step-name muted">—</div>
+                  <div className="step-meta muted">—</div>
+                </div>
+              )}
+
+              {/* 3e place */}
+              {top3[2] ? (
+                <div
+                  className="podium-step step-3"
+                  title={`${top3[2].name} • ${top3[2].lessons} leçons`}
+                >
+                  <div className="step-rank">3</div>
+                  <div className="step-name">{top3[2].name}</div>
+                  <div className="step-meta">{top3[2].lessons} leçons</div>
+                </div>
+              ) : (
+                <div className="podium-step step-3 placeholder">
+                  <div className="step-rank">3</div>
+                  <div className="step-name muted">—</div>
+                  <div className="step-meta muted">—</div>
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+
+        <div className="dashboard-card full-width">
+          <h3>Revenus annuels ({new Date().getFullYear()})</h3>
+          <div className="chart-container">
+            {currencies.length === 0 ? (
+              <div className="empty-state">Aucun revenu enregistré pour l’instant.</div>
+            ) : (
+              <ResponsiveContainer>
+                <BarChart data={revenueByMonth}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#2d2d30" />
+                  <XAxis dataKey="month" stroke="#9ca3af" />
+                  <YAxis stroke="#9ca3af" allowDecimals={false} />
+                  <Tooltip
+                    formatter={(val: number, name: string) => `${val} ${name}`}
+                    contentStyle={{
+                      backgroundColor: "rgba(31,31,31,0.95)",
+                      border: "1px solid rgba(255,255,255,0.1)",
+                      borderRadius: "8px",
+                      color: "#f9fafb",
+                    }}
+                    itemStyle={{ color: "#f9fafb" }}
+                    cursor={{ fill: "rgba(59,130,246,0.15)" }}
+                  />
+
+                  {currencies.map((cur, i) => (
+                    <Bar
+                      key={cur}
+                      dataKey={cur}
+                      fill={colors[i % colors.length]}
+                      barSize={20}
+                      radius={[4, 4, 0, 0]}
+                    />
+                  ))}
+                </BarChart>
+              </ResponsiveContainer>
+            )}
+          </div>
+
+          {/* Résumé par devise */}
+          <div className="donut-legend donut-legend--center" style={{ marginTop: 8 }}>
+            {currencies.map((cur, i) => (
+              <div key={cur} className="legend-item">
+                <span className="legend-dot" style={{ background: colors[i % colors.length] }} />
+                <span>{cur}</span>
+                <span className="legend-count">
+                  {totalsByCurrency[cur]} {cur}
+                </span>
+              </div>
+            ))}
+          </div>
+        </div>
+
         {/* --- Donut Actifs/Inactifs --- */}
         <div className="dashboard-card pie">
           <h3>Actifs / Inactifs</h3>
@@ -281,72 +453,6 @@ const top3 = useMemo(() => {
         </div>
       </div>
 
-      {/* ROW 2 : Podium */}
-      <div className="dashboard-card">
-        <h3>Top 3 étudiants (leçons)</h3>
-
-        {top3.length === 0 || top3.every(s => s.lessons === 0) ? (
-          <div className="empty-state">Aucune leçon enregistrée pour l’instant.</div>
-        ) : (
-          <div className="podium-wrap">
-            {/* 2e place */}
-            {top3[1] ? (
-              <div
-                className="podium-step step-2"
-                title={`${top3[1].name} • ${top3[1].lessons} leçons`}
-              >
-                <div className="step-rank">2</div>
-                <div className="step-name">{top3[1].name}</div>
-                <div className="step-meta">{top3[1].lessons} leçons</div>
-              </div>
-            ) : (
-              <div className="podium-step step-2 placeholder">
-                <div className="step-rank">2</div>
-                <div className="step-name muted">—</div>
-                <div className="step-meta muted">—</div>
-              </div>
-            )}
-
-            {/* 1re place */}
-            {top3[0] ? (
-              <div
-                className="podium-step step-1"
-                title={`${top3[0].name} • ${top3[0].lessons} leçons`}
-              >
-                <div className="crown">🥇</div>
-                <div className="step-rank">1</div>
-                <div className="step-name">{top3[0].name}</div>
-                <div className="step-meta">{top3[0].lessons} leçons</div>
-              </div>
-            ) : (
-              <div className="podium-step step-1 placeholder">
-                <div className="step-rank">1</div>
-                <div className="step-name muted">—</div>
-                <div className="step-meta muted">—</div>
-              </div>
-            )}
-
-            {/* 3e place */}
-            {top3[2] ? (
-              <div
-                className="podium-step step-3"
-                title={`${top3[2].name} • ${top3[2].lessons} leçons`}
-              >
-                <div className="step-rank">3</div>
-                <div className="step-name">{top3[2].name}</div>
-                <div className="step-meta">{top3[2].lessons} leçons</div>
-              </div>
-            ) : (
-              <div className="podium-step step-3 placeholder">
-                <div className="step-rank">3</div>
-                <div className="step-name muted">—</div>
-                <div className="step-meta muted">—</div>
-              </div>
-            )}
-          </div>
-        )}
-      </div>
-
       {/* ROW 3 : Historique */}
       <div className="dashboard-card">
         <div
@@ -373,9 +479,7 @@ const top3 = useMemo(() => {
                 className="activity-item"
                 onClick={() => onOpenStudent(ev.studentId)}
               >
-                <span className="activity-icon">
-                  {ev.kind.startsWith("student") ? "👤" : "📘"}
-                </span>
+                <span className="activity-icon">{ev.kind.startsWith("student") ? "👤" : "📘"}</span>
                 <span className="activity-label">{ev.label}</span>
                 <span className="activity-date">
                   {formatDistanceToNow(new Date(ev.when), {

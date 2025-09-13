@@ -1,4 +1,4 @@
-const { contextBridge, ipcRenderer } = require("electron")
+const { contextBridge, ipcRenderer } = require("electron");
 
 contextBridge.exposeInMainWorld("studentApi", {
   listStudents: () => ipcRenderer.invoke("students:list"),
@@ -10,9 +10,8 @@ contextBridge.exposeInMainWorld("studentApi", {
   addLesson: (studentId, payload) => ipcRenderer.invoke("lessons:add", studentId, payload),
   updateLesson: (studentId, lessonId, patch) =>
     ipcRenderer.invoke("lessons:update", studentId, lessonId, patch),
-  deleteLesson: (studentId, lessonId) =>
-    ipcRenderer.invoke("lessons:delete", studentId, lessonId),
-  
+  deleteLesson: (studentId, lessonId) => ipcRenderer.invoke("lessons:delete", studentId, lessonId),
+
   exportTrackingReport: (payload) => ipcRenderer.invoke("student:export-tracking-report", payload),
 
   importCSV: () => ipcRenderer.invoke("students:importCSV"),
@@ -20,15 +19,15 @@ contextBridge.exposeInMainWorld("studentApi", {
   onAppFocus: (cb) => ipcRenderer.on("app:focus", cb),
 
   onStoreSaved: (cb) => {
-    const listener = (_evt, payload) => cb(payload)
-    ipcRenderer.on("store:saved", listener)
-    return () => ipcRenderer.removeListener("store:saved", listener)
+    const listener = (_evt, payload) => cb(payload);
+    ipcRenderer.on("store:saved", listener);
+    return () => ipcRenderer.removeListener("store:saved", listener);
   },
 
   onUpdate: (channel, cb) => {
-    const listener = (event, payload) => cb(event, payload)
-    ipcRenderer.on(channel, listener)
-    return () => ipcRenderer.removeListener(channel, listener)
+    const listener = (event, payload) => cb(event, payload);
+    ipcRenderer.on(channel, listener);
+    return () => ipcRenderer.removeListener(channel, listener);
   },
 
   installUpdateNow: () => ipcRenderer.invoke("update:installNow"),
@@ -40,12 +39,12 @@ contextBridge.exposeInMainWorld("studentApi", {
   getHistoryClearedAt: () => ipcRenderer.invoke("history:getClearedAt"),
 
   onHistoryCleared: (cb) => {
-    const listener = (_evt, payload) => cb(payload)
-    ipcRenderer.on("history:cleared", listener)
-    return () => ipcRenderer.removeListener("history:cleared", listener)
+    const listener = (_evt, payload) => cb(payload);
+    ipcRenderer.on("history:cleared", listener);
+    return () => ipcRenderer.removeListener("history:cleared", listener);
   },
 
   /* -------------------- Settings -------------------- */
   getSettings: () => ipcRenderer.invoke("settings:get"),
   saveSettings: (settings) => ipcRenderer.invoke("settings:save", settings),
-})
+});

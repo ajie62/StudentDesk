@@ -47,10 +47,7 @@ export default [
       ...tsPlugin.configs.recommended.rules,
       ...pluginReact.configs.recommended.rules,
       "react/react-in-jsx-scope": "off",
-      "@typescript-eslint/no-unused-vars": [
-        "warn",
-        { argsIgnorePattern: "^_" },
-      ],
+      "@typescript-eslint/no-unused-vars": ["warn", { argsIgnorePattern: "^_" }],
       "@typescript-eslint/no-explicit-any": "warn", // 🚦 tolérant par défaut
     },
     settings: commonReactSettings,

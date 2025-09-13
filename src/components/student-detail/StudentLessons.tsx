@@ -1,42 +1,42 @@
-import React, { useMemo, useState, useEffect } from "react"
-import { Student } from "../../types"
-import LessonCard from "../LessonCard"
-import LessonForm from "../LessonForm"
+import React, { useMemo, useState, useEffect } from "react";
+import { Student } from "../../types";
+import LessonCard from "../LessonCard";
+import LessonForm from "../LessonForm";
 
-const PAGE_SIZE_LESSONS = 10
+const PAGE_SIZE_LESSONS = 10;
 
 type Props = {
-  student: Student
-  onUpdated: () => void
-}
+  student: Student;
+  onUpdated: () => void;
+};
 
 export default function StudentLessons({ student, onUpdated }: Props) {
-  const [page, setPage] = useState(1)
-  const [addingLesson, setAddingLesson] = useState(false)
+  const [page, setPage] = useState(1);
+  const [addingLesson, setAddingLesson] = useState(false);
 
   // pagination leçons
   const pageCount = useMemo(() => {
-    return Math.max(1, Math.ceil((student.lessons?.length ?? 0) / PAGE_SIZE_LESSONS))
-  }, [student])
+    return Math.max(1, Math.ceil((student.lessons?.length ?? 0) / PAGE_SIZE_LESSONS));
+  }, [student]);
 
   useEffect(() => {
-    setPage((p) => Math.min(p, pageCount))
-  }, [pageCount])
+    setPage((p) => Math.min(p, pageCount));
+  }, [pageCount]);
 
   const currentLessons = useMemo(() => {
-    const list = student.lessons ?? []
-    const start = (page - 1) * PAGE_SIZE_LESSONS
-    const end = start + PAGE_SIZE_LESSONS
-    return list.slice(start, end)
-  }, [student, page])
+    const list = student.lessons ?? [];
+    const start = (page - 1) * PAGE_SIZE_LESSONS;
+    const end = start + PAGE_SIZE_LESSONS;
+    return list.slice(start, end);
+  }, [student, page]);
 
-  const prevDisabled = page <= 1
-  const nextDisabled = page >= pageCount
+  const prevDisabled = page <= 1;
+  const nextDisabled = page >= pageCount;
 
-  const openContracts = (student.billingHistory ?? []).filter((c) => !c.completed)
+  const openContracts = (student.billingHistory ?? []).filter((c) => !c.completed);
 
   async function handleListUpdated() {
-    await onUpdated()
+    await onUpdated();
   }
 
   return (
@@ -69,11 +69,7 @@ export default function StudentLessons({ student, onUpdated }: Props) {
               className={`btn ${openContracts.length === 0 ? "disabled" : ""}`}
               disabled={openContracts.length === 0}
               onClick={() => setAddingLesson(true)}
-              title={
-                openContracts.length === 0
-                  ? "Crée d’abord un contrat"
-                  : "Ajouter une leçon"
-              }
+              title={openContracts.length === 0 ? "Crée d’abord un contrat" : "Ajouter une leçon"}
             >
               Ajouter une leçon
             </button>
@@ -102,8 +98,8 @@ export default function StudentLessons({ student, onUpdated }: Props) {
             onUpdated={handleListUpdated}
             onDelete={async () => {
               if (confirm("Supprimer cette carte de leçon ?")) {
-                await window.studentApi.deleteLesson(student.id, lesson.id)
-                await handleListUpdated()
+                await window.studentApi.deleteLesson(student.id, lesson.id);
+                await handleListUpdated();
               }
             }}
           />
@@ -115,12 +111,12 @@ export default function StudentLessons({ student, onUpdated }: Props) {
           availableContracts={openContracts}
           onClose={() => setAddingLesson(false)}
           onSaved={async (payload) => {
-            await window.studentApi.addLesson(student.id, payload)
-            setAddingLesson(false)
-            await handleListUpdated()
+            await window.studentApi.addLesson(student.id, payload);
+            setAddingLesson(false);
+            await handleListUpdated();
           }}
         />
       )}
     </>
-  )
+  );
 }

@@ -1,14 +1,14 @@
-import { defineConfig } from 'vite'
-import react from '@vitejs/plugin-react'
-import path from 'node:path'
+import { defineConfig } from "vite";
+import react from "@vitejs/plugin-react";
+import path from "node:path";
 
 // IMPORTANT: base: './' pour Electron (file://)
 export default defineConfig({
-  base: './',
+  base: "./",
   plugins: [react()],
   build: {
-    outDir: 'dist',
-    assetsDir: 'assets',
+    outDir: "dist",
+    assetsDir: "assets",
     emptyOutDir: true,
-  }
-})
+  },
+});

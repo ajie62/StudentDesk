@@ -1,22 +1,22 @@
-import { Settings, Plus } from "lucide-react"
-import { useState } from "react"
-import { fullName, initialsOf } from "../utils"
-import { Student } from "../types"
+import { Settings, Plus } from "lucide-react";
+import { useState } from "react";
+import { fullName, initialsOf } from "../utils";
+import { Student } from "../types";
 
-type FilterKind = "all" | "active" | "inactive" | "contracts"
+type FilterKind = "all" | "active" | "inactive" | "contracts";
 
 interface SidebarProps {
-  students: Student[]
-  selectedId: string | null
-  setSelectedId: (id: string | null) => void
-  setShowDashboard: (v: boolean) => void
-  setShowChangelog: (v: boolean) => void
-  setShowSettings: (v: boolean) => void
-  setShowNew: (v: boolean) => void
-  refresh: () => Promise<void>
-  pushToast: (msg: string) => void
-  filterActive: FilterKind
-  setFilterActive: (v: FilterKind) => void
+  students: Student[];
+  selectedId: string | null;
+  setSelectedId: (id: string | null) => void;
+  setShowDashboard: (v: boolean) => void;
+  setShowChangelog: (v: boolean) => void;
+  setShowSettings: (v: boolean) => void;
+  setShowNew: (v: boolean) => void;
+  refresh: () => Promise<void>;
+  pushToast: (msg: string) => void;
+  filterActive: FilterKind;
+  setFilterActive: (v: FilterKind) => void;
 }
 
 export function Sidebar({
@@ -32,31 +32,31 @@ export function Sidebar({
   filterActive,
   setFilterActive,
 }: SidebarProps) {
-  const [q, setQ] = useState("")
+  const [q, setQ] = useState("");
 
   const filtered = students.filter((s) => {
-    if (filterActive === "active" && !s.isActive) return false
-    if (filterActive === "inactive" && s.isActive) return false
+    if (filterActive === "active" && !s.isActive) return false;
+    if (filterActive === "inactive" && s.isActive) return false;
     if (filterActive === "contracts") {
       const activeContracts =
         typeof s.billingActiveCount === "number"
           ? s.billingActiveCount
           : Array.isArray(s.billingHistory)
-          ? s.billingHistory.filter((c) => {
-              const doneByFlag = c.completed === true
-              const consumed = c.consumedLessons ?? 0
-              const total = c.totalLessons ?? 0
-              const doneByCount = total > 0 && consumed >= total
-              return !(doneByFlag || doneByCount)
-            }).length
-          : 0
-      if (activeContracts === 0) return false
+            ? s.billingHistory.filter((c) => {
+                const doneByFlag = c.completed === true;
+                const consumed = c.consumedLessons ?? 0;
+                const total = c.totalLessons ?? 0;
+                const doneByCount = total > 0 && consumed >= total;
+                return !(doneByFlag || doneByCount);
+              }).length
+            : 0;
+      if (activeContracts === 0) return false;
     }
     return (
       fullName(s).toLowerCase().includes(q.toLowerCase()) ||
       s.description?.toLowerCase().includes(q.toLowerCase())
-    )
-  })
+    );
+  });
 
   return (
     <aside className="sidebar">
@@ -69,11 +69,11 @@ export function Sidebar({
           title="Réglages"
           aria-label="Réglages"
           onClick={() => {
-            setSelectedId(null)
-            setShowDashboard(false)
-            setShowChangelog(false)
-            setShowNew(false)
-            setShowSettings(true)
+            setSelectedId(null);
+            setShowDashboard(false);
+            setShowChangelog(false);
+            setShowNew(false);
+            setShowSettings(true);
           }}
         >
           <Settings size={16} strokeWidth={1.5} />
@@ -84,7 +84,7 @@ export function Sidebar({
           title="Nouvel étudiant"
           aria-label="Nouvel étudiant"
           onClick={() => {
-            setShowNew(true)
+            setShowNew(true);
           }}
         >
           <Plus size={16} strokeWidth={1.5} />
@@ -95,10 +95,10 @@ export function Sidebar({
         className="btn ghost"
         style={{ marginBottom: "16px", width: "100%" }}
         onClick={() => {
-          setSelectedId(null)
-          setShowDashboard(true)
-          setShowChangelog(false)
-          setShowSettings(false)
+          setSelectedId(null);
+          setShowDashboard(true);
+          setShowChangelog(false);
+          setShowSettings(false);
         }}
       >
         🏠 Accueil
@@ -109,10 +109,10 @@ export function Sidebar({
         className="btn ghost"
         style={{ marginBottom: "16px", width: "100%" }}
         onClick={async () => {
-          const result = await window.studentApi.importCSV()
+          const result = await window.studentApi.importCSV();
           if (result?.count) {
-            pushToast(`Importé ${result.count} étudiants • 💾 local`)
-            refresh()
+            pushToast(`Importé ${result.count} étudiants • 💾 local`);
+            refresh();
           }
         }}
       >
@@ -145,9 +145,7 @@ export function Sidebar({
       <div className="filter-select-wrapper" style={{ margin: "12px 0" }}>
         <select
           value={filterActive}
-          onChange={(e) =>
-            setFilterActive(e.target.value as FilterKind)
-          }
+          onChange={(e) => setFilterActive(e.target.value as FilterKind)}
           className="filter-select"
         >
           <option value="all">Tous</option>
@@ -162,24 +160,24 @@ export function Sidebar({
           typeof s.billingActiveCount === "number"
             ? s.billingActiveCount
             : Array.isArray(s.billingHistory)
-            ? s.billingHistory.filter((c) => {
-                const doneByFlag = c.completed === true
-                const consumed = c.consumedLessons ?? 0
-                const total = c.totalLessons ?? 0
-                const doneByCount = total > 0 && consumed >= total
-                return !(doneByFlag || doneByCount)
-              }).length
-            : 0
+              ? s.billingHistory.filter((c) => {
+                  const doneByFlag = c.completed === true;
+                  const consumed = c.consumedLessons ?? 0;
+                  const total = c.totalLessons ?? 0;
+                  const doneByCount = total > 0 && consumed >= total;
+                  return !(doneByFlag || doneByCount);
+                }).length
+              : 0;
 
         return (
           <div
             key={s.id}
             className={["student-item", selectedId === s.id ? "active" : ""].join(" ")}
             onClick={() => {
-              setSelectedId(s.id)
-              setShowDashboard(false)
-              setShowChangelog(false)
-              setShowSettings(false)
+              setSelectedId(s.id);
+              setShowDashboard(false);
+              setShowChangelog(false);
+              setShowSettings(false);
             }}
             role="button"
             tabIndex={0}
@@ -217,10 +215,10 @@ export function Sidebar({
               </div>
             </div>
           </div>
-        )
+        );
       })}
 
       {!filtered.length && <div className="empty">Aucun étudiant trouvé.</div>}
     </aside>
-  )
+  );
 }
