@@ -1,20 +1,14 @@
 import React, { useState } from "react";
-import { Student, Lesson } from "../../types";
-import StudentForm from "../StudentForm";
-import LessonForm from "../LessonForm";
+import { Student, Lesson, StudentDetailProps } from "../../types";
+import StudentForm from "../student/StudentForm";
+import LessonForm from "../dashboard/LessonForm";
 import StudentHero from "./StudentHero";
 import StudentLessons from "./StudentLessons";
 import StudentTrackingSection from "./StudentTrackingSection";
 import StudentBillingSection from "./StudentBillingSection";
 import { useStudentDetail } from "./useStudentDetail";
 
-type Props = {
-  studentId: string;
-  onDeleted: () => void;
-  onUpdated: () => void;
-};
-
-export default function StudentDetail({ studentId, onDeleted, onUpdated }: Props) {
+export default function StudentDetail({ studentId, onDeleted, onUpdated }: StudentDetailProps) {
   const { student, tab, setTab, editing, setEditing, handleListUpdated } = useStudentDetail(
     studentId,
     onDeleted,
@@ -84,7 +78,7 @@ export default function StudentDetail({ studentId, onDeleted, onUpdated }: Props
         <StudentForm
           initial={student}
           onClose={() => setEditing(false)}
-          onSaved={async (patch) => {
+          onSaved={async (patch: Partial<Student>) => {
             await window.studentApi.updateStudent(student.id, patch as Partial<Student>);
             setEditing(false);
             await handleListUpdated();
@@ -98,7 +92,7 @@ export default function StudentDetail({ studentId, onDeleted, onUpdated }: Props
           initial={editingLesson}
           availableContracts={student.billingHistory ?? []}
           onClose={() => setEditingLesson(null)}
-          onSaved={async (patch) => {
+          onSaved={async (patch: Partial<Lesson>) => {
             await window.studentApi.updateLesson(student.id, editingLesson.id, patch);
             setEditingLesson(null);
             await handleListUpdated();

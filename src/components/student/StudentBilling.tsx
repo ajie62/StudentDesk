@@ -1,21 +1,9 @@
 import React, { useMemo, useState, useEffect } from "react";
-import { BillingContract, Lesson } from "../types";
-import { FAVORITES, OTHERS } from "../constants";
+import { BillingContract, StudentBillingProps } from "../../types";
+import { FAVORITES, OTHERS } from "../../constants";
 import Select from "react-select";
 
-type ViewModel = {
-  firstName: string;
-  lastName: string;
-  lessons: Lesson[];
-  billing: BillingContract;
-};
-
-type Props = {
-  viewModel: ViewModel;
-  onChange: (patch: Partial<BillingContract>) => void;
-};
-
-export default function StudentBilling({ viewModel, onChange }: Props): JSX.Element {
+export default function StudentBilling({ viewModel, onChange }: StudentBillingProps): JSX.Element {
   const c = viewModel.billing;
   const [settings, setSettings] = useState<{ lessonDuration: number; currency: string } | null>(
     null

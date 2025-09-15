@@ -1,18 +1,4 @@
-import { Student, CEFR, BillingContract } from "../../types";
-
-// === Tracking ===
-export type TrackingDraft = {
-  goals?: string;
-  progress?: number;
-  cefr?: {
-    oral?: CEFR;
-    ecrit?: CEFR;
-    interaction?: CEFR;
-    grammaire?: CEFR;
-    vocabulaire?: CEFR;
-  };
-  tags?: string[];
-};
+import { Student, CEFR, BillingContract, TrackingDraft } from "../../types";
 
 export function makeTrackingDraft(s: Student): TrackingDraft {
   return {

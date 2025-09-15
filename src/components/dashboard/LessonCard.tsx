@@ -1,14 +1,6 @@
 import React, { useState } from "react";
 import LessonForm from "./LessonForm";
-import { Lesson, BillingContract } from "../types";
-
-type Props = {
-  studentId: string;
-  lesson: Lesson;
-  allContracts: BillingContract[];
-  onUpdated: () => Promise<void> | void;
-  onDelete: () => Promise<void> | void;
-};
+import { Lesson, LessonCardProps } from "../../types";
 
 export default function LessonCard({
   studentId,
@@ -16,7 +8,7 @@ export default function LessonCard({
   allContracts,
   onUpdated,
   onDelete,
-}: Props) {
+}: LessonCardProps) {
   const [editing, setEditing] = useState(false);
 
   const contract = allContracts.find((c) => c.id === lesson.billingId);
@@ -70,7 +62,6 @@ export default function LessonCard({
 
       {editing && (
         <LessonForm
-          studentId={studentId}
           initial={lesson}
           availableContracts={allContracts.filter((c) => !c.completed)}
           onClose={() => setEditing(false)}

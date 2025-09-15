@@ -1,10 +1,9 @@
 // Data contracts for the renderer side.
-
 export type LessonDuration = 30 | 45 | 60 | 90 | number;
-
-// Niveaux CECRL
 export type CEFR = "A1" | "A2" | "B1" | "B2" | "C1" | "C2";
 export type FilterKind = "all" | "active" | "inactive" | "contracts";
+export type SettingsTab = "app" | "lessons" | "data";
+export type StudentDetailTab = "fiche" | "suivi" | "billing";
 
 export type AppSettings = {
   theme: string;
@@ -25,8 +24,42 @@ export interface Lesson {
   billingId?: string | null;
 }
 
+export type StudentWithUpdateProps = {
+    student: Student;
+    onUpdated: () => void;
+};
+
+export type StudentHeroProps = {
+  student: Student;
+  tab: StudentDetailTab;
+  setTab: (tab: StudentDetailTab) => void;
+  onEdit: () => void;
+  onDelete: () => void;
+  onLessonsUpdated: () => void;
+  onEditLesson: (lesson: Lesson) => void;
+};
+
+export type StudentDetailProps = {
+    studentId: string;
+    onDeleted: () => void;
+    onUpdated: () => void;
+};
+
 export type StudentSheet = {
   createdAt: string;
+};
+
+export type TrackingDraft = {
+  goals?: string;
+  progress?: number;
+  cefr?: {
+    oral?: CEFR;
+    ecrit?: CEFR;
+    interaction?: CEFR;
+    grammaire?: CEFR;
+    vocabulaire?: CEFR;
+  };
+  tags?: string[];
 };
 
 export type ActivityKind =
@@ -101,3 +134,80 @@ export interface Student {
   updatedAt: string | null;
   deletedAt: string | null;
 }
+
+export interface Stats {
+  total: number;
+  active: number;
+  inactive: number;
+  lessons: number;
+  lastStudent?: Student;
+  lastLesson?: { student: Student; createdAt: string };
+  topStudent?: Student;
+};
+
+export interface Toast {
+  id: string;
+  text: string;
+};
+
+export type ToastContainerProps = {
+    toasts: Toast[];
+};
+
+export type StudentBillingViewModel = {
+    firstName: string;
+    lastName: string;
+    lessons: Lesson[];
+    billing: BillingContract;
+};
+
+export type StudentBillingProps = {
+    viewModel: StudentBillingViewModel;
+    onChange: (patch: Partial<BillingContract>) => void;
+};
+
+export type StudentFormProps = {
+    initial?: Student;
+    onClose: () => void;
+    onSaved: (payload: Partial<Student>) => Promise<void> | void;
+};
+
+export type LessonFormProps = {
+    onClose: () => void;
+    onSaved: (payload: Partial<Lesson>) => Promise<void>;
+    initial?: Lesson; // si présent, mode édition
+    availableContracts?: BillingContract[]; // contrats ouverts passés par le parent
+};
+
+export type LessonCardProps = {
+    studentId: string;
+    lesson: Lesson;
+    allContracts: BillingContract[];
+    onUpdated: () => Promise<void> | void;
+    onDelete: () => Promise<void> | void;
+};
+
+export type DashboardProps = {
+  stats: Stats;
+  students: Student[];
+  events: ActivityItem[];
+  onOpenStudent: (id: string) => void;
+};
+
+export type Release = {
+  version: string;
+  date: string;
+  notes: string;
+  url: string;
+};
+
+export type GitHubRelease = {
+  tag_name?: string;
+  name?: string;
+  published_at?: string;
+  created_at?: string;
+  body?: string;
+  html_url?: string;
+  draft?: boolean;
+  prerelease?: boolean;
+};

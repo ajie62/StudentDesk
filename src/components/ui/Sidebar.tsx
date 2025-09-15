@@ -1,9 +1,7 @@
 import { Settings, Plus } from "lucide-react";
 import { useEffect, useState } from "react";
-import { fullName, initialsOf } from "../utils";
-import { Student } from "../types";
-
-type FilterKind = "all" | "active" | "inactive" | "contracts";
+import { fullName, initialsOf } from "../../utils";
+import { Student, FilterKind } from "../../types";
 
 interface SidebarProps {
   students: Student[];
@@ -13,7 +11,7 @@ interface SidebarProps {
   setShowChangelog: (v: boolean) => void;
   setShowSettings: (v: boolean) => void;
   setShowNew: (v: boolean) => void;
-  refresh: () => Promise<void>;
+  onStudentsChanged: () => void;
   pushToast: (msg: string) => void;
   filterActive: FilterKind;
   setFilterActive: (v: FilterKind) => void;
@@ -27,7 +25,7 @@ export function Sidebar({
   setShowChangelog,
   setShowSettings,
   setShowNew,
-  refresh,
+  onStudentsChanged,
   pushToast,
   filterActive,
   setFilterActive,
@@ -123,7 +121,7 @@ export function Sidebar({
           const result = await window.studentApi.importCSV();
           if (result?.count) {
             pushToast(`Importé ${result.count} étudiants • 💾 local`);
-            refresh();
+            onStudentsChanged();
           }
         }}
       >

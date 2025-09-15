@@ -1,11 +1,11 @@
 import { useState, useEffect } from "react";
-import { Student } from "../../types";
+import { Student, StudentDetailTab } from "../../types";
 
-type TabKind = "fiche" | "suivi" | "billing";
+const defaultTab = "fiche";
 
 export function useStudentDetail(studentId: string, onDeleted: () => void, onUpdated: () => void) {
   const [student, setStudent] = useState<Student | null>(null);
-  const [tab, setTab] = useState<TabKind>("fiche");
+  const [tab, setTab] = useState<StudentDetailTab>(defaultTab);
   const [editing, setEditing] = useState(false);
 
   async function refresh(resetPage = false) {
@@ -14,7 +14,7 @@ export function useStudentDetail(studentId: string, onDeleted: () => void, onUpd
     setStudent(s);
 
     if (resetPage) {
-      setTab("fiche"); // reset tab quand on change d’étudiant
+      setTab(defaultTab); // reset tab quand on change d’étudiant
     }
   }
 

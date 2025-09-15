@@ -1,37 +1,10 @@
 import React, { useMemo, useState, useEffect } from "react";
-import { Student, BillingContract } from "../../types";
-import StudentBilling from "../StudentBilling";
+import { Student, BillingContract, StudentWithUpdateProps } from "../../types";
+import StudentBilling from "../student/StudentBilling";
 import { getCurrencyLabel } from "../../constants";
 import { formatDate } from "../../utils";
 import { v4 as uuidv4 } from "uuid";
-
-// Helpers
-function isContractEqual(a: BillingContract | null, b: BillingContract | null) {
-  return JSON.stringify(a ?? null) === JSON.stringify(b ?? null);
-}
-
-/** Génération d’un nom unique pour chaque contrat */
-function generateDisplayName(
-  mode: "single" | "package",
-  totalLessons: number,
-  existing: BillingContract[]
-): string {
-  if (mode === "single") {
-    const base = "Cours unitaire";
-    const sameType = existing.filter((c) => c.mode === "single");
-    return `${base} (${sameType.length + 1})`;
-  }
-
-  if (mode === "package") {
-    const base = `Pack de ${totalLessons} leçons`;
-    const sameType = existing.filter(
-      (c) => c.mode === "package" && c.totalLessons === totalLessons
-    );
-    return `${base} (${sameType.length + 1})`;
-  }
-
-  return "Contrat";
-}
+import { isContractEqual, generateDisplayName } from "./utils";
 
 // UI Helpers
 function totalFor(c: BillingContract) {
@@ -50,12 +23,7 @@ function percentFor(c: BillingContract, student: Student) {
 
 const PAGE_SIZE_BILLING = 10;
 
-type Props = {
-  student: Student;
-  onUpdated: () => void;
-};
-
-export default function StudentBillingSection({ student, onUpdated }: Props) {
+export default function StudentBillingSection({ student, onUpdated }: StudentWithUpdateProps) {
   const [billingPage, setBillingPage] = useState(1);
   const [editingContract, setEditingContract] = useState<BillingContract | null>(null);
   const [billingDraft, setBillingDraft] = useState<BillingContract | null>(null);
@@ -402,7 +370,7 @@ export default function StudentBillingSection({ student, onUpdated }: Props) {
               lessons: student.lessons ?? [],
               billing: billingDraft,
             }}
-            onChange={(patch) => updateBilling(patch)}
+            onChange={(patch: Partial<BillingContract>) => updateBilling(patch)}
           />
           <div className="actions">
             <button

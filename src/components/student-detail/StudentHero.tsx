@@ -1,17 +1,7 @@
 import React, { useRef, useState, useEffect, useMemo } from "react";
-import { Student, Lesson } from "../../types";
+import { Student, StudentHeroProps } from "../../types";
 import { formatDate, fullName } from "../../utils";
 import { Edit3, Trash2 } from "lucide-react";
-
-type Props = {
-  student: Student;
-  tab: "fiche" | "suivi" | "billing";
-  setTab: (tab: "fiche" | "suivi" | "billing") => void;
-  onEdit: () => void;
-  onDelete: () => void;
-  onLessonsUpdated: () => void;
-  onEditLesson: (lesson: Lesson) => void;
-};
 
 function initials(s: Student) {
   const a = (s.firstName || "").trim()[0] || "";
@@ -27,7 +17,7 @@ export default function StudentHero({
   onDelete,
   onLessonsUpdated,
   onEditLesson,
-}: Props) {
+}: StudentHeroProps) {
   const descRef = useRef<HTMLDivElement | null>(null);
   const [showFullDesc, setShowFullDesc] = useState(false);
   const [needClamp, setNeedClamp] = useState(false);

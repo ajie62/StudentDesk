@@ -1,5 +1,5 @@
 import React, { useMemo, useState, useEffect } from "react";
-import { Student, ActivityItem } from "../types";
+import { DashboardProps } from "../../types";
 import {
   PieChart,
   Pie,
@@ -14,20 +14,6 @@ import {
 import { formatDistanceToNow } from "date-fns";
 import { fr } from "date-fns/locale";
 
-type Stats = {
-  total: number;
-  active: number;
-  inactive: number;
-  lessons: number;
-};
-
-type Props = {
-  stats: Stats;
-  students: Student[];
-  events: ActivityItem[];
-  onOpenStudent: (id: string) => void;
-};
-
 const motivationalQuotes = [
   "🌱 Chaque leçon est une graine semée dans l'esprit d'un étudiant.",
   "✨ Inspirer aujourd’hui, c’est changer demain.",
@@ -41,7 +27,7 @@ const motivationalQuotes = [
   "🚀 Aujourd’hui, vous changez la trajectoire d’une vie.",
 ];
 
-export default function Dashboard({ stats, students, events, onOpenStudent }: Props) {
+export default function Dashboard({ stats, students, events, onOpenStudent }: DashboardProps) {
   const [page, setPage] = useState(1);
   const [historyClearedAt, setHistoryClearedAt] = useState<string | null>(null);
   const PAGE_SIZE = 8;

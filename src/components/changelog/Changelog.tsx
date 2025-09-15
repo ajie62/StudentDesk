@@ -1,23 +1,6 @@
 import React, { useEffect, useMemo, useState } from "react";
+import { Release, GitHubRelease } from "../../types";
 import "./changelog.css";
-
-type Release = {
-  version: string;
-  date: string;
-  notes: string;
-  url: string;
-};
-
-type GitHubRelease = {
-  tag_name?: string;
-  name?: string;
-  published_at?: string;
-  created_at?: string;
-  body?: string;
-  html_url?: string;
-  draft?: boolean;
-  prerelease?: boolean;
-};
 
 const OWNER = "ajie62";
 const REPO = "StudentDesk";

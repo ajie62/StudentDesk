@@ -1,13 +1,10 @@
 import React, { useState, useEffect } from "react";
-import { AppSettings } from "../types";
-import { FAVORITES, OTHERS } from "../constants";
+import { AppSettings, SettingsTab } from "../../types";
+import { FAVORITES, OTHERS } from "../../constants";
 import Select from "react-select";
 
-// Types de réglages
-type Tab = "app" | "lessons" | "data";
-
 export default function SettingsPage() {
-  const [activeTab, setActiveTab] = useState<Tab>("app");
+  const [activeTab, setActiveTab] = useState<SettingsTab>("app");
 
   const [theme, setTheme] = useState("dark");
   const [lessonDuration, setLessonDuration] = useState(60);

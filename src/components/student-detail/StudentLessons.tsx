@@ -1,16 +1,11 @@
 import React, { useMemo, useState, useEffect } from "react";
-import { Student } from "../../types";
-import LessonCard from "../LessonCard";
-import LessonForm from "../LessonForm";
+import { Lesson, StudentWithUpdateProps } from "../../types";
+import LessonCard from "../dashboard/LessonCard";
+import LessonForm from "../dashboard/LessonForm";
 
 const PAGE_SIZE_LESSONS = 10;
 
-type Props = {
-  student: Student;
-  onUpdated: () => void;
-};
-
-export default function StudentLessons({ student, onUpdated }: Props) {
+export default function StudentLessons({ student, onUpdated }: StudentWithUpdateProps) {
   const [page, setPage] = useState(1);
   const [addingLesson, setAddingLesson] = useState(false);
 
@@ -117,7 +112,7 @@ export default function StudentLessons({ student, onUpdated }: Props) {
         <LessonForm
           availableContracts={openContracts}
           onClose={() => setAddingLesson(false)}
-          onSaved={async (payload) => {
+          onSaved={async (payload: Partial<Lesson>) => {
             await window.studentApi.addLesson(student.id, payload);
             setAddingLesson(false);
             await handleListUpdated();

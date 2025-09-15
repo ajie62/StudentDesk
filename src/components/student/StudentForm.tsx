@@ -1,13 +1,7 @@
 import React, { useEffect, useRef, useState } from "react";
-import { Student } from "../types";
+import { Student, StudentFormProps } from "../../types";
 
-type Props = {
-  initial?: Student;
-  onClose: () => void;
-  onSaved: (payload: Partial<Student>) => Promise<void> | void;
-};
-
-export default function StudentForm({ initial, onClose, onSaved }: Props): JSX.Element {
+export default function StudentForm({ initial, onClose, onSaved }: StudentFormProps): JSX.Element {
   const [firstName, setFirstName] = useState(initial?.firstName ?? "");
   const [lastName, setLastName] = useState(initial?.lastName ?? "");
   const [description, setDescription] = useState(initial?.description ?? "");

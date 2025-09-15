@@ -1,14 +1,7 @@
 import React, { useEffect, useMemo, useState, useRef } from "react";
-import { Lesson, BillingContract } from "../types";
+import { BillingContract, LessonFormProps } from "../../types";
 
-type Props = {
-  onClose: () => void;
-  onSaved: (payload: Partial<Lesson>) => Promise<void>;
-  initial?: Lesson; // si présent → mode édition
-  availableContracts?: BillingContract[]; // contrats ouverts passés par le parent
-};
-
-export default function LessonForm({ onClose, onSaved, initial, availableContracts = [] }: Props) {
+export default function LessonForm({ onClose, onSaved, initial, availableContracts = [] }: LessonFormProps) {
   const [comment, setComment] = useState(initial?.comment || "");
   const [homework, setHomework] = useState(initial?.homework || "");
   const [date, setDate] = useState(

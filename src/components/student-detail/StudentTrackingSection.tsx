@@ -1,49 +1,10 @@
 import React, { useState } from "react";
-import { Student, CEFR } from "../../types";
-
-type TrackingDraft = {
-  goals?: string;
-  progress?: number;
-  cefr?: {
-    oral?: CEFR;
-    ecrit?: CEFR;
-    interaction?: CEFR;
-    grammaire?: CEFR;
-    vocabulaire?: CEFR;
-  };
-};
-
-type Props = {
-  student: Student;
-  onUpdated: () => void;
-};
+import { Student, CEFR, TrackingDraft, StudentWithUpdateProps } from "../../types";
+import { makeTrackingDraft, isTrackingEqual } from "./utils";
 
 const CEFR_LEVELS: CEFR[] = ["A1", "A2", "B1", "B2", "C1", "C2"];
 
-function makeTrackingDraft(s: Student): TrackingDraft {
-  return {
-    goals: s.goals ?? "",
-    progress: s.progress ?? 0,
-    cefr: {
-      oral: s.cefr?.oral,
-      ecrit: s.cefr?.ecrit,
-      interaction: s.cefr?.interaction,
-      grammaire: s.cefr?.grammaire,
-      vocabulaire: s.cefr?.vocabulaire,
-    },
-  };
-}
-
-function isTrackingEqual(d: TrackingDraft, s: Student): boolean {
-  const eq = (a: unknown, b: unknown) => JSON.stringify(a) === JSON.stringify(b);
-  return (
-    (d.goals ?? "") === (s.goals ?? "") &&
-    (d.progress ?? 0) === (s.progress ?? 0) &&
-    eq(d.cefr ?? {}, s.cefr ?? {})
-  );
-}
-
-export default function StudentTrackingSection({ student, onUpdated }: Props) {
+export default function StudentTrackingSection({ student, onUpdated }: StudentWithUpdateProps) {
   const [trackDraft, setTrackDraft] = useState<TrackingDraft>(makeTrackingDraft(student));
   const [trackDirty, setTrackDirty] = useState(false);
   const [loadingPDF, setLoadingPDF] = useState(false);

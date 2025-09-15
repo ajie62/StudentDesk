@@ -1,63 +1,42 @@
 import React, { useEffect, useMemo, useState, Suspense, lazy } from "react";
-import { Student, ActivityItem, AppSettings, FilterKind } from "./types";
-import { fullName } from "./utils";
-import { Sidebar } from "./components/Sidebar";
-import StudentForm from "./components/StudentForm";
+import { Student, AppSettings, FilterKind, Toast } from "./types";
+import { pushToast, toastSave } from "./helpers/toastHelpers";
+import { computeStats, computeEvents } from "./helpers/studentHelpers";
+import { Sidebar } from "./components/ui/Sidebar";
+import { ToastContainer } from "./components/ui/ToastContainer";
+import StudentForm from "./components/student/StudentForm";
 import StudentDetail from "./components/student-detail/StudentDetail";
-import Changelog from "./components/Changelog";
-import SettingsPage from "./components/Settings";
+import Changelog from "./components/changelog/Changelog";
+import SettingsPage from "./components/settings/Settings";
+import { useStudents } from "./hooks/useStudents";
+import { useUpdates } from "./hooks/useUpdates";
 import Fuse from "fuse.js";
 import "./styles.css";
 
-const Dashboard = lazy(() => import("./components/Dashboard"));
-
-type Stats = {
-  total: number;
-  active: number;
-  inactive: number;
-  lessons: number;
-  lastStudent?: Student;
-  lastLesson?: { student: Student; createdAt: string };
-  topStudent?: Student;
-};
-
-type Toast = { id: string; text: string };
+const Dashboard = lazy(() => import("./components/dashboard/Dashboard"));
 
 export default function App() {
-  const [students, setStudents] = useState<Student[]>([]);
+  // Data state (backend / API)
   const [selectedId, setSelectedId] = useState<string | null>(null);
+
+  // UI state (nav / display)
   const [showDashboard, setShowDashboard] = useState(true);
   const [showChangelog, setShowChangelog] = useState(false);
-
-  const [q, setQ] = useState("");
-  const [filterActive, setFilterActive] = useState<FilterKind>("all");
-
   const [showNew, setShowNew] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
 
-  const [toasts, setToasts] = useState<Toast[]>([]);
-  function pushToast(text: string) {
-    const id = Math.random().toString(36).slice(2);
-    setToasts((t) => [...t, { id, text }]);
-    window.setTimeout(() => {
-      setToasts((t) => t.filter((x) => x.id !== id));
-    }, 3000);
-  }
+  // Search state / filter
+  const [q, setQ] = useState("");
+  const [filterActive, setFilterActive] = useState<FilterKind>("all");
 
-  const [updateReady, setUpdateReady] = useState(false);
+  // System state
+  const [toasts, setToasts] = useState<Toast[]>([]);
   const [version, setVersion] = useState("");
 
-  async function refresh() {
-    const list = await window.studentApi.listStudents();
-    list.sort((a, b) => a.firstName.localeCompare(b.firstName));
-    setStudents(list);
-    if (!list.length) {
-      setSelectedId(null);
-      setShowDashboard(true);
-      setShowChangelog(false);
-    }
-  }
+  const { students, setStudents, refresh } = useStudents();
+  const updateReady = useUpdates(setToasts);
 
+  // Chargement initial : étudiants + version app
   useEffect(() => {
     refresh();
     window.studentApi.onAppFocus(() => refresh());
@@ -71,10 +50,12 @@ export default function App() {
     })();
   }, []);
 
+  // Charger préférences (filtre par défaut)
   useEffect(() => {
     (async () => {
       try {
         const prefs: AppSettings | undefined = await window.studentApi.getSettings?.();
+
         if (prefs?.defaultStudentFilter) {
           setFilterActive(prefs.defaultStudentFilter);
         }
@@ -84,52 +65,23 @@ export default function App() {
     })();
   }, []);
 
+  // Listener sur l'événement "studentFilterChanged"
   useEffect(() => {
-    const handler = (e: any) => {
-      setFilterActive(e.detail); // applique direct le changement depuis Settings
-    };
+    const handler = (e: any) => setFilterActive(e.detail);
     window.addEventListener("studentFilterChanged", handler);
 
     return () => window.removeEventListener("studentFilterChanged", handler);
   }, []);
 
+  // Sauvegardes (étudiants, leçons, réglages)
   useEffect(() => {
     const unsubscribe = window.studentApi.onStoreSaved?.(({ action, icloud }) => {
       const where = icloud ? "☁️ iCloud" : "💾 local";
-      let label = "Sauvegarde effectuée";
-      if (action?.startsWith("students")) label = "Étudiant enregistré";
-      if (action === "students:delete") label = "Étudiant supprimé";
-      if (action?.startsWith("lessons")) label = "Leçon enregistrée";
-      if (action === "lessons:delete") label = "Leçon supprimée";
-      if (action === "settings") label = "Réglages sauvegardés";
-      pushToast(`${label} • ${where}`);
+      toastSave(setToasts, action, where);
     });
     return () => {
       if (typeof unsubscribe === "function") unsubscribe();
     };
-  }, []);
-
-  useEffect(() => {
-    window.studentApi.onUpdate?.("update:checking", () => {
-      pushToast("🔄 Vérification des mises à jour...");
-      setUpdateReady(false);
-    });
-    window.studentApi.onUpdate?.("update:available", () => {
-      pushToast("⬇️ Mise à jour disponible, téléchargement...");
-      setUpdateReady(false);
-    });
-    window.studentApi.onUpdate?.("update:none", () => {
-      pushToast("✅ Aucune mise à jour disponible");
-      setUpdateReady(false);
-    });
-    window.studentApi.onUpdate?.("update:downloaded", () => {
-      pushToast("📦 Mise à jour prête à installer");
-      setUpdateReady(true);
-    });
-    window.studentApi.onUpdate?.("update:error", (_evt, err) => {
-      pushToast("❌ Erreur de mise à jour: " + err);
-      setUpdateReady(false);
-    });
   }, []);
 
   const filtered = useMemo(() => {
@@ -155,95 +107,10 @@ export default function App() {
     return results;
   }, [q, students, filterActive]);
 
-  const stats: Stats = useMemo(() => {
-    const total = students.length;
-    const active = students.filter((s) => s.isActive).length;
-    const inactive = total - active;
-    let lessons = 0;
-    let lastLesson: Stats["lastLesson"];
-    let topStudent: Student | undefined;
+  const stats = useMemo(() => computeStats(students), [students]);
+  const events = useMemo(() => computeEvents(students), [students]);
 
-    students.forEach((s) => {
-      lessons += s.lessons.length;
-      if (s.lessons.length) {
-        const recent = [...s.lessons].sort((a, b) => b.createdAt.localeCompare(a.createdAt))[0];
-        if (!lastLesson || recent.createdAt > lastLesson.createdAt) {
-          lastLesson = { student: s, createdAt: recent.createdAt };
-        }
-      }
-      if (!topStudent || s.lessons.length > topStudent.lessons.length) {
-        topStudent = s;
-      }
-    });
-
-    const lastStudent = [...students].sort((a, b) =>
-      b.sheet.createdAt.localeCompare(a.sheet.createdAt)
-    )[0];
-
-    return { total, active, inactive, lessons, lastStudent, lastLesson, topStudent };
-  }, [students]);
-
-  const events: ActivityItem[] = useMemo(() => {
-    const evts: ActivityItem[] = [];
-
-    students.forEach((s) => {
-      evts.push({
-        id: `stu-${s.id}-created`,
-        kind: "student:create",
-        label: `${fullName(s)} ajouté`,
-        when: s.sheet.createdAt,
-        studentId: s.id,
-      });
-      if (s.updatedAt) {
-        evts.push({
-          id: `stu-${s.id}-updated`,
-          kind: "student:update",
-          label: `${fullName(s)} modifié`,
-          when: s.updatedAt,
-          studentId: s.id,
-        });
-      }
-      if (s.deletedAt) {
-        evts.push({
-          id: `stu-${s.id}-deleted`,
-          kind: "student:delete",
-          label: `${fullName(s)} supprimé`,
-          when: s.deletedAt,
-          studentId: s.id,
-        });
-      }
-      s.lessons.forEach((l) => {
-        evts.push({
-          id: `les-${s.id}-${l.id}-created`,
-          kind: "lesson:add",
-          label: `Leçon pour ${fullName(s)}`,
-          when: l.createdAt,
-          studentId: s.id,
-        });
-        if (l.updatedAt) {
-          evts.push({
-            id: `les-${s.id}-${l.id}-updated`,
-            kind: "lesson:update",
-            label: `Leçon modifiée pour ${fullName(s)}`,
-            when: l.updatedAt,
-            studentId: s.id,
-          });
-        }
-        if (l.deletedAt) {
-          evts.push({
-            id: `les-${s.id}-${l.id}-deleted`,
-            kind: "lesson:delete",
-            label: `Leçon supprimée pour ${fullName(s)}`,
-            when: l.deletedAt,
-            studentId: s.id,
-          });
-        }
-      });
-    });
-
-    return evts.sort((a, b) => b.when.localeCompare(a.when));
-  }, [students]);
-
+  // Render
   return (
     <div className="app-shell">
       <Sidebar
@@ -256,8 +123,8 @@ export default function App() {
         setShowChangelog={setShowChangelog}
         setShowSettings={setShowSettings}
         setShowNew={setShowNew}
-        refresh={refresh}
-        pushToast={pushToast}
+        onStudentsChanged={refresh}
+        pushToast={(msg) => pushToast(setToasts, msg)}
       />
 
       {/* Main content */}
@@ -266,14 +133,16 @@ export default function App() {
 
         <div className="container">
           {showChangelog ? (
+            // Page des versions
             <Changelog />
           ) : showDashboard ? (
+            // Tableau de bord de l'app.
             <Suspense fallback={<div className="empty">Chargement du tableau de bord...</div>}>
               <Dashboard
                 stats={stats}
                 students={students}
                 events={events}
-                onOpenStudent={(id) => {
+                onOpenStudent={(id: React.SetStateAction<string | null>) => {
                   setSelectedId(id);
                   setShowDashboard(false);
                   setShowChangelog(false);
@@ -282,12 +151,12 @@ export default function App() {
               />
             </Suspense>
           ) : showSettings ? (
+            // Page des réglages
             <SettingsPage />
-          ) : !selectedId ? (
-            <div className="empty">Sélectionnez un étudiant pour afficher sa fiche.</div>
           ) : (
+            // Fiche d'un étudiant
             <StudentDetail
-              studentId={selectedId}
+              studentId={selectedId!}
               onDeleted={() => {
                 setSelectedId(null);
                 setShowDashboard(true);
@@ -298,7 +167,6 @@ export default function App() {
           )}
         </div>
 
-        {/* ✅ Version affichée avec lien vers changelog */}
         <div
           className="app-version window-no-drag"
           onClick={() => {
@@ -308,14 +176,6 @@ export default function App() {
           }}
         >
           v{version}
-        </div>
-
-        <div className="toast-container">
-          {toasts.map((t) => (
-            <div key={t.id} className="toast">
-              {t.text}
-            </div>
-          ))}
         </div>
 
         {updateReady && (
@@ -331,13 +191,15 @@ export default function App() {
       {showNew && (
         <StudentForm
           onClose={() => setShowNew(false)}
-          onSaved={async (payload) => {
+          onSaved={async (payload: Partial<Student>) => {
             await window.studentApi.createStudent(payload as Partial<Student>);
             setShowNew(false);
             await refresh();
           }}
         />
       )}
+
+      <ToastContainer toasts={toasts} />
     </div>
   );
 }
