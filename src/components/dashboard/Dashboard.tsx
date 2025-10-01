@@ -4,6 +4,7 @@ import { fullName } from "../../utils";
 import {
   PieChart,
   Pie,
+  Cell,
   ResponsiveContainer,
   Tooltip,
   BarChart,
@@ -15,6 +16,7 @@ import {
 import { formatDistanceToNow } from "date-fns";
 import { fr } from "date-fns/locale";
 import PodiumStep from "./PodiumStep";
+import OriginsPie from "./OriginsPie";
 
 const motivationalQuotes = [
   "🌱 Chaque leçon est une graine semée dans l'esprit d'un étudiant.",
@@ -123,6 +125,18 @@ export default function Dashboard({ stats, students, events, onOpenStudent }: Da
     });
     return Array.from(set);
   }, [revenueByMonth]);
+
+  // Origines des étudiants
+  const originsData = useMemo(() => {
+    const counts: Record<string, number> = {};
+
+    students.forEach((s) => {
+      const origin = s.origin?.trim() || "Inconnu";
+      counts[origin] = (counts[origin] ?? 0) + 1;
+    });
+
+    return Object.entries(counts).map(([name, value]) => ({ name, value }));
+  }, [students]);
 
   // Palette de couleurs
   const colors = ["#16d39a", "#3b82f6", "#f59e0b", "#ef4444", "#8b5cf6"];
@@ -356,6 +370,29 @@ export default function Dashboard({ stats, students, events, onOpenStudent }: Da
               <span>Inactifs</span>
               <span className="legend-count">{stats.inactive}</span>
             </div>
+          </div>
+        </div>
+
+        {/* --- Donut Origines --- */}
+        <div className="dashboard-card pie">
+          <h3>Origine des étudiants</h3>
+          <div className="chart-container relative">
+            {originsData.length === 0 ? (
+              <div className="empty-state">Aucune origine définie pour l’instant.</div>
+            ) : (
+              <OriginsPie data={originsData} colors={colors} />
+            )}
+          </div>
+
+          {/* Légende */}
+          <div className="donut-legend">
+            {originsData.map((o, i) => (
+              <div key={o.name} className="legend-item">
+                <span className="legend-dot" style={{ background: colors[i % colors.length] }} />
+                <span>{o.name}</span>
+                <span className="legend-count">{o.value}</span>
+              </div>
+            ))}
           </div>
         </div>
 

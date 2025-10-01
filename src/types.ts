@@ -45,6 +45,11 @@ export type Origin = {
   name: string;
 };
 
+export type OriginsPieProps = {
+  data: { name: string; value: number }[];
+  colors?: string[];
+};
+
 export interface Student {
   id: string;
   firstName: string;
