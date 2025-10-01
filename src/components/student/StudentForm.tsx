@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
-import { Student, StudentFormProps } from "../../types";
+import { StudentFormProps } from "../../types";
 
 export default function StudentForm({ initial, onClose, onSaved }: StudentFormProps): JSX.Element {
   const [firstName, setFirstName] = useState(initial?.firstName ?? "");
@@ -8,10 +8,28 @@ export default function StudentForm({ initial, onClose, onSaved }: StudentFormPr
   const [isActive, setIsActive] = useState<boolean>(initial?.isActive ?? true);
   const [photo, setPhoto] = useState<string | null>(initial?.photo ?? null);
 
+  // 👇 Origine
+  const [origin, setOrigin] = useState(initial?.origin || "");
+  const [origins, setOrigins] = useState<string[]>([]);
+  const [customOrigin, setCustomOrigin] = useState("");
+
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const descRef = useRef<HTMLTextAreaElement | null>(null);
 
-  // auto-grow pour la textarea
+  /* -------------------- Effets -------------------- */
+  // Récupérer les origines existantes au montage
+  useEffect(() => {
+    (async () => {
+      try {
+        const list = await window.studentApi.listOrigins();
+        setOrigins(list);
+      } catch (e) {
+        console.error("Impossible de charger les origines :", e);
+      }
+    })();
+  }, []);
+
+  // Auto-grow textarea description
   useEffect(() => {
     const el = descRef.current;
     if (!el) return;
@@ -19,6 +37,7 @@ export default function StudentForm({ initial, onClose, onSaved }: StudentFormPr
     el.style.height = `${el.scrollHeight}px`;
   }, [description]);
 
+  /* -------------------- Utilitaires -------------------- */
   function pickFile() {
     fileInputRef.current?.click();
   }
@@ -72,17 +91,41 @@ export default function StudentForm({ initial, onClose, onSaved }: StudentFormPr
     }
   }
 
+  /* -------------------- Soumission -------------------- */
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
+
+    // Origine finale choisie
+    let finalOrigin = origin === "__custom__" ? customOrigin.trim() : origin;
+
+    if (!finalOrigin) {
+      alert("Merci de renseigner une origine pour l’étudiant.");
+      return;
+    }
+
+    // Vérifie si nouvelle origine → ajoute en BDD
+    if (!origins.includes(finalOrigin)) {
+      try {
+        const updatedList = await window.studentApi.addOrigin(finalOrigin);
+        setOrigins(updatedList); // liste toujours synchronisée
+      } catch (err) {
+        console.error("Erreur lors de l’ajout de l’origine :", err);
+      }
+    }
+
     await onSaved({
       firstName: firstName.trim(),
       lastName: lastName.trim(),
       description: description.trim(),
       isActive,
       photo,
+      origin: finalOrigin,
     });
+
+    onClose();
   }
 
+  /* -------------------- Render -------------------- */
   return (
     <div className="modal-overlay" onClick={onClose}>
       <div
@@ -93,7 +136,7 @@ export default function StudentForm({ initial, onClose, onSaved }: StudentFormPr
       >
         <h3>{initial ? "Modifier l’étudiant" : "Nouvel étudiant"}</h3>
 
-        {/* Bloc avatar + bouton import (colonne gauche fixe 130px) */}
+        {/* Avatar */}
         <div className="field-photo">
           <div className="avatar avatar--lg" style={{ width: 130, height: 130 }}>
             {photo ? (
@@ -167,6 +210,42 @@ export default function StudentForm({ initial, onClose, onSaved }: StudentFormPr
             />
           </div>
 
+          {/* Origine */}
+          <div className="field">
+            <label className="input-row">Origine</label>
+            <select
+              className="input"
+              value={origin}
+              onChange={(e) => {
+                const value = e.target.value;
+                if (value === "__custom__") {
+                  setOrigin("__custom__");
+                } else {
+                  setOrigin(value);
+                  setCustomOrigin("");
+                }
+              }}
+            >
+              <option value="">— Sélectionner —</option>
+              {origins.map((o) => (
+                <option key={o} value={o}>
+                  {o}
+                </option>
+              ))}
+              <option value="__custom__">Autre…</option>
+            </select>
+
+            {origin === "__custom__" && (
+              <input
+                className="input"
+                placeholder="Nouvelle origine"
+                value={customOrigin}
+                onChange={(e) => setCustomOrigin(e.target.value)}
+              />
+            )}
+          </div>
+
+          {/* Actif / inactif */}
           <label className="switch">
             <input
               type="checkbox"
@@ -179,6 +258,7 @@ export default function StudentForm({ initial, onClose, onSaved }: StudentFormPr
             <span>Étudiant actif</span>
           </label>
 
+          {/* Boutons */}
           <div className="actions">
             <button type="button" className="btn ghost" onClick={onClose}>
               Annuler

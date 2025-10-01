@@ -5,10 +5,14 @@ declare global {
     studentApi: {
       // === Students ===
       listStudents: () => Promise<Student[]>;
-      createStudent: (payload: Partial<Student>) => Promise<Student>;
+      createStudent: (payload: Partial<Student> & { origin?: string }) => Promise<Student>;
       updateStudent: (id: string, patch: Partial<Student>) => Promise<Student>;
       deleteStudent: (id: string) => Promise<string>;
       getStudent: (id: string) => Promise<Student>;
+
+      // === Origins ===
+      listOrigins: () => Promise<string[]>;
+      addOrigin: (name: string) => Promise<string[]>;
 
       // === Lessons ===
       addLesson: (studentId: string, payload: Partial<Lesson>) => Promise<Student>;

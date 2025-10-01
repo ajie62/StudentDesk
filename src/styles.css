@@ -733,7 +733,6 @@ select.input:focus {
   z-index: 2;
 }
 
-
 .podium-step .step-name {
   font-weight: 800;
   color: var(--text);
@@ -757,7 +756,6 @@ select.input:focus {
   margin-top: 40px;
 }
 
-
 .podium-step .avatar img {
   width: 100%;
   height: 100%;
@@ -772,12 +770,20 @@ select.input:focus {
   text-align: center; /* ✅ centré sous le nom */
 }
 
-.podium-step .muted { color: #666; }
+.podium-step .muted {
+  color: #666;
+}
 
 /* hauteurs des marches (look podium) */
-.step-1 { height: 250px; }
-.step-2 { height: 220px; }
-.step-3 { height: 200px; }
+.step-1 {
+  height: 250px;
+}
+.step-2 {
+  height: 220px;
+}
+.step-3 {
+  height: 200px;
+}
 
 /* états */
 .podium-step.placeholder {

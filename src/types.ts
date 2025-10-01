@@ -40,6 +40,11 @@ export type StudentSheet = {
   createdAt: string;
 };
 
+export type Origin = {
+  id: string;
+  name: string;
+};
+
 export interface Student {
   id: string;
   firstName: string;
@@ -52,6 +57,7 @@ export interface Student {
     createdAt: string;
   };
   lessons: Lesson[];
+  origin: string; // Private, Italki...
 
   // suivi (facultatif)
   goals?: string;

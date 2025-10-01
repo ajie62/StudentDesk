@@ -6,6 +6,8 @@ contextBridge.exposeInMainWorld("studentApi", {
   updateStudent: (id, patch) => ipcRenderer.invoke("students:update", id, patch),
   deleteStudent: (id) => ipcRenderer.invoke("students:delete", id),
   getStudent: (id) => ipcRenderer.invoke("students:get", id),
+  listOrigins: () => ipcRenderer.invoke("origins:list"),
+  addOrigin: (name) => ipcRenderer.invoke("origins:add", name),
 
   addLesson: (studentId, payload) => ipcRenderer.invoke("lessons:add", studentId, payload),
   updateLesson: (studentId, lessonId, patch) =>

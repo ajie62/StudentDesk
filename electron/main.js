@@ -7,13 +7,11 @@ import Store from "electron-store";
 import { v4 as uuidv4 } from "uuid";
 import Papa from "papaparse";
 import PDFDocument from "pdfkit";
+import updater from "electron-updater";
 
+const { autoUpdater } = updater;
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
-
-import updater from "electron-updater";
-const { autoUpdater } = updater;
-
 const APP_DIR_NAME = "StudentDesk";
 const STORE_NAME = "studentdesk-data";
 const BACKUPS_DIR_NAME = "backups";
@@ -29,6 +27,48 @@ function logUpdate(message) {
     fs.appendFileSync(logFile, fullMessage);
   } catch (e) {
     console.warn("Impossible d’écrire le log updater:", e);
+  }
+}
+
+// -------------------- Student Origins --------------------
+function originsFilePath() {
+  // utilise le même dossier que studentdesk-data.json
+  const baseDir = dataDirs?.baseDir || app.getPath("userData");
+  return path.join(baseDir, "origins.json");
+}
+
+function ensureOriginsFile() {
+  try {
+    const file = originsFilePath();
+    if (!fs.existsSync(file)) {
+      fs.writeFileSync(file, "[]", "utf8");
+      console.log("[StudentDesk] origins.json créé :", file);
+    }
+  } catch (e) {
+    console.error("[StudentDesk] ensureOriginsFile failed:", e);
+  }
+}
+
+function loadOrigins() {
+  try {
+    const file = originsFilePath();
+    if (!fs.existsSync(file)) {
+      fs.writeFileSync(file, "[]", "utf8");
+      return [];
+    }
+    return JSON.parse(fs.readFileSync(file, "utf8"));
+  } catch (e) {
+    console.error("[StudentDesk] loadOrigins failed:", e);
+    return [];
+  }
+}
+
+function saveOrigins(origins) {
+  try {
+    const file = originsFilePath();
+    fs.writeFileSync(file, JSON.stringify(origins, null, 2), "utf8");
+  } catch (e) {
+    console.error("[StudentDesk] saveOrigins failed:", e);
   }
 }
 
@@ -115,6 +155,8 @@ function initStore() {
     cwd: dataDirs.baseDir,
     defaults: { students: [], [HISTORY_KEY]: null },
   });
+
+  ensureOriginsFile();
 
   // ✅ Conversion one-shot: transforme d'éventuels soft deletes en hard deletes
   try {
@@ -326,6 +368,7 @@ ipcMain.handle("students:create", async (_evt, payload) => {
     email: payload.email || "",
     isActive: Boolean(payload.isActive),
     photo: payload.photo || null,
+    origin: payload.origin || "Privé",
     sheet: { createdAt: now },
     lessons: [],
     billingHistory: [],
@@ -377,6 +420,33 @@ ipcMain.handle("students:get", async (_evt, id) => {
   const lessons = [...(s.lessons || [])].sort((a, b) => b.createdAt.localeCompare(a.createdAt));
 
   return { ...s, lessons };
+});
+
+ipcMain.handle("origins:list", async () => {
+  try {
+    const store = loadOrigins();
+    // Toujours renvoyer un tableau de strings
+    return store.map((o) => (typeof o === "string" ? o : String(o?.name || ""))).filter(Boolean);
+  } catch {
+    return [];
+  }
+});
+
+ipcMain.handle("origins:add", async (_evt, name) => {
+  const trimmed = String(name || "").trim();
+  if (!trimmed) return loadOrigins();
+
+  const store = loadOrigins();
+  const list = store
+    .map((o) => (typeof o === "string" ? o : String(o?.name || "")))
+    .filter(Boolean);
+
+  if (!list.includes(trimmed)) {
+    list.push(trimmed);
+    saveOrigins(list);
+  }
+
+  return list; // ✅ renvoie toujours string[]
 });
 
 /* -------------------- IPC: Lessons CRUD -------------------- */
