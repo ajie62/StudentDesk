@@ -65,7 +65,9 @@ export default function StudentDetail({ studentId, onDeleted, onUpdated }: Stude
       </div>
 
       {/* Contenu par onglet */}
-      {tab === "fiche" && <StudentLessons student={student} onUpdated={handleListUpdated} setTab={setTab} />}
+      {tab === "fiche" && (
+        <StudentLessons student={student} onUpdated={handleListUpdated} setTab={setTab} />
+      )}
       {tab === "suivi" && (
         <StudentTrackingSection student={student} onUpdated={handleListUpdated} />
       )}

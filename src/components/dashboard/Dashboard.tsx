@@ -1,5 +1,6 @@
 import React, { useMemo, useState, useEffect } from "react";
 import { DashboardProps } from "../../types";
+import { fullName } from "../../utils";
 import {
   PieChart,
   Pie,
@@ -13,6 +14,7 @@ import {
 } from "recharts";
 import { formatDistanceToNow } from "date-fns";
 import { fr } from "date-fns/locale";
+import PodiumStep from "./PodiumStep";
 
 const motivationalQuotes = [
   "🌱 Chaque leçon est une graine semée dans l'esprit d'un étudiant.",
@@ -138,22 +140,26 @@ export default function Dashboard({ stats, students, events, onOpenStudent }: Da
 
   // Top 3 étudiants (seulement ceux avec ≥1 leçon), complété avec "—"
   const top3 = useMemo(() => {
-    const ranked = [...students]
+    type TopItem = { id: string; name: string; lessons: number; photo: string | null };
+
+    const ranked: TopItem[] = students
       .map((s) => ({
         id: s.id,
-        name: `${s.firstName ?? ""} ${s.lastName ?? ""}`.trim() || "—",
+        name: fullName(s),
         lessons: Array.isArray(s.lessons) ? s.lessons.length : 0,
+        photo: s.photo ?? null,
       }))
-      .filter((s) => s.lessons > 0) // ⬅️ on exclut ceux à 0 leçon
+      .filter((s) => s.lessons > 0)
       .sort((a, b) => b.lessons - a.lessons)
       .slice(0, 3);
 
-    // Complète jusqu'à 3 avec des placeholders "—"
+    // Complète jusqu'à 3 avec des placeholders
     while (ranked.length < 3) {
       ranked.push({
         id: `placeholder-${ranked.length + 1}`,
         name: "—",
         lessons: 0,
+        photo: null,
       });
     }
 
@@ -194,60 +200,9 @@ export default function Dashboard({ stats, students, events, onOpenStudent }: Da
             <div className="empty-state">Aucune leçon enregistrée pour l’instant.</div>
           ) : (
             <div className="podium-wrap">
-              {/* 2e place */}
-              {top3[1] ? (
-                <div
-                  className="podium-step step-2"
-                  title={`${top3[1].name} • ${top3[1].lessons} leçons`}
-                >
-                  <div className="step-rank">2</div>
-                  <div className="step-name">{top3[1].name}</div>
-                  <div className="step-meta">{top3[1].lessons} leçons</div>
-                </div>
-              ) : (
-                <div className="podium-step step-2 placeholder">
-                  <div className="step-rank">2</div>
-                  <div className="step-name muted">—</div>
-                  <div className="step-meta muted">—</div>
-                </div>
-              )}
-
-              {/* 1re place */}
-              {top3[0] ? (
-                <div
-                  className="podium-step step-1"
-                  title={`${top3[0].name} • ${top3[0].lessons} leçons`}
-                >
-                  <div className="crown">🥇</div>
-                  <div className="step-rank">1</div>
-                  <div className="step-name">{top3[0].name}</div>
-                  <div className="step-meta">{top3[0].lessons} leçons</div>
-                </div>
-              ) : (
-                <div className="podium-step step-1 placeholder">
-                  <div className="step-rank">1</div>
-                  <div className="step-name muted">—</div>
-                  <div className="step-meta muted">—</div>
-                </div>
-              )}
-
-              {/* 3e place */}
-              {top3[2] ? (
-                <div
-                  className="podium-step step-3"
-                  title={`${top3[2].name} • ${top3[2].lessons} leçons`}
-                >
-                  <div className="step-rank">3</div>
-                  <div className="step-name">{top3[2].name}</div>
-                  <div className="step-meta">{top3[2].lessons} leçons</div>
-                </div>
-              ) : (
-                <div className="podium-step step-3 placeholder">
-                  <div className="step-rank">3</div>
-                  <div className="step-name muted">—</div>
-                  <div className="step-meta muted">—</div>
-                </div>
-              )}
+              <PodiumStep rank={2} student={top3[1]} />
+              <PodiumStep rank={1} student={top3[0]} />
+              <PodiumStep rank={3} student={top3[2]} />
             </div>
           )}
         </div>

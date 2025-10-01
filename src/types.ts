@@ -87,7 +87,7 @@ export type TrackingDraft = {
 };
 
 export type StudentLessonsProps = StudentWithUpdateProps & {
-    setTab: (tab: StudentDetailTab) => void;
+  setTab: (tab: StudentDetailTab) => void;
 };
 
 // =========================================================
@@ -220,12 +220,23 @@ export type LessonCardProps = {
   onDelete: () => Promise<void> | void;
 };
 
+// =========================================================
 // Dashboard
+// =========================================================
 export type DashboardProps = {
   stats: Stats;
   students: Student[];
   events: ActivityItem[];
   onOpenStudent: (id: string) => void;
+};
+
+export type PodiumStepProps = {
+  rank: 1 | 2 | 3;
+  student?: {
+    name: string;
+    lessons: number;
+    photo?: string | null;
+  };
 };
 
 // =========================================================

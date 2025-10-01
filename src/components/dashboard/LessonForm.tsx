@@ -1,7 +1,12 @@
 import React, { useEffect, useMemo, useState, useRef } from "react";
 import { BillingContract, LessonFormProps } from "../../types";
 
-export default function LessonForm({ onClose, onSaved, initial, availableContracts = [] }: LessonFormProps) {
+export default function LessonForm({
+  onClose,
+  onSaved,
+  initial,
+  availableContracts = [],
+}: LessonFormProps) {
   const [comment, setComment] = useState(initial?.comment || "");
   const [homework, setHomework] = useState(initial?.homework || "");
   const [date, setDate] = useState(
@@ -77,16 +82,16 @@ export default function LessonForm({ onClose, onSaved, initial, availableContrac
     e.preventDefault();
     setLoading(true);
     try {
-        // on renvoie la date sélectionnée, sous forme ISO
-        await onSaved({
+      // on renvoie la date sélectionnée, sous forme ISO
+      await onSaved({
         comment,
         homework,
         billingId,
         createdAt: new Date(date).toISOString(),
-        });
-        onClose();
+      });
+      onClose();
     } finally {
-        setLoading(false);
+      setLoading(false);
     }
   }
 
