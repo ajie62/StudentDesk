@@ -1,11 +1,11 @@
 import React, { useMemo, useState, useEffect } from "react";
-import { Lesson, StudentWithUpdateProps } from "../../types";
+import { StudentLessonsProps } from "../../types";
 import LessonCard from "../dashboard/LessonCard";
 import LessonForm from "../dashboard/LessonForm";
 
 const PAGE_SIZE_LESSONS = 10;
 
-export default function StudentLessons({ student, onUpdated }: StudentWithUpdateProps) {
+export default function StudentLessons({ student, onUpdated, setTab }: StudentLessonsProps) {
   const [page, setPage] = useState(1);
   const [addingLesson, setAddingLesson] = useState(false);
 
@@ -77,10 +77,10 @@ export default function StudentLessons({ student, onUpdated }: StudentWithUpdate
             </button>
             <button
               className="btn ghost"
-              onClick={() => alert("Passe à l’onglet Billing pour créer un contrat")}
+              onClick={() => setTab("billing")}
               title="Créer un contrat"
             >
-              + Contrat
+              Créer un contrat
             </button>
           </div>
         </div>

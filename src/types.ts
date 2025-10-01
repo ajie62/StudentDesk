@@ -86,6 +86,10 @@ export type TrackingDraft = {
   tags?: string[];
 };
 
+export type StudentLessonsProps = StudentWithUpdateProps & {
+    setTab: (tab: StudentDetailTab) => void;
+};
+
 // =========================================================
 // 💰 Billing
 // =========================================================

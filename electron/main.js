@@ -396,7 +396,7 @@ ipcMain.handle("lessons:add", async (_evt, studentId, payload) => {
 
   const lesson = {
     id: uid(),
-    // ✅ si on reçoit une date, on la garde ; sinon, on met maintenant
+    // si on reçoit une date, on la garde ; sinon, on met maintenant
     createdAt: payload?.createdAt
       ? new Date(payload.createdAt).toISOString()
       : new Date().toISOString(),
