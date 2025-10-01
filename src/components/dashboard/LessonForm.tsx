@@ -77,10 +77,16 @@ export default function LessonForm({ onClose, onSaved, initial, availableContrac
     e.preventDefault();
     setLoading(true);
     try {
-      await onSaved({ comment, homework, billingId, createdAt: new Date(date).toISOString() });
-      onClose();
+        // on renvoie la date sélectionnée, sous forme ISO
+        await onSaved({
+        comment,
+        homework,
+        billingId,
+        createdAt: new Date(date).toISOString(),
+        });
+        onClose();
     } finally {
-      setLoading(false);
+        setLoading(false);
     }
   }
 

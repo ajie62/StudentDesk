@@ -385,7 +385,6 @@ ipcMain.handle("lessons:add", async (_evt, studentId, payload) => {
   const idx = findStudentIndex(students, studentId);
   if (idx === -1) throw new Error("Student not found");
 
-  const now = new Date().toISOString();
   const student = students[idx];
 
   // billingId prioritaire depuis payload, sinon dernier contrat ouvert
@@ -397,14 +396,18 @@ ipcMain.handle("lessons:add", async (_evt, studentId, payload) => {
 
   const lesson = {
     id: uid(),
-    createdAt: now,
+    // ✅ si on reçoit une date, on la garde ; sinon, on met maintenant
+    createdAt: payload?.createdAt
+      ? new Date(payload.createdAt).toISOString()
+      : new Date().toISOString(),
     updatedAt: null,
-    comment: payload.comment || "",
-    homework: payload.homework || "",
-    tags: payload.tags || [],
+    comment: payload?.comment || "",
+    homework: payload?.homework || "",
+    tags: Array.isArray(payload?.tags) ? payload.tags : [],
     billingId: targetBillingId,
   };
 
+  student.lessons = Array.isArray(student.lessons) ? student.lessons : [];
   student.lessons.push(lesson);
   recomputeBillingProgress(student);
 
@@ -412,7 +415,6 @@ ipcMain.handle("lessons:add", async (_evt, studentId, payload) => {
   saveStudents(students, "lessons:add");
 
   const lessons = [...student.lessons].sort((a, b) => b.createdAt.localeCompare(a.createdAt));
-
   return { ...student, lessons };
 });
 

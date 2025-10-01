@@ -112,7 +112,8 @@ export default function StudentLessons({ student, onUpdated }: StudentWithUpdate
         <LessonForm
           availableContracts={openContracts}
           onClose={() => setAddingLesson(false)}
-          onSaved={async (payload: Partial<Lesson>) => {
+          onSaved={async (payload) => {
+            // on ne reconstruit pas l'objet, on le passe tel quel (contient createdAt)
             await window.studentApi.addLesson(student.id, payload);
             setAddingLesson(false);
             await handleListUpdated();
