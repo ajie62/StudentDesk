@@ -1176,7 +1176,7 @@ a,
   pointer-events: none;
   line-height: 1.2;
   display: flex;
-  flex-direction: column;   /* ✅ empile valeur + label */
+  flex-direction: column; /* ✅ empile valeur + label */
   align-items: center;
   justify-content: center;
 }

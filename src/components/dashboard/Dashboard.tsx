@@ -201,15 +201,13 @@ export default function Dashboard({ stats, students, events, onOpenStudent }: Da
           <div className="chart-container relative">
             <ResponsiveContainer width="100%" height="100%">
               <PieChart>
-                <Pie
-                  data={[{ value: 1 }]}
-                  dataKey="value"
+                <circle
                   cx="50%"
                   cy="50%"
-                  innerRadius={70}
-                  outerRadius={100}
-                  fill="rgba(255,255,255,0.04)"
-                  stroke="none"
+                  r={85}
+                  fill="none"
+                  stroke="rgba(255,255,255,0.04)"
+                  strokeWidth={30}
                 />
                 <Pie
                   data={[
@@ -224,7 +222,18 @@ export default function Dashboard({ stats, students, events, onOpenStudent }: Da
                   cornerRadius={10}
                   dataKey="value"
                 />
-                <Tooltip />
+                <Tooltip
+                  contentStyle={{
+                    backgroundColor: "rgba(31,31,31,0.95)",
+                    border: "1px solid rgba(255,255,255,0.08)",
+                    borderRadius: 8,
+                    color: "#f9fafb",
+                    fontSize: 13,
+                  }}
+                  itemStyle={{ color: "#f9fafb" }}
+                  cursor={{ fill: "rgba(59,130,246,0.15)" }}
+                  formatter={(value: number, name: string) => [`${name} : ${value}`]}
+                />
               </PieChart>
             </ResponsiveContainer>
             <div className="donut-center">
