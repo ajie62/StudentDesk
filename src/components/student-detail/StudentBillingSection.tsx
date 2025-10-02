@@ -1,4 +1,4 @@
-import React, { useMemo, useState, useEffect } from "react";
+import { useMemo, useState, useEffect } from "react";
 import { Student, BillingContract, StudentWithUpdateProps } from "../../types";
 import StudentBilling from "../student/StudentBilling";
 import { getCurrencyLabel } from "../../constants";
@@ -8,7 +8,12 @@ import { isContractEqual, generateDisplayName } from "./utils";
 
 // UI Helpers
 function totalFor(c: BillingContract) {
-  return c.mode === "package" ? c.totalLessons || 0 : 1;
+  if (c.mode === "package") {
+    const base = c.totalLessons || 0;
+    const freebies = typeof c.freeLessons === "number" ? c.freeLessons : 0;
+    return base + freebies;
+  }
+  return 1;
 }
 function consumedFor(c: BillingContract, student: Student) {
   if (typeof c.consumedLessons === "number") return c.consumedLessons;
@@ -79,6 +84,7 @@ export default function StudentBillingSection({ student, onUpdated }: StudentWit
         notes: "",
         startDate: null,
         endDate: null,
+        freeLessons: 0,
         displayName: generateDisplayName(mode, lessons, history),
       }
     );
@@ -226,19 +232,22 @@ export default function StudentBillingSection({ student, onUpdated }: StudentWit
                           ? `Pack de ${c.totalLessons ?? "?"} leçons`
                           : "Cours unitaire")}
                     </div>
-                    <div style={{ fontSize: 13, color: "var(--muted)" }}>
-                      Durée&nbsp;: {c.durationMinutes ?? "—"} min
+                    <div style={{ fontSize: 13, color: "var(--muted)", display: "flex", flexDirection: "column", gap: 2 }}>
+                      <div>
+                        Durée : {c.durationMinutes ?? "—"} min
+                      </div>
                       {c.pricePerLesson != null && (
-                        <>
-                          {" "}
-                          • Prix/Leçon : {c.pricePerLesson} {getCurrencyLabel(c.currency)}
-                          {c.currency ?? ""}
-                        </>
+                        <div>
+                          Prix/Leçon : {c.pricePerLesson} (€){c.currency}
+                        </div>
+                      )}
+                      {c.mode === "package" && c.freeLessons != null && c.freeLessons > 0 && (
+                        <div>Leçons gratuites : {c.freeLessons}</div>
                       )}
                     </div>
                   </div>
 
-                  <div style={{ marginTop: 8 }}>
+                  <div style={{ marginTop: 8, marginBottom: 14 }}>
                     <div
                       style={{
                         fontSize: 12,

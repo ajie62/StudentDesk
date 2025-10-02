@@ -86,9 +86,32 @@ export default function Dashboard({ stats, students, events, onOpenStudent }: Da
         const contract = (s.billingHistory || []).find((c) => c.id === lesson.billingId);
         if (!contract || !contract.pricePerLesson || !contract.currency) return;
 
+        // Determine if this lesson is billable.
+        // For package contracts: only the first `totalLessons` are paid; any extra up to `freeLessons` are free (0€).
+        // For unit contracts: every lesson is billable.
+        let isBillable = true;
+
+        if (contract.mode === "package") {
+          const payingCount = contract.totalLessons ?? 0; // totalLessons represents the PAID lessons in the pack
+          const contractLessons = (s.lessons || [])
+            .filter((l) => l.billingId === contract.id)
+            .sort(
+              (a, b) =>
+                new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
+            );
+
+          const idx = contractLessons.findIndex((l) => l.id === lesson.id);
+
+          // If this lesson's position is beyond the paid portion, it's one of the free lessons → not billable.
+          isBillable = idx > -1 && idx < payingCount;
+        }
+
+        if (!isBillable) return;
+
         const m = d.getMonth();
         months[m][contract.currency] =
-          ((months[m][contract.currency] as number) ?? 0) + contract.pricePerLesson;
+          ((months[m][contract.currency] as number) ?? 0) +
+          (contract.pricePerLesson || 0);
       });
     });
     return months;

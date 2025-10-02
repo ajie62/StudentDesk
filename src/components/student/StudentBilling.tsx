@@ -1,4 +1,4 @@
-import React, { useMemo, useState, useEffect } from "react";
+import { useMemo, useState, useEffect } from "react";
 import { BillingContract, StudentBillingProps } from "../../types";
 import { FAVORITES, OTHERS } from "../../constants";
 import Select from "react-select";
@@ -125,6 +125,35 @@ export default function StudentBilling({ viewModel, onChange }: StudentBillingPr
             value={c.totalLessons ?? 1}
             onChange={(e) => onChange({ totalLessons: Math.max(1, Number(e.target.value || 1)) })}
           />
+        </div>
+      )}
+
+      {c.mode === "package" && (
+        <div className="field">
+          <label className="label">Leçon(s) gratuites ?</label>
+          <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+            <input
+              type="checkbox"
+              checked={(c.freeLessons ?? 0) > 0}
+              onChange={(e) => {
+                if (e.target.checked) {
+                  onChange({ freeLessons: 1 });
+                } else {
+                  onChange({ freeLessons: 0 });
+                }
+              }}
+            />
+            {(c.freeLessons ?? 0) > 0 && (
+              <input
+                className="input"
+                type="number"
+                min={1}
+                value={c.freeLessons ?? 1}
+                onChange={(e) => onChange({ freeLessons: Math.max(1, Number(e.target.value)) })}
+                style={{ width: "80px" }}
+              />
+            )}
+          </div>
         </div>
       )}
 

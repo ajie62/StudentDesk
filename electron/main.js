@@ -233,18 +233,71 @@ function deletePhotoIfExists(photoPath) {
 /* -------------------- Billing -------------------- */
 function recomputeBillingProgress(student) {
   const history = Array.isArray(student.billingHistory) ? student.billingHistory : [];
-  const lessons = Array.isArray(student.lessons) ? student.lessons : [];
-  const countById = new Map();
+  const lessons = Array.isArray(student.lessons) ? [...student.lessons] : [];
+
+  // Tri chronologique ascendant pour affecter les gratuites dans l'ordre des cours
+  lessons.sort((a, b) => (a.createdAt || "").localeCompare(b.createdAt || ""));
+
+  const nowISO = new Date().toISOString();
+  const lessonsByContract = new Map();
+
+  // Prépare des compteurs par contrat
+  for (const c of history) {
+    // Vérifie que la valeur c.freeLessons est toujours initialisée correctement
+    if (c.mode === "package") {
+      if (typeof c.freeLessons !== "number") c.freeLessons = 0;
+    } else {
+      c.freeLessons = 0;
+    }
+    const paidTotal = c.mode === "package" ? c.totalLessons || 0 : 1;
+    const freeTotal = c.mode === "package" ? c.freeLessons || 0 : 0;
+    lessonsByContract.set(c.id, {
+      paidTotal,
+      freeTotal,
+      paidConsumed: 0,
+      freeConsumed: 0,
+    });
+  }
+
+  // 1) Recalcule le flag isFree sur chaque leçon liée à un contrat
   for (const l of lessons) {
-    if (l?.billingId) {
-      countById.set(l.billingId, (countById.get(l.billingId) || 0) + 1);
+    if (!l?.billingId) continue;
+    const ctr = lessonsByContract.get(l.billingId);
+    if (!ctr) continue;
+
+    // Si la capacité payée n'est pas encore atteinte → leçon payée
+    if (ctr.paidConsumed < ctr.paidTotal) {
+      l.isFree = false;
+      ctr.paidConsumed += 1;
+    } else if (ctr.freeConsumed < ctr.freeTotal) {
+      // Ensuite, on débite les gratuites
+      l.isFree = true;
+      ctr.freeConsumed += 1;
+    } else {
+      // Au-delà de la capacité du contrat, on considère payé (comportement inchangé)
+      l.isFree = false;
+      ctr.paidConsumed += 1;
     }
   }
-  const nowISO = new Date().toISOString();
+
+  // 2) Réinjecte les leçons recalculées
+  student.lessons = lessons;
+
+  // 3) Met à jour la progression de chaque contrat
   for (const c of history) {
-    const total = c.mode === "package" ? c.totalLessons || 0 : 1;
-    const consumed = countById.get(c.id) || 0;
-    const isCompleted = total > 0 && consumed >= total;
+    const paidTotal = c.mode === "package" ? c.totalLessons || 0 : 1;
+    const freeTotal = c.mode === "package" ? c.freeLessons || 0 : 0;
+    const capacity = Math.max(0, paidTotal) + Math.max(0, freeTotal);
+
+    // Nombre total de cours (payés + gratuits) rattachés au contrat
+    const consumed = lessons.filter((l) => l.billingId === c.id).length;
+
+    // Ajoute la répartition payés/gratuits consommées
+    const ctr = lessonsByContract.get(c.id);
+    c.paidConsumed = ctr ? ctr.paidConsumed : 0;
+    c.freeConsumed = ctr ? ctr.freeConsumed : 0;
+
+    const isCompleted = capacity > 0 && consumed >= capacity;
     c.consumedLessons = consumed;
     c.completed = isCompleted;
     if (isCompleted && !c.completedAt) c.completedAt = nowISO;
@@ -338,7 +391,7 @@ ipcMain.handle("students:list", async () => {
       ? s.billingHistory.filter((c) => {
           const doneByFlag = c.completed === true;
           const consumed = c.consumedLessons ?? 0;
-          const total = c.totalLessons ?? 0;
+          const total = (c.totalLessons ?? 0) + (c.freeLessons ?? 0);
           const doneByCount = total > 0 && consumed >= total;
           return !(doneByFlag || doneByCount);
         }).length
@@ -475,6 +528,7 @@ ipcMain.handle("lessons:add", async (_evt, studentId, payload) => {
     homework: payload?.homework || "",
     tags: Array.isArray(payload?.tags) ? payload.tags : [],
     billingId: targetBillingId,
+    isFree: false,
   };
 
   student.lessons = Array.isArray(student.lessons) ? student.lessons : [];

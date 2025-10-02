@@ -51,7 +51,12 @@ export default function RevenueBar({
               />
               <YAxis stroke="#9ca3af" allowDecimals={false} />
               <Tooltip
-                formatter={(val: number, name: string) => `${val} ${name}`}
+                formatter={(val: number, name: string, props) => {
+                  if (props && props.payload && props.payload.length > 0 && props.payload[0].payload.isFree === true) {
+                    return null;
+                  }
+                  return `${val} ${name}`;
+                }}
                 contentStyle={{
                   backgroundColor: "rgba(31,31,31,0.95)",
                   border: "1px solid rgba(255,255,255,0.1)",

@@ -31,6 +31,7 @@ export interface Lesson {
   tags: string[];
   /** Identifiant du contrat (Cours & facturation) auquel cette leçon est rattachée */
   billingId?: string | null;
+  isFree?: boolean;
 }
 
 // =========================================================
@@ -106,6 +107,7 @@ export interface BillingContract {
   updatedAt: string | null;
   mode: "single" | "package";
   totalLessons: number;
+  freeLessons?: number;
   durationMinutes: LessonDuration;
   customDuration: boolean;
   pricePerLesson: number | null;
