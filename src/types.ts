@@ -45,11 +45,6 @@ export type Origin = {
   name: string;
 };
 
-export type OriginsPieProps = {
-  data: { name: string; value: number }[];
-  colors?: string[];
-};
-
 export interface Student {
   id: string;
   firstName: string;
@@ -248,6 +243,23 @@ export type PodiumStepProps = {
     lessons: number;
     photo?: string | null;
   };
+};
+
+export type OriginsPieProps = {
+  data: { name: string; value: number }[];
+  colors?: string[];
+};
+
+export type LessonsBarProps = {
+  days: { day: string; count: number }[];
+  weeklyTotal: number;
+};
+
+export type RevenueBarProps = {
+  revenueByMonth: { month: string; [currency: string]: number | string }[];
+  currencies: string[];
+  colors: string[];
+  totalsByCurrency: Record<string, number>;
 };
 
 // =========================================================

@@ -1,22 +1,13 @@
-import React, { useMemo, useState, useEffect } from "react";
+import { useMemo, useState, useEffect } from "react";
 import { DashboardProps } from "../../types";
 import { fullName } from "../../utils";
-import {
-  PieChart,
-  Pie,
-  Cell,
-  ResponsiveContainer,
-  Tooltip,
-  BarChart,
-  Bar,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-} from "recharts";
+import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from "recharts";
 import { formatDistanceToNow } from "date-fns";
 import { fr } from "date-fns/locale";
-import PodiumStep from "./PodiumStep";
-import OriginsPie from "./OriginsPie";
+import PodiumStep from "./stats/PodiumStep";
+import OriginsPie from "./stats/OriginsPie";
+import LessonsBar from "./stats/LessonsBar";
+import RevenueBar from "./stats/RevenueBar";
 
 const motivationalQuotes = [
   "🌱 Chaque leçon est une graine semée dans l'esprit d'un étudiant.",
@@ -41,11 +32,6 @@ export default function Dashboard({ stats, students, events, onOpenStudent }: Da
   }, []);
 
   useEffect(() => {
-    console.log("Étudiants ->", students);
-  }, [students]);
-
-  // Récupère la date de purge (pour masquer les créations/updates antérieures)
-  useEffect(() => {
     (async () => {
       try {
         const ts = await window.studentApi.getHistoryClearedAt?.();
@@ -56,7 +42,6 @@ export default function Dashboard({ stats, students, events, onOpenStudent }: Da
     })();
   }, []);
 
-  // Filtre l'historique avec cutoff local (effet immédiat après "Vider")
   const recent = useMemo(() => {
     const cutoff = historyClearedAt ? new Date(historyClearedAt).toISOString() : null;
     const filtered = cutoff ? events.filter((ev) => ev.when > cutoff) : events;
@@ -82,18 +67,13 @@ export default function Dashboard({ stats, students, events, onOpenStudent }: Da
             .length,
         0
       ),
-      isToday: d.toDateString() === today.toDateString(),
     };
   });
 
   const weeklyTotal = days.reduce((acc, d) => acc + d.count, 0);
 
   const revenueByMonth = useMemo(() => {
-    type RevenueMonth = {
-      month: string;
-      [currency: string]: number | string;
-    };
-
+    type RevenueMonth = { month: string; [currency: string]: number | string };
     const months: RevenueMonth[] = Array.from({ length: 12 }, (_, i) => ({
       month: new Date(0, i).toLocaleString("fr-FR", { month: "short" }),
     }));
@@ -111,11 +91,9 @@ export default function Dashboard({ stats, students, events, onOpenStudent }: Da
           ((months[m][contract.currency] as number) ?? 0) + contract.pricePerLesson;
       });
     });
-
     return months;
   }, [students]);
 
-  // Liste des devises présentes
   const currencies = useMemo(() => {
     const set = new Set<string>();
     revenueByMonth.forEach((row) => {
@@ -126,22 +104,17 @@ export default function Dashboard({ stats, students, events, onOpenStudent }: Da
     return Array.from(set);
   }, [revenueByMonth]);
 
-  // Origines des étudiants
   const originsData = useMemo(() => {
     const counts: Record<string, number> = {};
-
     students.forEach((s) => {
       const origin = s.origin?.trim() || "Inconnu";
       counts[origin] = (counts[origin] ?? 0) + 1;
     });
-
     return Object.entries(counts).map(([name, value]) => ({ name, value }));
   }, [students]);
 
-  // Palette de couleurs
   const colors = ["#16d39a", "#3b82f6", "#f59e0b", "#ef4444", "#8b5cf6"];
 
-  // Totaux par devise
   const totalsByCurrency = useMemo(() => {
     const totals: Record<string, number> = {};
     revenueByMonth.forEach((row) => {
@@ -152,11 +125,8 @@ export default function Dashboard({ stats, students, events, onOpenStudent }: Da
     return totals;
   }, [revenueByMonth, currencies]);
 
-  // Top 3 étudiants (seulement ceux avec ≥1 leçon), complété avec "—"
   const top3 = useMemo(() => {
-    type TopItem = { id: string; name: string; lessons: number; photo: string | null };
-
-    const ranked: TopItem[] = students
+    const ranked = students
       .map((s) => ({
         id: s.id,
         name: fullName(s),
@@ -167,7 +137,6 @@ export default function Dashboard({ stats, students, events, onOpenStudent }: Da
       .sort((a, b) => b.lessons - a.lessons)
       .slice(0, 3);
 
-    // Complète jusqu'à 3 avec des placeholders
     while (ranked.length < 3) {
       ranked.push({
         id: `placeholder-${ranked.length + 1}`,
@@ -176,42 +145,32 @@ export default function Dashboard({ stats, students, events, onOpenStudent }: Da
         photo: null,
       });
     }
-
     return ranked;
   }, [students]);
 
   async function handleClearHistory() {
-    const ok = window.confirm(
-      "Cette action va effacer définitivement l'historique (modifications) et masquer toutes les créations antérieures à maintenant. Continuer ?"
-    );
+    const ok = window.confirm("Effacer définitivement l'historique ?");
     if (!ok) return;
     try {
       await window.studentApi.clearHistory?.();
-      // Reprend la nouvelle date de purge et remet à la page 1
       const ts = await window.studentApi.getHistoryClearedAt?.();
       setHistoryClearedAt(ts || null);
       setPage(1);
     } catch (e) {
       console.error("clearHistory failed:", e);
-      alert("Impossible de vider l'historique. Regarde la console pour les détails.");
     }
   }
 
   return (
     <div className="dash">
       <h2>Tableau de bord</h2>
-
-      {/* Citation motivante (aléatoire) */}
       <p className="motivational-quote">{randomQuote}</p>
 
-      {/* ROW 1 : 50/50 charts */}
       <div className="dash-grid">
-        {/* ROW 2 : Podium */}
         <div className="dashboard-card full-width">
           <h3>Top 3 étudiants (leçons)</h3>
-
-          {top3.length === 0 || top3.every((s) => s.lessons === 0) ? (
-            <div className="empty-state">Aucune leçon enregistrée pour l’instant.</div>
+          {top3.every((s) => s.lessons === 0) ? (
+            <div className="empty-state">Aucune leçon enregistrée.</div>
           ) : (
             <div className="podium-wrap">
               <PodiumStep rank={2} student={top3[1]} />
@@ -222,221 +181,73 @@ export default function Dashboard({ stats, students, events, onOpenStudent }: Da
         </div>
 
         <div className="dashboard-card full-width">
-          <h3>Revenus annuels ({new Date().getFullYear()})</h3>
-          <div className="chart-container">
-            {currencies.length === 0 ? (
-              <div className="empty-state">Aucun revenu enregistré pour l’instant.</div>
-            ) : (
-              <ResponsiveContainer>
-                <BarChart data={revenueByMonth}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#2d2d30" />
-                  <XAxis dataKey="month" stroke="#9ca3af" />
-                  <YAxis stroke="#9ca3af" allowDecimals={false} />
-                  <Tooltip
-                    formatter={(val: number, name: string) => `${val} ${name}`}
-                    contentStyle={{
-                      backgroundColor: "rgba(31,31,31,0.95)",
-                      border: "1px solid rgba(255,255,255,0.1)",
-                      borderRadius: "8px",
-                      color: "#f9fafb",
-                    }}
-                    itemStyle={{ color: "#f9fafb" }}
-                    cursor={{ fill: "rgba(59,130,246,0.15)" }}
-                  />
-
-                  {currencies.map((cur, i) => (
-                    <Bar
-                      key={cur}
-                      dataKey={cur}
-                      fill={colors[i % colors.length]}
-                      barSize={20}
-                      radius={[4, 4, 0, 0]}
-                    />
-                  ))}
-                </BarChart>
-              </ResponsiveContainer>
-            )}
-          </div>
-
-          {/* Résumé par devise */}
-          <div className="donut-legend donut-legend--center" style={{ marginTop: 8 }}>
-            {currencies.map((cur, i) => (
-              <div key={cur} className="legend-item">
-                <span className="legend-dot" style={{ background: colors[i % colors.length] }} />
-                <span>{cur}</span>
-                <span className="legend-count">
-                  {totalsByCurrency[cur]} {cur}
-                </span>
-              </div>
-            ))}
+          <div className="double-chart">
+            <div className="chart-half">
+              <RevenueBar
+                revenueByMonth={revenueByMonth}
+                currencies={currencies}
+                colors={colors}
+                totalsByCurrency={totalsByCurrency}
+              />
+            </div>
+            <div className="chart-half">
+              <LessonsBar days={days} weeklyTotal={weeklyTotal} />
+            </div>
           </div>
         </div>
 
-        {/* --- Donut Actifs/Inactifs --- */}
         <div className="dashboard-card pie">
           <h3>Actifs / Inactifs</h3>
-
           <div className="chart-container relative">
             <ResponsiveContainer width="100%" height="100%">
               <PieChart>
-                {/* Dégradés & lueur discrète */}
-                <defs>
-                  <linearGradient id="gradActive" x1="0" y1="0" x2="1" y2="1">
-                    <stop offset="0%" stopColor="#16d39a" />
-                    <stop offset="100%" stopColor="#0ea372" />
-                  </linearGradient>
-                  <linearGradient id="gradInactive" x1="0" y1="0" x2="1" y2="1">
-                    <stop offset="0%" stopColor="#ff6b6b" />
-                    <stop offset="100%" stopColor="#e43f3f" />
-                  </linearGradient>
-                  <filter id="softGlow" x="-50%" y="-50%" width="200%" height="200%">
-                    <feGaussianBlur in="SourceGraphic" stdDeviation="2.2" result="blur" />
-                    <feMerge>
-                      <feMergeNode in="blur" />
-                      <feMergeNode in="SourceGraphic" />
-                    </feMerge>
-                  </filter>
-                </defs>
-
-                {/* Anneau de fond (piste) */}
                 <Pie
                   data={[{ value: 1 }]}
                   dataKey="value"
                   cx="50%"
                   cy="50%"
-                  startAngle={90}
-                  endAngle={-270}
                   innerRadius={70}
                   outerRadius={100}
-                  stroke="none"
                   fill="rgba(255,255,255,0.04)"
+                  stroke="none"
                 />
-
-                {/* Donut principal */}
                 <Pie
                   data={[
-                    { name: "Actifs", value: stats.active, fill: "url(#gradActive)" },
-                    { name: "Inactifs", value: stats.inactive, fill: "url(#gradInactive)" },
+                    { name: "Actifs", value: stats.active, fill: "#16d39a" },
+                    { name: "Inactifs", value: stats.inactive, fill: "#ef4444" },
                   ]}
                   cx="50%"
                   cy="50%"
-                  startAngle={90}
-                  endAngle={-270}
                   innerRadius={70}
                   outerRadius={100}
                   paddingAngle={2.5}
                   cornerRadius={10}
                   dataKey="value"
-                  stroke="#0f0f11"
-                  strokeWidth={2}
-                  filter="url(#softGlow)"
                 />
-
-                <Tooltip
-                  contentStyle={{
-                    backgroundColor: "rgba(31,31,31,0.95)",
-                    border: "1px solid rgba(255,255,255,0.08)",
-                    borderRadius: 8,
-                    color: "#f9fafb",
-                    fontSize: 13,
-                  }}
-                  itemStyle={{ color: "#f9fafb" }}
-                />
+                <Tooltip />
               </PieChart>
             </ResponsiveContainer>
-
-            {/* Centre parfaitement aligné */}
             <div className="donut-center">
               <span className="donut-value">{stats.total}</span>
               <span className="donut-label">Étudiants</span>
             </div>
           </div>
-
-          {/* Légende compacte */}
-          <div className="donut-legend">
-            <div className="legend-item">
-              <span
-                className="legend-dot"
-                style={{ background: "linear-gradient(135deg,#16d39a,#0ea372)" }}
-              />
-              <span>Actifs</span>
-              <span className="legend-count">{stats.active}</span>
-            </div>
-            <div className="legend-item">
-              <span
-                className="legend-dot"
-                style={{ background: "linear-gradient(135deg,#ff6b6b,#e43f3f)" }}
-              />
-              <span>Inactifs</span>
-              <span className="legend-count">{stats.inactive}</span>
-            </div>
-          </div>
         </div>
 
-        {/* --- Donut Origines --- */}
         <div className="dashboard-card pie">
           <h3>Origine des étudiants</h3>
           <div className="chart-container relative">
             {originsData.length === 0 ? (
-              <div className="empty-state">Aucune origine définie pour l’instant.</div>
+              <div className="empty-state">Aucune origine définie.</div>
             ) : (
               <OriginsPie data={originsData} colors={colors} />
             )}
           </div>
-
-          {/* Légende */}
-          <div className="donut-legend">
-            {originsData.map((o, i) => (
-              <div key={o.name} className="legend-item">
-                <span className="legend-dot" style={{ background: colors[i % colors.length] }} />
-                <span>{o.name}</span>
-                <span className="legend-count">{o.value}</span>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        {/* --- Histogramme 7 jours --- */}
-        <div className="dashboard-card">
-          <h3>Leçons (7 derniers jours)</h3>
-          <div className="chart-container">
-            <ResponsiveContainer>
-              <BarChart data={days}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#2d2d30" />
-                <XAxis dataKey="day" stroke="#9ca3af" />
-                <YAxis stroke="#9ca3af" allowDecimals={false} interval={0} />
-                <Tooltip
-                  contentStyle={{
-                    backgroundColor: "rgba(31,31,31,0.95)",
-                    border: "1px solid rgba(255,255,255,0.1)",
-                    borderRadius: "8px",
-                    color: "#f9fafb",
-                  }}
-                  itemStyle={{ color: "#f9fafb" }}
-                  cursor={{ fill: "rgba(59,130,246,0.15)" }}
-                />
-                <Bar dataKey="count" fill="#3b82f6" radius={[8, 8, 0, 0]} />
-              </BarChart>
-            </ResponsiveContainer>
-          </div>
-
-          {/* Total hebdo aligné au centre, même style que la légende du donut */}
-          <div className="donut-legend donut-legend--center" style={{ marginTop: 8 }}>
-            <div className="legend-item">
-              <span className="legend-dot" style={{ background: "#3b82f6" }} />
-              <span>Total</span>
-              <span className="legend-count">{weeklyTotal}</span>
-            </div>
-          </div>
         </div>
       </div>
 
-      {/* ROW 3 : Historique */}
       <div className="dashboard-card">
-        <div
-          className="card-header"
-          style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}
-        >
+        <div className="card-header">
           <h3>Historique</h3>
           <button
             className={`btn ghost ${recent.length === 0 ? "disabled" : "danger"}`}
@@ -446,10 +257,9 @@ export default function Dashboard({ stats, students, events, onOpenStudent }: Da
             🗑 Vider
           </button>
         </div>
-
         <div className="activity-list">
           {paginated.length === 0 ? (
-            <div className="empty-state">Aucune activité enregistrée pour l’instant.</div>
+            <div className="empty-state">Aucune activité.</div>
           ) : (
             paginated.map((ev) => (
               <div
@@ -460,18 +270,14 @@ export default function Dashboard({ stats, students, events, onOpenStudent }: Da
                 <span className="activity-icon">{ev.kind.startsWith("student") ? "👤" : "📘"}</span>
                 <span className="activity-label">{ev.label}</span>
                 <span className="activity-date">
-                  {formatDistanceToNow(new Date(ev.when), {
-                    addSuffix: true,
-                    locale: fr,
-                  })}
+                  {formatDistanceToNow(new Date(ev.when), { addSuffix: true, locale: fr })}
                 </span>
               </div>
             ))
           )}
         </div>
-
         {pageCount > 1 && (
-          <div className="pagination" style={{ marginTop: "12px" }}>
+          <div className="pagination">
             <button
               className="btn ghost"
               disabled={page <= 1}
