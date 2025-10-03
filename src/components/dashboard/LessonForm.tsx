@@ -15,6 +15,21 @@ export default function LessonForm({
       : new Date().toISOString().substring(0, 10)
   );
   const [billingId, setBillingId] = useState<string | null>(initial?.billingId ?? null);
+
+  // Determine if initial.createdAt has a time component other than midnight
+  const initialDate = initial?.createdAt ? new Date(initial.createdAt) : null;
+  const hasTimeComponent =
+    initialDate !== null && (initialDate.getHours() !== 0 || initialDate.getMinutes() !== 0);
+
+  const [customTimeEnabled, setCustomTimeEnabled] = useState(hasTimeComponent);
+  const [time, setTime] = useState(
+    initialDate
+      ? initialDate.getHours().toString().padStart(2, "0") +
+        ":" +
+        initialDate.getMinutes().toString().padStart(2, "0")
+      : ""
+  );
+
   const [loading, setLoading] = useState(false);
 
   const commentRef = useRef<HTMLTextAreaElement | null>(null);
@@ -82,12 +97,28 @@ export default function LessonForm({
     e.preventDefault();
     setLoading(true);
     try {
-      // on renvoie la date sélectionnée, sous forme ISO
+      // on renvoie la date sélectionnée avec l'heure actuelle locale, sous forme ISO
+      const now = new Date();
+      const [year, month, day] = date.split("-");
+      let hours = now.getHours();
+      let minutes = now.getMinutes();
+      if (customTimeEnabled && time) {
+        const [h, m] = time.split(":");
+        hours = Number(h);
+        minutes = Number(m);
+      }
+      const combined = new Date(
+        Number(year),
+        Number(month) - 1,
+        Number(day),
+        hours,
+        minutes
+      );
       await onSaved({
         comment,
         homework,
         billingId,
-        createdAt: new Date(date).toISOString(),
+        createdAt: combined.toISOString(),
       });
       onClose();
     } finally {
@@ -133,6 +164,38 @@ export default function LessonForm({
               onChange={(e) => setDate(e.target.value)}
             />
           </div>
+
+          <div className="field">
+            <label className="checkbox-label">
+              <input
+                type="checkbox"
+                checked={customTimeEnabled}
+                onChange={(e) => {
+                  const checked = e.target.checked;
+                  setCustomTimeEnabled(checked);
+                  if (checked) {
+                    const now = new Date();
+                    const hh = now.getHours().toString().padStart(2, "0");
+                    const mm = now.getMinutes().toString().padStart(2, "0");
+                    setTime(`${hh}:${mm}`);
+                  }
+                }}
+              />
+              {" "}Ajouter une heure spécifique
+            </label>
+          </div>
+
+          {customTimeEnabled && (
+            <div className="field">
+              <label className="label">Heure</label>
+              <input
+                type="time"
+                className="input"
+                value={time}
+                onChange={(e) => setTime(e.target.value)}
+              />
+            </div>
+          )}
 
           {/* Contrat associé :
               - 1 seul contrat => affichage statique (pas de select)
