@@ -1,4 +1,5 @@
-import React, { useState } from "react";
+import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { Student, Lesson, StudentDetailProps } from "../../types";
 import StudentForm from "../student/StudentForm";
 import LessonForm from "../dashboard/LessonForm";
@@ -16,6 +17,8 @@ export default function StudentDetail({ studentId, onDeleted, onUpdated }: Stude
   );
 
   const [editingLesson, setEditingLesson] = useState<Lesson | null>(null);
+
+  const { t } = useTranslation();
 
   if (!student) return null;
 
@@ -48,19 +51,19 @@ export default function StudentDetail({ studentId, onDeleted, onUpdated }: Stude
           className={`btn ghost ${tab === "fiche" ? "active" : ""}`}
           onClick={() => setTab("fiche")}
         >
-          Fiche
+          {t("studentDetail.tabs.fiche")}
         </button>
         <button
           className={`btn ghost ${tab === "suivi" ? "active" : ""}`}
           onClick={() => setTab("suivi")}
         >
-          Suivi
+          {t("studentDetail.tabs.suivi")}
         </button>
         <button
           className={`btn ghost ${tab === "billing" ? "active" : ""}`}
           onClick={() => setTab("billing")}
         >
-          Cours & facturation
+          {t("studentDetail.tabs.billing")}
         </button>
       </div>
 

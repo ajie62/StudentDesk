@@ -1,0 +1,319 @@
+{
+  "dashboard": {
+    "motivationalQuotes": {
+      "quote1": "🌱 Each lesson is a seed planted in a student's mind.",
+      "quote2": "✨ Inspire today, change tomorrow.",
+      "quote3": "📘 A motivated student is a world that opens.",
+      "quote4": "🌍 Teaching is leaving a mark on infinity.",
+      "quote5": "💡 One clear explanation can illuminate an entire life.",
+      "quote6": "🌟 Behind every student's progress is your patience.",
+      "quote7": "🔥 The passion for teaching creates the passion for learning.",
+      "quote8": "🎶 Each class is a note in the symphony of their future.",
+      "quote9": "🌸 Teaching is sowing self-confidence.",
+      "quote10": "🚀 Today, you change the trajectory of a life."
+    },
+    "activeInactive": {
+      "title": "Active / Inactive",
+      "active": "Active",
+      "inactive": "Inactive",
+      "label": "Students"
+    },
+    "history": {
+      "clear": "Clear",
+      "empty": "No activity recorded yet.",
+      "title": "History",
+      "confirmClear": "Permanently clear the history?"
+    },
+    "origins": {
+      "empty": "No origin defined yet.",
+      "title": "Student origins"
+    },
+    "title": "Dashboard",
+    "top3": {
+      "empty": "No lessons recorded yet.",
+      "title": "Top 3 students (lessons)",
+      "lessons": "lessons"
+    },
+    "loading": "Loading...",
+    "lessons": {
+      "title": "Lessons (last 7 days)",
+      "total": "Total",
+      "day": "Day"
+    },
+    "revenue": {
+      "empty": "No revenue recorded yet.",
+      "title": "Annual revenue ({{year}})"
+    }
+  },
+  "pagination": {
+    "next": "Next",
+    "pageOf": "Page {{page}} / {{pageCount}}",
+    "previous": "Previous"
+  },
+  "updates": {
+    "installNow": "Install now",
+    "available": "⬇️ Update available, downloading...",
+    "checking": "🔄 Checking for updates...",
+    "downloaded": "📦 Update ready to install",
+    "error": "❌ Update error: {{error}}",
+    "none": "✅ No updates available"
+  },
+  "months": {
+    "jan": "Jan",
+    "feb": "Feb",
+    "mar": "Mar",
+    "apr": "Apr",
+    "may": "May",
+    "jun": "Jun",
+    "jul": "Jul",
+    "aug": "Aug",
+    "sep": "Sep",
+    "oct": "Oct",
+    "nov": "Nov",
+    "dec": "Dec"
+  },
+  "days": {
+    "monday": "Mon",
+    "tuesday": "Tue",
+    "wednesday": "Wed",
+    "thursday": "Thu",
+    "friday": "Fri",
+    "saturday": "Sat",
+    "sunday": "Sun"
+  },
+  "billing": {
+    "add": "Add",
+    "alertValidDurationPrice": "Please enter a valid duration and price",
+    "cancel": "Cancel",
+    "completed": "Completed",
+    "confirmDelete": "Are you sure you want to delete this contract?",
+    "custom": "Custom",
+    "customPlaceholder": "Enter a custom value",
+    "delete": "Delete",
+    "duration": "Duration",
+    "edit": "Edit",
+    "favorites": "Favorites",
+    "freeLessons": "Free lessons",
+    "historyTitle": "Billing history",
+    "next": "Next",
+    "noContracts": "No contracts for this student",
+    "notes": "Notes",
+    "notesPlaceholder": "Add details or notes",
+    "others": "Others",
+    "package": "Lesson pack",
+    "packageLabel": "Pack",
+    "pageOf": "Page {{page}} / {{pageCount}}",
+    "paid": "Paid",
+    "paymentStatus": "Payment status",
+    "previous": "Previous",
+    "price": "Price",
+    "priceExample": "e.g.: 42",
+    "pricePerLesson": "Price per lesson",
+    "progress": "Progress",
+    "save": "Save",
+    "single": "Single lesson",
+    "singleLessonLabel": "Single",
+    "title": "Contracts",
+    "totalLessons": "Total number of lessons",
+    "type": "Type",
+    "unpaid": "Unpaid",
+    "validation": "Please fill in all required fields"
+  },
+  "changelog": {
+    "empty": "No changelog available",
+    "error": {
+      "hint": "Please try again later",
+      "rateLimit": "GitHub access limit reached",
+      "repoNotFound": "GitHub repository not found",
+      "unable": "Unable to load changelog"
+    },
+    "title": "Changelog",
+    "viewOnGithub": "View on GitHub"
+  },
+  "common": {
+    "add": "Add",
+    "cancel": "Cancel",
+    "create": "Create",
+    "delete": "Delete",
+    "edit": "Edit",
+    "save": "Save"
+  },
+  "events": {
+    "lesson": {
+      "added": "Lesson added",
+      "deleted": "Lesson deleted",
+      "updated": "Lesson updated"
+    },
+    "student": {
+      "added": "Student added",
+      "deleted": "Student deleted",
+      "updated": "Student updated"
+    }
+  },
+  "lessonCard": {
+    "comment": "Comment",
+    "deletedContract": "Deleted contract",
+    "homework": "Homework",
+    "linkedContract": "Linked contract"
+  },
+  "lessonForm": {
+    "addCustomTime": "Add a specific time",
+    "associateToContract": "Associate to contract",
+    "associatedContract": "Associated contract",
+    "comment": "Comment",
+    "commentPlaceholder": "Add a comment...",
+    "date": "Date",
+    "editTitle": "Edit lesson",
+    "homework": "Homework",
+    "homeworkPlaceholder": "Add homework...",
+    "newTitle": "New lesson",
+    "packLessonsGroup": "Lesson pack",
+    "packageLabel": "Pack",
+    "singleLesson": "Single lesson",
+    "singleLessonsGroup": "Single",
+    "time": "Time"
+  },
+  "settings": {
+    "app": {
+      "defaultStudentFilter": "Default student filter",
+      "language": "Language",
+      "theme": "Theme"
+    },
+    "data": {
+      "exportJson": "Export data as JSON"
+    },
+    "language": {
+      "en": "English",
+      "fr": "French",
+      "zh": "Simplified Chinese"
+    },
+    "lessons": {
+      "30min": "30 min",
+      "45min": "45 min",
+      "60min": "60 min",
+      "90min": "90 min",
+      "currency": "Currency",
+      "defaultDuration": "Default duration"
+    },
+    "studentFilter": {
+      "active": "Active",
+      "all": "All",
+      "contracts": "Contracts",
+      "inactive": "Inactive"
+    },
+    "tabs": {
+      "app": "App",
+      "data": "Data",
+      "lessons": "Lessons"
+    },
+    "theme": {
+      "dark": "Dark",
+      "light": "Light"
+    },
+    "title": "Settings"
+  },
+  "sidebar": {
+    "brand": "StudentDesk",
+    "contractsActive": "Active contracts",
+    "csvSchema": "Expected CSV schema",
+    "filter": {
+      "active": "Active",
+      "all": "All",
+      "contracts": "Contracts",
+      "inactive": "Inactive"
+    },
+    "home": "Home",
+    "importCsv": "Import CSV",
+    "imported": "Import successful",
+    "newStudent": "New student",
+    "noResults": "No results found",
+    "searchPlaceholder": "Search...",
+    "settings": "Settings"
+  },
+  "studentDetail": {
+    "tabs": {
+      "billing": "Billing",
+      "fiche": "Profile",
+      "suivi": "Tracking"
+    }
+  },
+  "studentForm": {
+    "description": "Description",
+    "descriptionPlaceholder": "Add a description...",
+    "editTitle": "Edit student",
+    "firstName": "First name",
+    "importPhoto": "Import photo",
+    "isActive": "Active",
+    "lastName": "Last name",
+    "newOrigin": "New origin",
+    "newTitle": "New student",
+    "origin": "Origin",
+    "other": "Other",
+    "photoHint": "PNG or JPG, max 5 MB",
+    "removePhoto": "Remove photo",
+    "selectPlaceholder": "Select..."
+  },
+  "studentHero": {
+    "active": "Active",
+    "comment": "Comment",
+    "confirmDeleteLesson": "Are you sure you want to delete this lesson?",
+    "confirmDeleteStudent": "Are you sure you want to delete this student?",
+    "deleteLesson": "Delete lesson",
+    "deleteStudent": "Delete student",
+    "editLesson": "Edit lesson",
+    "editStudent": "Edit student",
+    "homework": "Homework",
+    "inactive": "Inactive",
+    "lastLesson": "Last lesson",
+    "noDescription": "No description",
+    "seeLess": "See less",
+    "seeMore": "See more",
+    "sheetCreated": "Profile created on {{date}}"
+  },
+  "studentLessons": {
+    "addLesson": "Add lesson",
+    "createContract": "Create contract",
+    "createContractFirst": "Create a contract first",
+    "deleteConfirm": "Are you sure you want to delete this lesson?",
+    "empty": "No lessons recorded",
+    "title": "Lessons"
+  },
+  "studentTracking": {
+    "cancel": "Cancel",
+    "cefr": {
+      "grammar": "Grammar",
+      "interaction": "Interaction",
+      "oral": "Oral",
+      "vocabulary": "Vocabulary",
+      "writing": "Writing"
+    },
+    "downloadPdf": "Download PDF",
+    "exportPdfTitle": "Export PDF report",
+    "generating": "Generating...",
+    "goals": "Goals",
+    "goalsPlaceholder": "Add your goals...",
+    "levels": "Levels",
+    "noChanges": "No changes detected",
+    "pdfError": "Error while generating PDF",
+    "progression": "Progression",
+    "save": "Save"
+  },
+  "toast": {
+    "default": "Action completed",
+    "lessons": {
+      "add": "Lesson added",
+      "default": "Lesson action",
+      "delete": "Lesson deleted",
+      "update": "Lesson updated"
+    },
+    "settings": {
+      "saved": "Settings saved"
+    },
+    "students": {
+      "create": "Student created",
+      "default": "Student action",
+      "delete": "Student deleted",
+      "update": "Student updated"
+    }
+  }
+}

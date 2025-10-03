@@ -1,6 +1,6 @@
 import { useMemo } from "react";
+import { useTranslation } from "react-i18next";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
-
 import { RevenueBarProps } from "../../../types";
 
 export default function RevenueBar({
@@ -9,20 +9,22 @@ export default function RevenueBar({
   colors,
   totalsByCurrency,
 }: RevenueBarProps) {
-  // ✅ Liste fixe des mois en français
+  const { t } = useTranslation();
+
+  // ✅ Liste des mois localisée via i18n
   const monthLabels = [
-    "janv.",
-    "févr.",
-    "mars",
-    "avr.",
-    "mai",
-    "juin",
-    "juil.",
-    "août",
-    "sept.",
-    "oct.",
-    "nov.",
-    "déc.",
+    t("months.jan"),
+    t("months.feb"),
+    t("months.mar"),
+    t("months.apr"),
+    t("months.may"),
+    t("months.jun"),
+    t("months.jul"),
+    t("months.aug"),
+    t("months.sep"),
+    t("months.oct"),
+    t("months.nov"),
+    t("months.dec"),
   ];
 
   // ✅ Remap les données pour forcer les mois corrects dans l’ordre
@@ -35,10 +37,10 @@ export default function RevenueBar({
 
   return (
     <div className="dashboard-card">
-      <h3>Revenus annuels ({new Date().getFullYear()})</h3>
+      <h3>{t("dashboard.revenue.title", { year: new Date().getFullYear() })}</h3>
       <div className="chart-container">
         {currencies.length === 0 ? (
-          <div className="empty-state">Aucun revenu enregistré pour l’instant.</div>
+          <div className="empty-state">{t("dashboard.revenue.empty")}</div>
         ) : (
           <ResponsiveContainer>
             <BarChart data={normalizedData}>
@@ -52,7 +54,12 @@ export default function RevenueBar({
               <YAxis stroke="#9ca3af" allowDecimals={false} />
               <Tooltip
                 formatter={(val: number, name: string, props) => {
-                  if (props && props.payload && props.payload.length > 0 && props.payload[0].payload.isFree === true) {
+                  if (
+                    props &&
+                    props.payload &&
+                    props.payload.length > 0 &&
+                    props.payload[0].payload.isFree === true
+                  ) {
                     return null;
                   }
                   return `${val} ${name}`;

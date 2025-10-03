@@ -2,6 +2,7 @@ import { Settings, Plus } from "lucide-react";
 import { useEffect, useState } from "react";
 import { fullName, initialsOf } from "../../utils";
 import { Student, FilterKind } from "../../types";
+import { useTranslation } from "react-i18next";
 
 interface SidebarProps {
   students: Student[];
@@ -30,6 +31,7 @@ export function Sidebar({
   filterActive,
   setFilterActive,
 }: SidebarProps) {
+  const { t } = useTranslation();
   const [q, setQ] = useState("");
 
   const filtered = students.filter((s) => {
@@ -70,13 +72,13 @@ export function Sidebar({
   return (
     <aside className="sidebar">
       <div className="header window-drag">
-        <div className="brand window-no-drag">STUDENTDESK</div>
+        <div className="brand window-no-drag">{t("sidebar.brand")}</div>
         <div style={{ flex: 1 }} />
 
         <button
           className="btn icon window-no-drag"
-          title="Réglages"
-          aria-label="Réglages"
+          title={t("sidebar.settings")}
+          aria-label={t("sidebar.settings")}
           onClick={() => {
             setSelectedId(null);
             setShowDashboard(false);
@@ -90,8 +92,8 @@ export function Sidebar({
 
         <button
           className="btn icon window-no-drag"
-          title="Nouvel étudiant"
-          aria-label="Nouvel étudiant"
+          title={t("sidebar.newStudent")}
+          aria-label={t("sidebar.newStudent")}
           onClick={() => {
             setShowNew(true);
           }}
@@ -110,7 +112,7 @@ export function Sidebar({
           setShowSettings(false);
         }}
       >
-        🏠 Accueil
+        🏠 {t("sidebar.home")}
       </button>
 
       {/* 👇 Bouton import CSV */}
@@ -120,12 +122,12 @@ export function Sidebar({
         onClick={async () => {
           const result = await window.studentApi.importCSV();
           if (result?.count) {
-            pushToast(`Importé ${result.count} étudiants • 💾 local`);
+            pushToast(t("sidebar.imported", { count: result.count }));
             onStudentsChanged();
           }
         }}
       >
-        📂 Importer CSV
+        📂 {t("sidebar.importCsv")}
       </button>
 
       {/* Texte d’aide sur le schéma CSV */}
@@ -138,16 +140,17 @@ export function Sidebar({
           lineHeight: 1.4,
         }}
       >
-        Schéma du CSV attendu :<br />
+        {t("sidebar.csvSchema")}
+        <br />
         <code>firstName, lastName, description, email, isActive</code>
       </div>
 
       <input
         className="search"
-        placeholder="Rechercher des étudiants…"
+        placeholder={t("sidebar.searchPlaceholder")}
         value={q}
         onChange={(e) => setQ(e.target.value)}
-        aria-label="Rechercher des étudiants"
+        aria-label={t("sidebar.searchPlaceholder")}
       />
 
       {/* Dropdown filtre */}
@@ -157,10 +160,10 @@ export function Sidebar({
           onChange={(e) => setFilterActive(e.target.value as FilterKind)}
           className="filter-select"
         >
-          <option value="all">Tous</option>
-          <option value="active">Actifs</option>
-          <option value="inactive">Inactifs</option>
-          <option value="contracts">Contrat(s) actif(s)</option>
+          <option value="all">{t("sidebar.filter.all")}</option>
+          <option value="active">{t("sidebar.filter.active")}</option>
+          <option value="inactive">{t("sidebar.filter.inactive")}</option>
+          <option value="contracts">{t("sidebar.filter.contracts")}</option>
         </select>
       </div>
 
@@ -216,8 +219,7 @@ export function Sidebar({
                   />
                   {activeContracts > 0 && (
                     <span style={{ fontSize: 12, color: "#aaa" }}>
-                      {activeContracts} contrat{activeContracts > 1 ? "s" : ""} actif
-                      {activeContracts > 1 ? "s" : ""}
+                      {t("sidebar.contractsActive", { count: activeContracts })}
                     </span>
                   )}
                 </div>
@@ -227,7 +229,7 @@ export function Sidebar({
         );
       })}
 
-      {!filtered.length && <div className="empty">Aucun étudiant trouvé.</div>}
+      {!filtered.length && <div className="empty">{t("sidebar.noResults")}</div>}
     </aside>
   );
 }

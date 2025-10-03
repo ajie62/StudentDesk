@@ -1,4 +1,5 @@
-import React, { useRef, useState, useEffect, useMemo } from "react";
+import { useRef, useState, useEffect, useMemo } from "react";
+import { useTranslation } from "react-i18next";
 import { Student, StudentHeroProps } from "../../types";
 import { formatDate, fullName } from "../../utils";
 import { Edit3, Trash2 } from "lucide-react";
@@ -18,6 +19,7 @@ export default function StudentHero({
   onLessonsUpdated,
   onEditLesson,
 }: StudentHeroProps) {
+  const { t } = useTranslation();
   const descRef = useRef<HTMLDivElement | null>(null);
   const [showFullDesc, setShowFullDesc] = useState(false);
   const [needClamp, setNeedClamp] = useState(false);
@@ -41,9 +43,11 @@ export default function StudentHero({
     <div className="hero">
       <div style={{ display: "flex", gap: 10, marginBottom: 10 }}>
         <div className={student.isActive ? "badge badge--active" : "badge"}>
-          {student.isActive ? "Actif" : "Inactif"}
+          {student.isActive ? t("studentHero.active") : t("studentHero.inactive")}
         </div>
-        <div className="badge">Fiche créée {formatDate(student.sheet.createdAt)}</div>
+        <div className="badge">
+          {t("studentHero.sheetCreated", { date: formatDate(student.sheet.createdAt) })}
+        </div>
       </div>
 
       {/* Avatar + nom + desc */}
@@ -72,19 +76,19 @@ export default function StudentHero({
                 style={{ backgroundColor: "#121214", color: "#fff" }}
                 onClick={onEdit}
               >
-                Modifier l’étudiant
+                {t("studentHero.editStudent")}
               </button>
               <button
                 className="btn"
                 style={{ backgroundColor: "#121214", color: "#fff" }}
                 onClick={async () => {
-                  if (confirm("Supprimer cet étudiant ?")) {
+                  if (confirm(t("studentHero.confirmDeleteStudent"))) {
                     await window.studentApi.deleteStudent(student.id);
                     onDelete();
                   }
                 }}
               >
-                Supprimer l’étudiant
+                {t("studentHero.deleteStudent")}
               </button>
             </div>
           </div>
@@ -94,13 +98,13 @@ export default function StudentHero({
             className={["hero-description", needClamp && !showFullDesc ? "limited" : ""].join(" ")}
           >
             {student.description || (
-              <span style={{ color: "var(--muted)" }}>Aucune description.</span>
+              <span style={{ color: "var(--muted)" }}>{t("studentHero.noDescription")}</span>
             )}
           </div>
 
           {needClamp && (
             <div className="hero-description-toggle" onClick={() => setShowFullDesc((v) => !v)}>
-              {showFullDesc ? "Voir moins" : "Voir plus"}
+              {showFullDesc ? t("studentHero.seeLess") : t("studentHero.seeMore")}
             </div>
           )}
         </div>
@@ -130,7 +134,7 @@ export default function StudentHero({
                 opacity: 0.9,
               }}
             >
-              DERNIÈRE LEÇON
+              {t("studentHero.lastLesson")}
             </div>
 
             {/* Date + actions */}
@@ -148,7 +152,7 @@ export default function StudentHero({
               <button
                 className="btn ghost small"
                 onClick={() => onEditLesson(lastLesson)}
-                title="Modifier la leçon"
+                title={t("studentHero.editLesson")}
                 style={{
                   display: "flex",
                   alignItems: "center",
@@ -164,12 +168,12 @@ export default function StudentHero({
               <button
                 className="btn ghost small danger"
                 onClick={async () => {
-                  if (confirm("Supprimer cette leçon ?")) {
+                  if (confirm(t("studentHero.confirmDeleteLesson"))) {
                     await window.studentApi.deleteLesson(student.id, lastLesson.id);
                     await onLessonsUpdated();
                   }
                 }}
-                title="Supprimer la leçon"
+                title={t("studentHero.deleteLesson")}
                 style={{
                   display: "flex",
                   alignItems: "center",
@@ -188,7 +192,7 @@ export default function StudentHero({
             {/* Commentaire */}
             <div>
               <div style={{ fontSize: 12, color: "var(--muted)", marginBottom: 2 }}>
-                Commentaire
+                {t("studentHero.comment")}
               </div>
               <div>
                 {lastLesson.comment?.trim() || <span style={{ color: "var(--muted)" }}>—</span>}
@@ -197,7 +201,9 @@ export default function StudentHero({
 
             {/* Devoirs */}
             <div>
-              <div style={{ fontSize: 12, color: "var(--muted)", marginBottom: 2 }}>Devoirs</div>
+              <div style={{ fontSize: 12, color: "var(--muted)", marginBottom: 2 }}>
+                {t("studentHero.homework")}
+              </div>
               <div>
                 {lastLesson.homework?.trim() || <span style={{ color: "var(--muted)" }}>—</span>}
               </div>

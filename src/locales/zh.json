@@ -1,0 +1,319 @@
+{
+  "dashboard": {
+    "motivationalQuotes": {
+      "quote1": "🌱 每一堂课都是在学生心中播下的一颗种子。",
+      "quote2": "✨ 今天启发，明天改变。",
+      "quote3": "📘 一个有动力的学生就是一个打开的世界。",
+      "quote4": "🌍 教学就是在无限中留下痕迹。",
+      "quote5": "💡 一个清晰的解释可以照亮一生。",
+      "quote6": "🌟 每个学生的进步背后都有你的耐心。",
+      "quote7": "🔥 教学的热情创造学习的热情。",
+      "quote8": "🎶 每一堂课都是他们未来交响曲中的一个音符。",
+      "quote9": "🌸 教学就是播种自信。",
+      "quote10": "🚀 今天，你改变了一生的轨迹。"
+    },
+    "activeInactive": {
+      "title": "活跃 / 不活跃",
+      "active": "活跃",
+      "inactive": "不活跃",
+      "label": "学生"
+    },
+    "history": {
+      "clear": "清除",
+      "empty": "目前没有记录任何活动。",
+      "title": "历史记录",
+      "confirmClear": "确定要永久删除历史记录吗？"
+    },
+    "origins": {
+      "empty": "目前没有定义来源。",
+      "title": "学生来源"
+    },
+    "title": "仪表板",
+    "top3": {
+      "empty": "目前没有记录课程。",
+      "title": "前 3 名学生（课程数量）",
+      "lessons": "节课"
+    },
+    "loading": "加载中...",
+    "lessons": {
+      "title": "课程（最近 7 天）",
+      "total": "总计",
+      "day": "天"
+    },
+    "revenue": {
+      "empty": "目前没有记录收入。",
+      "title": "年收入 ({{year}})"
+    }
+  },
+  "pagination": {
+    "next": "下一页",
+    "pageOf": "第 {{page}} 页 / 共 {{pageCount}} 页",
+    "previous": "上一页"
+  },
+  "updates": {
+    "installNow": "立即安装",
+    "available": "⬇️ 有可用更新，正在下载...",
+    "checking": "🔄 正在检查更新...",
+    "downloaded": "📦 更新已准备好安装",
+    "error": "❌ 更新错误: {{error}}",
+    "none": "✅ 没有可用更新"
+  },
+  "months": {
+    "jan": "1月",
+    "feb": "2月",
+    "mar": "3月",
+    "apr": "4月",
+    "may": "5月",
+    "jun": "6月",
+    "jul": "7月",
+    "aug": "8月",
+    "sep": "9月",
+    "oct": "10月",
+    "nov": "11月",
+    "dec": "12月"
+  },
+  "days": {
+    "monday": "周一",
+    "tuesday": "周二",
+    "wednesday": "周三",
+    "thursday": "周四",
+    "friday": "周五",
+    "saturday": "周六",
+    "sunday": "周日"
+  },
+  "billing": {
+    "add": "添加",
+    "alertValidDurationPrice": "请输入有效的课程时长和价格",
+    "cancel": "取消",
+    "completed": "完成",
+    "confirmDelete": "确定要删除此合同吗？",
+    "custom": "自定义",
+    "customPlaceholder": "输入自定义值",
+    "delete": "删除",
+    "duration": "每节课时长",
+    "edit": "编辑",
+    "favorites": "默认",
+    "freeLessons": "免费课程",
+    "historyTitle": "合同历史",
+    "next": "下一步",
+    "noContracts": "该学生暂无合同",
+    "notes": "备注",
+    "notesPlaceholder": "添加详细信息或备注",
+    "others": "其他",
+    "package": "课程套餐",
+    "packageLabel": "包",
+    "pageOf": "第 {{page}} 页 / 共 {{pageCount}} 页",
+    "paid": "已付款",
+    "paymentStatus": "付款状态",
+    "previous": "上一步",
+    "price": "价格",
+    "priceExample": "例: 42",
+    "pricePerLesson": "每节课价格",
+    "progress": "进度",
+    "save": "保存",
+    "single": "次课",
+    "singleLessonLabel": "单节",
+    "title": "合同",
+    "totalLessons": "课程总数",
+    "type": "类型",
+    "unpaid": "未付款",
+    "validation": "请填写所有必填项"
+  },
+  "changelog": {
+    "empty": "暂无更新日志",
+    "error": {
+      "hint": "请稍后重试",
+      "rateLimit": "已达到 GitHub 访问限制",
+      "repoNotFound": "未找到 GitHub 仓库",
+      "unable": "无法加载更新日志"
+    },
+    "title": "更新日志",
+    "viewOnGithub": "在 GitHub 查看"
+  },
+  "common": {
+    "add": "添加",
+    "cancel": "取消",
+    "create": "创建",
+    "delete": "删除",
+    "edit": "编辑",
+    "save": "保存"
+  },
+  "events": {
+    "lesson": {
+      "added": "已添加课程",
+      "deleted": "已删除课程",
+      "updated": "课程已更新"
+    },
+    "student": {
+      "added": "已添加学生",
+      "deleted": "已删除学生",
+      "updated": "学生已更新"
+    }
+  },
+  "lessonCard": {
+    "comment": "评论",
+    "deletedContract": "已删除合同",
+    "homework": "作业",
+    "linkedContract": "关联合同"
+  },
+  "lessonForm": {
+    "addCustomTime": "添加特定时间",
+    "associateToContract": "关联到合同",
+    "associatedContract": "已关联合同",
+    "comment": "评论",
+    "commentPlaceholder": "添加评论...",
+    "date": "日期",
+    "editTitle": "编辑课程",
+    "homework": "作业",
+    "homeworkPlaceholder": "添加作业...",
+    "newTitle": "新课程",
+    "packLessonsGroup": "课程包",
+    "packageLabel": "包",
+    "singleLesson": "单节课",
+    "singleLessonsGroup": "单节",
+    "time": "时间"
+  },
+  "settings": {
+    "app": {
+      "defaultStudentFilter": "默认学生筛选",
+      "language": "语言",
+      "theme": "主题"
+    },
+    "data": {
+      "exportJson": "导出 JSON 数据"
+    },
+    "language": {
+      "en": "英语",
+      "fr": "法语",
+      "zh": "简体中文"
+    },
+    "lessons": {
+      "30min": "30 分钟",
+      "45min": "45 分钟",
+      "60min": "60 分钟",
+      "90min": "90 分钟",
+      "currency": "货币",
+      "defaultDuration": "默认时长"
+    },
+    "studentFilter": {
+      "active": "活跃",
+      "all": "全部",
+      "contracts": "合同",
+      "inactive": "不活跃"
+    },
+    "tabs": {
+      "app": "应用",
+      "data": "数据",
+      "lessons": "课程"
+    },
+    "theme": {
+      "dark": "深色",
+      "light": "浅色"
+    },
+    "title": "设置"
+  },
+  "sidebar": {
+    "brand": "StudentDesk",
+    "contractsActive": "有效合同",
+    "csvSchema": "CSV 格式要求",
+    "filter": {
+      "active": "活跃",
+      "all": "全部",
+      "contracts": "合同",
+      "inactive": "不活跃"
+    },
+    "home": "主页",
+    "importCsv": "导入 CSV",
+    "imported": "导入成功",
+    "newStudent": "新学生",
+    "noResults": "未找到结果",
+    "searchPlaceholder": "搜索...",
+    "settings": "设置"
+  },
+  "studentDetail": {
+    "tabs": {
+      "billing": "合同",
+      "fiche": "资料",
+      "suivi": "跟进"
+    }
+  },
+  "studentForm": {
+    "description": "描述",
+    "descriptionPlaceholder": "添加描述...",
+    "editTitle": "编辑",
+    "firstName": "名",
+    "importPhoto": "导入照片",
+    "isActive": "活跃",
+    "lastName": "姓",
+    "newOrigin": "新来源",
+    "newTitle": "新学生",
+    "origin": "来源",
+    "other": "其他",
+    "photoHint": "PNG 或 JPG，最大 5 MB",
+    "removePhoto": "删除照片",
+    "selectPlaceholder": "选择..."
+  },
+  "studentHero": {
+    "active": "活跃",
+    "comment": "评论",
+    "confirmDeleteLesson": "确定要删除此课程吗？",
+    "confirmDeleteStudent": "确定要删除此学生吗？",
+    "deleteLesson": "删除课程",
+    "deleteStudent": "删除",
+    "editLesson": "编辑课程",
+    "editStudent": "编辑",
+    "homework": "作业",
+    "inactive": "不活跃",
+    "lastLesson": "最后一节课",
+    "noDescription": "没有描述",
+    "seeLess": "收起",
+    "seeMore": "查看更多",
+    "sheetCreated": "资料创建于 {{date}}"
+  },
+  "studentLessons": {
+    "addLesson": "添加课程",
+    "createContract": "创建合同",
+    "createContractFirst": "请先创建合同",
+    "deleteConfirm": "确定要删除此课程吗？",
+    "empty": "暂无课程记录",
+    "title": "课程"
+  },
+  "studentTracking": {
+    "cancel": "取消",
+    "cefr": {
+      "grammar": "语法",
+      "interaction": "沟通能力",
+      "oral": "口语",
+      "vocabulary": "词汇",
+      "writing": "写作"
+    },
+    "downloadPdf": "下载 PDF",
+    "exportPdfTitle": "导出 PDF 报告",
+    "generating": "生成中...",
+    "goals": "目标",
+    "goalsPlaceholder": "添加你的目标...",
+    "levels": "级别",
+    "noChanges": "未检测到更改",
+    "pdfError": "生成 PDF 时出错",
+    "progression": "进度",
+    "save": "保存"
+  },
+  "toast": {
+    "default": "操作已完成",
+    "lessons": {
+      "add": "已添加课程",
+      "default": "课程操作",
+      "delete": "已删除课程",
+      "update": "课程已更新"
+    },
+    "settings": {
+      "saved": "设置已保存"
+    },
+    "students": {
+      "create": "已创建学生",
+      "default": "学生操作",
+      "delete": "已删除学生",
+      "update": "学生已更新"
+    }
+  }
+}

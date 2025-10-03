@@ -1,7 +1,7 @@
 import { useMemo, useState, useEffect } from "react";
+import { useTranslation } from "react-i18next";
 import { Student, BillingContract, StudentWithUpdateProps } from "../../types";
 import StudentBilling from "../student/StudentBilling";
-import { getCurrencyLabel } from "../../constants";
 import { formatDate } from "../../utils";
 import { v4 as uuidv4 } from "uuid";
 import { isContractEqual, generateDisplayName } from "./utils";
@@ -29,6 +29,7 @@ function percentFor(c: BillingContract, student: Student) {
 const PAGE_SIZE_BILLING = 10;
 
 export default function StudentBillingSection({ student, onUpdated }: StudentWithUpdateProps) {
+  const { t } = useTranslation();
   const [billingPage, setBillingPage] = useState(1);
   const [editingContract, setEditingContract] = useState<BillingContract | null>(null);
   const [billingDraft, setBillingDraft] = useState<BillingContract | null>(null);
@@ -114,7 +115,7 @@ export default function StudentBillingSection({ student, onUpdated }: StudentWit
       typeof billingDraft.pricePerLesson === "number" && billingDraft.pricePerLesson > 0;
 
     if (!durationOk || !priceOk) {
-      alert("Veuillez renseigner une durée valide et un prix par leçon.");
+      alert(t("billing.alertValidDurationPrice"));
       return;
     }
 
@@ -143,7 +144,7 @@ export default function StudentBillingSection({ student, onUpdated }: StudentWit
   }
 
   async function deleteBilling(id: string) {
-    if (!confirm("Supprimer ce contrat ? Cette action est irréversible.")) return;
+    if (!confirm(t("billing.confirmDelete"))) return;
     const history = (student.billingHistory ?? []).filter((c) => c.id !== id);
     await window.studentApi.updateStudent(student.id, {
       billingHistory: history,
@@ -160,7 +161,7 @@ export default function StudentBillingSection({ student, onUpdated }: StudentWit
           alignItems: "center",
         }}
       >
-        <h3>Historique des contrats</h3>
+        <h3>{t("billing.historyTitle")}</h3>
         <button
           className="btn"
           onClick={async () => {
@@ -170,11 +171,11 @@ export default function StudentBillingSection({ student, onUpdated }: StudentWit
             setBillingDirty(true);
           }}
         >
-          + Ajouter
+          {t("billing.add")}
         </button>
       </div>
 
-      {sortedContracts.length === 0 && <div className="empty">Aucun contrat pour l’instant.</div>}
+      {sortedContracts.length === 0 && <div className="empty">{t("billing.noContracts")}</div>}
 
       {sortedContracts.length > 0 && (
         <>
@@ -221,7 +222,7 @@ export default function StudentBillingSection({ student, onUpdated }: StudentWit
                         background: "rgba(34,197,94,0.08)",
                       }}
                     >
-                      TERMINÉ
+                      {t("billing.completed")}
                     </div>
                   )}
 
@@ -229,20 +230,30 @@ export default function StudentBillingSection({ student, onUpdated }: StudentWit
                     <div style={{ fontWeight: 700, marginBottom: 6 }}>
                       {c.displayName ??
                         (c.mode === "package"
-                          ? `Pack de ${c.totalLessons ?? "?"} leçons`
-                          : "Cours unitaire")}
+                          ? t("billing.packageLabel", { count: c.totalLessons ?? "?" })
+                          : t("billing.singleLessonLabel"))}
                     </div>
-                    <div style={{ fontSize: 13, color: "var(--muted)", display: "flex", flexDirection: "column", gap: 2 }}>
+                    <div
+                      style={{
+                        fontSize: 13,
+                        color: "var(--muted)",
+                        display: "flex",
+                        flexDirection: "column",
+                        gap: 2,
+                      }}
+                    >
                       <div>
-                        Durée : {c.durationMinutes ?? "—"} min
+                        {t("billing.duration")}: {c.durationMinutes ?? "—"} min
                       </div>
                       {c.pricePerLesson != null && (
                         <div>
-                          Prix/Leçon : {c.pricePerLesson} (€){c.currency}
+                          {t("billing.pricePerLesson")}: {c.pricePerLesson} (€){c.currency}
                         </div>
                       )}
                       {c.mode === "package" && c.freeLessons != null && c.freeLessons > 0 && (
-                        <div>Leçons gratuites : {c.freeLessons}</div>
+                        <div>
+                          {t("billing.freeLessons")}: {c.freeLessons}
+                        </div>
                       )}
                     </div>
                   </div>
@@ -255,7 +266,7 @@ export default function StudentBillingSection({ student, onUpdated }: StudentWit
                         marginBottom: 6,
                       }}
                     >
-                      Progression&nbsp;: {consumed}/{total} ({pct}%)
+                      {t("billing.progress", { consumed, total, pct })}
                     </div>
                     <div
                       style={{
@@ -301,7 +312,7 @@ export default function StudentBillingSection({ student, onUpdated }: StudentWit
                           fontWeight: 600,
                           color: "#d8ffe0",
                         }}
-                        title="Payé"
+                        title={t("billing.paid")}
                       >
                         <span
                           aria-hidden
@@ -319,10 +330,12 @@ export default function StudentBillingSection({ student, onUpdated }: StudentWit
                         >
                           ✓
                         </span>
-                        Payé
+                        {t("billing.paid")}
                       </span>
                     ) : (
-                      <span style={{ fontSize: 13, color: "var(--muted)" }}>Non payé</span>
+                      <span style={{ fontSize: 13, color: "var(--muted)" }}>
+                        {t("billing.unpaid")}
+                      </span>
                     )}
                   </div>
 
@@ -335,10 +348,10 @@ export default function StudentBillingSection({ student, onUpdated }: StudentWit
                         setBillingDirty(false);
                       }}
                     >
-                      Modifier
+                      {t("billing.edit")}
                     </button>
                     <button className="btn ghost" onClick={() => deleteBilling(c.id)}>
-                      Supprimer
+                      {t("billing.delete")}
                     </button>
                   </div>
                 </div>
@@ -349,21 +362,21 @@ export default function StudentBillingSection({ student, onUpdated }: StudentWit
           {billingPageCount > 1 && (
             <div className="pagination" style={{ marginTop: 12, justifyContent: "flex-end" }}>
               <span className="counter">
-                Page {billingPage} / {billingPageCount}
+                {t("billing.pageOf", { current: billingPage, total: billingPageCount })}
               </span>
               <button
                 className="btn ghost"
                 disabled={billingPrevDisabled}
                 onClick={() => setBillingPage((p) => Math.max(1, p - 1))}
               >
-                Précédent
+                {t("billing.previous")}
               </button>
               <button
                 className="btn"
                 disabled={billingNextDisabled}
                 onClick={() => setBillingPage((p) => Math.min(billingPageCount, p + 1))}
               >
-                Suivant
+                {t("billing.next")}
               </button>
             </div>
           )}
@@ -390,10 +403,10 @@ export default function StudentBillingSection({ student, onUpdated }: StudentWit
                 setBillingDirty(false);
               }}
             >
-              Annuler
+              {t("billing.cancel")}
             </button>
             <button className="btn" disabled={!billingDirty} onClick={saveBilling}>
-              💾 Enregistrer
+              💾 {t("billing.save")}
             </button>
           </div>
         </div>

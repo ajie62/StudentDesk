@@ -16,6 +16,7 @@ export type AppSettings = {
   lessonDuration: number;
   currency: string;
   defaultStudentFilter?: FilterKind;
+  language: string;
 };
 
 // =========================================================
@@ -139,7 +140,9 @@ export type ActivityKind =
 export interface ActivityItem {
   id: string;
   kind: ActivityKind;
-  label: string;
+  label?: string;
+  translationKey?: string;
+  params?: Record<string, string>;
   when: string;
   studentId: string;
 }

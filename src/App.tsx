@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useState, Suspense, lazy } from "react";
+import i18next from "i18next";
 import { Student, AppSettings, FilterKind, Toast } from "./types";
 import { pushToast, toastSave } from "./helpers/toastHelpers";
 import { computeStats, computeEvents } from "./helpers/studentHelpers";
@@ -12,6 +13,7 @@ import { useStudents } from "./hooks/useStudents";
 import { useUpdates } from "./hooks/useUpdates";
 import Fuse from "fuse.js";
 import "./styles.css";
+import "../i18n";
 
 const Dashboard = lazy(() => import("./components/dashboard/Dashboard"));
 
@@ -50,14 +52,17 @@ export default function App() {
     })();
   }, []);
 
-  // Charger préférences (filtre par défaut)
+  // Charger préférences (filtre par défaut + langue)
   useEffect(() => {
     (async () => {
       try {
-        const prefs: AppSettings | undefined = await window.studentApi.getSettings?.();
+        const prefs = (await window.studentApi.getSettings?.()) as Partial<AppSettings> | undefined;
 
         if (prefs?.defaultStudentFilter) {
           setFilterActive(prefs.defaultStudentFilter);
+        }
+        if (prefs?.language) {
+          i18next.changeLanguage(prefs.language);
         }
       } catch (e) {
         console.error("Impossible de charger defaultStudentFilter :", e);

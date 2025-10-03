@@ -1,10 +1,12 @@
-import React, { useState } from "react";
+import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { Student, CEFR, TrackingDraft, StudentWithUpdateProps } from "../../types";
 import { makeTrackingDraft, isTrackingEqual } from "./utils";
 
 const CEFR_LEVELS: CEFR[] = ["A1", "A2", "B1", "B2", "C1", "C2"];
 
 export default function StudentTrackingSection({ student, onUpdated }: StudentWithUpdateProps) {
+  const { t } = useTranslation();
   const [trackDraft, setTrackDraft] = useState<TrackingDraft>(makeTrackingDraft(student));
   const [trackDirty, setTrackDirty] = useState(false);
   const [loadingPDF, setLoadingPDF] = useState(false);
@@ -48,7 +50,7 @@ export default function StudentTrackingSection({ student, onUpdated }: StudentWi
       });
     } catch (err) {
       console.error("Erreur PDF", err);
-      alert("Impossible de générer le PDF du bilan.");
+      alert(t("studentTracking.pdfError"));
     } finally {
       setLoadingPDF(false);
     }
@@ -60,7 +62,7 @@ export default function StudentTrackingSection({ student, onUpdated }: StudentWi
       <div className="stat-card wide" style={{ marginBottom: 16 }}>
         <div className="stat-icon">📈</div>
         <div>
-          <div className="stat-label">Progression estimée</div>
+          <div className="stat-label">{t("studentTracking.progression")}</div>
           <div className="stat-value">{trackDraft.progress ?? 0}%</div>
           <input
             type="range"
@@ -68,7 +70,7 @@ export default function StudentTrackingSection({ student, onUpdated }: StudentWi
             max={100}
             value={trackDraft.progress ?? 0}
             onChange={(e) => updateTracking({ progress: Number(e.target.value) })}
-            aria-label="Progression"
+            aria-label={t("studentTracking.progression")}
             style={{ width: 240, marginTop: 8 }}
           />
         </div>
@@ -78,10 +80,10 @@ export default function StudentTrackingSection({ student, onUpdated }: StudentWi
       <div className="stat-card wide" style={{ marginBottom: 16 }}>
         <div className="stat-icon">🎯</div>
         <div style={{ width: "100%" }}>
-          <div className="stat-label">Objectifs</div>
+          <div className="stat-label">{t("studentTracking.goals")}</div>
           <textarea
             className="input"
-            placeholder="Ex: Atteindre B1 en compréhension orale d’ici juin…"
+            placeholder={t("studentTracking.goalsPlaceholder")}
             value={trackDraft.goals}
             onChange={(e) => updateTracking({ goals: e.target.value })}
             rows={4}
@@ -94,7 +96,7 @@ export default function StudentTrackingSection({ student, onUpdated }: StudentWi
       <div className="stat-card wide" style={{ marginBottom: 16 }}>
         <div className="stat-icon">🧭</div>
         <div style={{ width: "100%" }}>
-          <div className="stat-label">Niveaux CECRL</div>
+          <div className="stat-label">{t("studentTracking.levels")}</div>
           <div
             className="grid"
             style={{
@@ -105,11 +107,11 @@ export default function StudentTrackingSection({ student, onUpdated }: StudentWi
             }}
           >
             {[
-              ["oral", "Compréhension orale"],
-              ["ecrit", "Production écrite"],
-              ["interaction", "Interaction"],
-              ["grammaire", "Grammaire"],
-              ["vocabulaire", "Vocabulaire"],
+              ["oral", t("studentTracking.cefr.oral")],
+              ["ecrit", t("studentTracking.cefr.writing")],
+              ["interaction", t("studentTracking.cefr.interaction")],
+              ["grammaire", t("studentTracking.cefr.grammar")],
+              ["vocabulaire", t("studentTracking.cefr.vocabulary")],
             ].map(([key, label]) => {
               type CEFRKey = keyof NonNullable<TrackingDraft["cefr"]>;
               const current = trackDraft.cefr?.[key as CEFRKey];
@@ -147,24 +149,28 @@ export default function StudentTrackingSection({ student, onUpdated }: StudentWi
 
       {/* actions */}
       <div className="actions" style={{ marginTop: 12, display: "flex", alignItems: "center" }}>
-        {!trackDirty && <span style={{ color: "var(--muted)" }}>Aucune modification</span>}
+        {!trackDirty && (
+          <span style={{ color: "var(--muted)" }}>{t("studentTracking.noChanges")}</span>
+        )}
 
         <div style={{ flex: 1 }} />
 
         <div className="buttons" style={{ display: "flex", gap: 8 }}>
           <button className="btn ghost" disabled={!trackDirty} onClick={resetTracking}>
-            Annuler
+            {t("studentTracking.cancel")}
           </button>
           <button className="btn" disabled={!trackDirty} onClick={saveTracking}>
-            💾 Enregistrer
+            💾 {t("studentTracking.save")}
           </button>
           <button
             className="btn"
             onClick={downloadPDF}
             disabled={loadingPDF}
-            title="Exporter les données actuelles en PDF"
+            title={t("studentTracking.exportPdfTitle")}
           >
-            {loadingPDF ? "Génération…" : "📄 Télécharger le bilan (PDF)"}
+            {loadingPDF
+              ? t("studentTracking.generating")
+              : "📄 " + t("studentTracking.downloadPdf")}
           </button>
         </div>
       </div>

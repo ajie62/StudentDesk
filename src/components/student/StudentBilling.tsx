@@ -1,9 +1,11 @@
 import { useMemo, useState, useEffect } from "react";
+import { useTranslation } from "react-i18next";
 import { BillingContract, StudentBillingProps } from "../../types";
 import { FAVORITES, OTHERS } from "../../constants";
 import Select from "react-select";
 
 export default function StudentBilling({ viewModel, onChange }: StudentBillingProps): JSX.Element {
+  const { t } = useTranslation();
   const c = viewModel.billing;
   const [settings, setSettings] = useState<{ lessonDuration: number; currency: string } | null>(
     null
@@ -90,26 +92,26 @@ export default function StudentBilling({ viewModel, onChange }: StudentBillingPr
   return (
     <div className="form">
       <h3 style={{ marginBottom: 12 }}>
-        Cours & facturation – {viewModel.firstName} {viewModel.lastName}
+        {t("billing.title", { firstName: viewModel.firstName, lastName: viewModel.lastName })}
       </h3>
 
       {/* Type de contrat */}
       <div className="field">
-        <label className="label">Type de contrat</label>
+        <label className="label">{t("billing.type")}</label>
         <div style={{ display: "flex", gap: 8 }}>
           <button
             type="button"
             className={`btn ghost ${c.mode === "single" ? "active" : ""}`}
             onClick={() => setMode("single")}
           >
-            Leçon unitaire
+            {t("billing.single")}
           </button>
           <button
             type="button"
             className={`btn ghost ${c.mode === "package" ? "active" : ""}`}
             onClick={() => setMode("package")}
           >
-            Pack de leçons
+            {t("billing.package")}
           </button>
         </div>
       </div>
@@ -117,7 +119,7 @@ export default function StudentBilling({ viewModel, onChange }: StudentBillingPr
       {/* Nombre de leçons (pack) */}
       {c.mode === "package" && (
         <div className="field">
-          <label className="label">Nombre de leçons dans le pack</label>
+          <label className="label">{t("billing.totalLessons")}</label>
           <input
             className="input"
             type="number"
@@ -130,7 +132,7 @@ export default function StudentBilling({ viewModel, onChange }: StudentBillingPr
 
       {c.mode === "package" && (
         <div className="field">
-          <label className="label">Leçon(s) gratuites ?</label>
+          <label className="label">{t("billing.freeLessons")}</label>
           <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
             <input
               type="checkbox"
@@ -160,7 +162,7 @@ export default function StudentBilling({ viewModel, onChange }: StudentBillingPr
       {/* Durée */}
       <div className="field">
         <label className="label">
-          Durée des cours (minutes) <span style={{ color: "var(--accent)" }}>*</span>
+          {t("billing.duration")} <span style={{ color: "var(--accent)" }}>*</span>
         </label>
 
         <select
@@ -176,7 +178,7 @@ export default function StudentBilling({ viewModel, onChange }: StudentBillingPr
           <option value="45">45</option>
           <option value="60">60</option>
           <option value="90">90</option>
-          <option value="custom">Autre…</option>
+          <option value="custom">{t("billing.custom")}</option>
         </select>
 
         {c.customDuration && (
@@ -185,7 +187,7 @@ export default function StudentBilling({ viewModel, onChange }: StudentBillingPr
               className="input"
               type="number"
               min={1}
-              placeholder="Durée personnalisée (en minutes)"
+              placeholder={t("billing.customPlaceholder")}
               value={c.durationMinutes ?? ""}
               onChange={(e) => handleCustomDuration(e.target.value)}
             />
@@ -196,7 +198,7 @@ export default function StudentBilling({ viewModel, onChange }: StudentBillingPr
       {/* Prix / Devise */}
       <div className="field">
         <label className="label">
-          Prix / leçon <span style={{ color: "var(--accent)" }}>*</span>
+          {t("billing.price")} <span style={{ color: "var(--accent)" }}>*</span>
         </label>
         <div style={{ display: "flex", gap: 8 }}>
           <input
@@ -204,7 +206,7 @@ export default function StudentBilling({ viewModel, onChange }: StudentBillingPr
             type="number"
             min={0}
             step="0.01"
-            placeholder="ex. 40"
+            placeholder={t("billing.priceExample")}
             value={c.pricePerLesson ?? ""}
             onChange={(e) => handlePrice(e.target.value)}
           />
@@ -214,8 +216,8 @@ export default function StudentBilling({ viewModel, onChange }: StudentBillingPr
             )}
             onChange={(opt) => onChange({ currency: opt?.value ?? "EUR" })}
             options={[
-              { label: "Favoris", options: FAVORITES },
-              { label: "Autres devises", options: OTHERS },
+              { label: t("billing.favorites"), options: FAVORITES },
+              { label: t("billing.others"), options: OTHERS },
             ]}
             isSearchable
             styles={{
@@ -280,23 +282,23 @@ export default function StudentBilling({ viewModel, onChange }: StudentBillingPr
 
       {/* Paiement */}
       <div className="field">
-        <label className="label">Statut du paiement</label>
+        <label className="label">{t("billing.paymentStatus")}</label>
         <select
           className="input"
           value={c.paid ? "paid" : "unpaid"}
           onChange={(e) => onChange({ paid: e.target.value === "paid" })}
         >
-          <option value="unpaid">Non payé</option>
-          <option value="paid">Payé</option>
+          <option value="unpaid">{t("billing.unpaid")}</option>
+          <option value="paid">{t("billing.paid")}</option>
         </select>
       </div>
 
       {/* Notes */}
       <div className="field">
-        <label className="label">Notes / détails</label>
+        <label className="label">{t("billing.notes")}</label>
         <textarea
           className="textarea"
-          placeholder="Informations complémentaires…"
+          placeholder={t("billing.notesPlaceholder")}
           value={c.notes ?? ""}
           onChange={(e) => onChange({ notes: e.target.value })}
         />
@@ -305,7 +307,7 @@ export default function StudentBilling({ viewModel, onChange }: StudentBillingPr
       {/* Aide validation */}
       {!isValid && (
         <div style={{ marginTop: 8, fontSize: 13, color: "var(--accent)" }}>
-          La <strong>durée</strong> et le <strong>prix</strong> sont obligatoires.
+          {t("billing.validation")}
         </div>
       )}
     </div>

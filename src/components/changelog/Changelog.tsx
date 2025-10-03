@@ -1,4 +1,5 @@
-import React, { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { Release, GitHubRelease } from "../../types";
 import "./changelog.css";
 
@@ -7,6 +8,7 @@ const REPO = "StudentDesk";
 const PER_PAGE_UI = 5;
 
 export default function Changelog() {
+  const { t } = useTranslation();
   const [releases, setReleases] = useState<Release[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -26,9 +28,9 @@ export default function Changelog() {
           // Messages un peu plus parlants si rate limit, etc.
           const hint =
             res.status === 403
-              ? "Rate limit GitHub atteinte (essaye plus tard)."
+              ? t("changelog.error.rateLimit")
               : res.status === 404
-                ? "Repo introuvable (le dépôt est-il bien public ?)."
+                ? t("changelog.error.repoNotFound")
                 : `HTTP ${res.status}`;
           throw new Error(hint);
         }
@@ -53,7 +55,7 @@ export default function Changelog() {
         }
       } catch (e: unknown) {
         if (!cancelled) {
-          const msg = e instanceof Error ? e.message : "Impossible de charger les releases.";
+          const msg = e instanceof Error ? e.message : t("changelog.error.unable");
           setError(msg);
         }
       } finally {
@@ -64,7 +66,7 @@ export default function Changelog() {
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [t]);
 
   const totalPages = Math.max(1, Math.ceil(releases.length / PER_PAGE_UI));
   const current = useMemo(() => {
@@ -79,7 +81,7 @@ export default function Changelog() {
 
   return (
     <div className="changelog">
-      <h1 className="changelog-title">Historique des versions</h1>
+      <h1 className="changelog-title">{t("changelog.title")}</h1>
 
       {loading && (
         <ul className="changelog-list">
@@ -109,11 +111,10 @@ export default function Changelog() {
         <div className="changelog-item" style={{ textAlign: "center" }}>
           <p style={{ color: "#f88", margin: 0 }}>⚠️ {error}</p>
           <p style={{ color: "#aaa", fontSize: 13, marginTop: 8 }}>
-            Vérifie que le dépôt GitHub{" "}
-            <code>
-              {OWNER}/{REPO}
-            </code>{" "}
-            est public et que tu as bien publié une release.
+            {t("changelog.error.hint", {
+              owner: OWNER,
+              repo: REPO,
+            })}
           </p>
         </div>
       )}
@@ -122,7 +123,7 @@ export default function Changelog() {
         <>
           {current.length === 0 ? (
             <div className="changelog-item" style={{ textAlign: "center" }}>
-              <p style={{ margin: 0, color: "#aaa" }}>Aucune release trouvée pour le moment.</p>
+              <p style={{ margin: 0, color: "#aaa" }}>{t("changelog.empty")}</p>
             </div>
           ) : (
             <ul className="changelog-list">
@@ -143,7 +144,7 @@ export default function Changelog() {
                       className="btn segment"
                       style={{ textDecoration: "none" }}
                     >
-                      Voir sur GitHub
+                      {t("changelog.viewOnGithub")}
                     </a>
                   </div>
                 </li>
@@ -161,9 +162,7 @@ export default function Changelog() {
               >
                 ◀
               </button>
-              <span>
-                Page {page} / {totalPages}
-              </span>
+              <span>{t("pagination.pageOf", { page, pageCount: totalPages })}</span>
               <button
                 className="btn small"
                 disabled={page >= totalPages}

@@ -1,26 +1,31 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { AppSettings, SettingsTab } from "../../types";
 import { FAVORITES, OTHERS } from "../../constants";
 import Select from "react-select";
+import i18next from "i18next";
+import { useTranslation } from "react-i18next";
 
 export default function SettingsPage() {
+  const { t } = useTranslation();
   const [activeTab, setActiveTab] = useState<SettingsTab>("app");
 
   const [theme, setTheme] = useState("dark");
   const [lessonDuration, setLessonDuration] = useState(60);
   const [currency, setCurrency] = useState("EUR"); // ⚡ normalisation
   const [defaultStudentFilter, setDefaultStudentFilter] = useState("all");
+  const [language, setLanguage] = useState("fr");
 
   // Charger réglages depuis electron-store
   useEffect(() => {
     (async () => {
       try {
-        const prefs: AppSettings | undefined = await window.studentApi.getSettings?.();
+        const prefs: Partial<AppSettings> | undefined = await window.studentApi.getSettings?.();
         if (prefs) {
           setTheme(prefs.theme ?? "dark");
           setLessonDuration(prefs.lessonDuration ?? 60);
           setCurrency(prefs.currency ?? "EUR");
           setDefaultStudentFilter(prefs.defaultStudentFilter ?? "all");
+          setLanguage(prefs.language ?? "fr");
         }
       } catch (e) {
         console.error("Impossible de charger les réglages :", e);
@@ -30,7 +35,7 @@ export default function SettingsPage() {
 
   // Sauvegarde côté Electron
   async function handleChange(
-    key: "theme" | "lessonDuration" | "currency" | "defaultStudentFilter",
+    key: "theme" | "lessonDuration" | "currency" | "defaultStudentFilter" | "language",
     value: string | number
   ) {
     const newSettings = {
@@ -38,6 +43,7 @@ export default function SettingsPage() {
       lessonDuration,
       currency,
       defaultStudentFilter,
+      language,
       [key]: value,
     };
 
@@ -46,12 +52,18 @@ export default function SettingsPage() {
     if (key === "lessonDuration") setLessonDuration(value as number);
     if (key === "currency") setCurrency(value as string);
     if (key === "defaultStudentFilter") setDefaultStudentFilter(value as string);
+    if (key === "language") {
+      setLanguage(value as string);
+      i18next.changeLanguage(value as string);
+    }
 
     // Sauvegarde → le toast est déclenché par App.tsx quand "store-saved" est reçu
     try {
       await window.studentApi.saveSettings?.(newSettings);
-
-      window.dispatchEvent(new CustomEvent("studentFilterChanged", { detail: value }));
+      // Le toast est déclenché par App.tsx quand "store-saved" est reçu
+      if (key === "defaultStudentFilter") {
+        window.dispatchEvent(new CustomEvent("studentFilterChanged", { detail: value }));
+      }
     } catch (e) {
       console.error("Erreur de sauvegarde des réglages :", e);
     }
@@ -59,24 +71,24 @@ export default function SettingsPage() {
 
   return (
     <div className="dash settings-page">
-      <h2>Réglages</h2>
+      <h2>{t("settings.title")}</h2>
 
       {/* Onglets */}
       <div className="tabs">
         <button className={activeTab === "app" ? "active" : ""} onClick={() => setActiveTab("app")}>
-          App
+          {t("settings.tabs.app")}
         </button>
         <button
           className={activeTab === "lessons" ? "active" : ""}
           onClick={() => setActiveTab("lessons")}
         >
-          Leçons
+          {t("settings.tabs.lessons")}
         </button>
         <button
           className={activeTab === "data" ? "active" : ""}
           onClick={() => setActiveTab("data")}
         >
-          Données
+          {t("settings.tabs.data")}
         </button>
       </div>
 
@@ -84,28 +96,41 @@ export default function SettingsPage() {
       {activeTab === "app" && (
         <div className="settings-section">
           <label>
-            Thème :
+            {t("settings.app.theme")} :
             <select
               className="input"
               value={theme}
               onChange={(e) => handleChange("theme", e.target.value)}
             >
-              <option value="light">Clair</option>
-              <option value="dark">Sombre</option>
+              <option value="light">{t("settings.theme.light")}</option>
+              <option value="dark">{t("settings.theme.dark")}</option>
             </select>
           </label>
 
           <label>
-            Catégorie étudiant par défaut :
+            {t("settings.app.defaultStudentFilter")} :
             <select
               className="input"
               value={defaultStudentFilter}
               onChange={(e) => handleChange("defaultStudentFilter", e.target.value)}
             >
-              <option value="all">Tous</option>
-              <option value="active">Actifs</option>
-              <option value="inactive">Inactifs</option>
-              <option value="contracts">Contrat(s) actif(s)</option>
+              <option value="all">{t("settings.studentFilter.all")}</option>
+              <option value="active">{t("settings.studentFilter.active")}</option>
+              <option value="inactive">{t("settings.studentFilter.inactive")}</option>
+              <option value="contracts">{t("settings.studentFilter.contracts")}</option>
+            </select>
+          </label>
+
+          <label>
+            {t("settings.app.language")} :
+            <select
+              className="input"
+              value={language}
+              onChange={(e) => handleChange("language", e.target.value)}
+            >
+              <option value="fr">{t("settings.language.fr")}</option>
+              <option value="en">{t("settings.language.en")}</option>
+              <option value="zh">{t("settings.language.zh")}</option>
             </select>
           </label>
         </div>
@@ -114,21 +139,21 @@ export default function SettingsPage() {
       {activeTab === "lessons" && (
         <div className="settings-section">
           <label>
-            Durée par défaut d’une leçon :
+            {t("settings.lessons.defaultDuration")} :
             <select
               className="input"
               value={lessonDuration}
               onChange={(e) => handleChange("lessonDuration", Number(e.target.value))}
             >
-              <option value={30}>30 minutes</option>
-              <option value={45}>45 minutes</option>
-              <option value={60}>60 minutes</option>
-              <option value={90}>90 minutes</option>
+              <option value={30}>{t("settings.lessons.30min")}</option>
+              <option value={45}>{t("settings.lessons.45min")}</option>
+              <option value={60}>{t("settings.lessons.60min")}</option>
+              <option value={90}>{t("settings.lessons.90min")}</option>
             </select>
           </label>
 
           <label>
-            Devise :
+            {t("settings.lessons.currency")} :
             <Select
               value={[...FAVORITES, ...OTHERS].find((opt) => opt.value === currency)}
               onChange={(opt) => handleChange("currency", opt?.value ?? "EUR")}
@@ -205,7 +230,7 @@ export default function SettingsPage() {
               console.log("🚀 Export JSON bientôt disponible");
             }}
           >
-            Exporter les données (JSON)
+            {t("settings.data.exportJson")}
           </button>
         </div>
       )}

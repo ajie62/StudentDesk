@@ -1,7 +1,8 @@
-import { PodiumStepProps } from "@/types";
-import React from "react";
+import { PodiumStepProps } from "../../../types";
+import { useTranslation } from "react-i18next";
 
 export default function PodiumStep({ rank, student }: PodiumStepProps) {
+  const { t } = useTranslation();
   const crowns = { 1: "🥇", 2: "🥈", 3: "🥉" };
 
   if (!student) {
@@ -23,7 +24,7 @@ export default function PodiumStep({ rank, student }: PodiumStepProps) {
   return (
     <div
       className={`podium-step step-${rank}`}
-      title={`${student.name} • ${student.lessons} leçons`}
+      title={`${student.name} • ${student.lessons} ${t("dashboard.top3.lessons")}`}
     >
       {crowns[rank] && <div className="crown">{crowns[rank]}</div>}
 
@@ -41,7 +42,9 @@ export default function PodiumStep({ rank, student }: PodiumStepProps) {
         <div className="step-name">{student.name}</div>
       </div>
 
-      <div className="step-meta">{student.lessons} leçons</div>
+      <div className="step-meta">
+        {student.lessons} {t("dashboard.top3.lessons")}
+      </div>
     </div>
   );
 }

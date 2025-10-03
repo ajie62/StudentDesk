@@ -1,5 +1,6 @@
+import { useTranslation } from "react-i18next";
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from "recharts";
-import { OriginsPieProps } from "../../types";
+import { OriginsPieProps } from "../../../types";
 
 const RADIAN = Math.PI / 180;
 
@@ -33,8 +34,9 @@ const renderOriginLabel = ({
 };
 
 export default function OriginsPie({ data, colors = [] }: OriginsPieProps) {
+  const { t } = useTranslation();
   if (!data || data.length === 0) {
-    return <div className="empty-state">Aucune origine définie pour l’instant.</div>;
+    return <div className="empty-state">{t("dashboard.origins.empty")}</div>;
   }
 
   return (

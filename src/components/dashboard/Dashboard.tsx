@@ -1,35 +1,49 @@
 import { useMemo, useState, useEffect } from "react";
+import { useTranslation } from "react-i18next";
 import { DashboardProps } from "../../types";
 import { fullName } from "../../utils";
-import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from "recharts";
+import { PieChart, Pie, ResponsiveContainer, Tooltip } from "recharts";
 import { formatDistanceToNow } from "date-fns";
-import { fr } from "date-fns/locale";
+import { fr, enUS, zhCN } from "date-fns/locale";
 import PodiumStep from "./stats/PodiumStep";
 import OriginsPie from "./stats/OriginsPie";
 import LessonsBar from "./stats/LessonsBar";
 import RevenueBar from "./stats/RevenueBar";
 
 const motivationalQuotes = [
-  "🌱 Chaque leçon est une graine semée dans l'esprit d'un étudiant.",
-  "✨ Inspirer aujourd’hui, c’est changer demain.",
-  "📘 Un élève motivé est un monde qui s’ouvre.",
-  "🌍 Enseigner, c’est laisser une trace dans l’infini.",
-  "💡 Une seule explication claire peut illuminer une vie entière.",
-  "🌟 Derrière chaque progrès d’un étudiant, il y a votre patience.",
-  "🔥 La passion d’enseigner crée la passion d’apprendre.",
-  "🎶 Chaque cours est une note dans la symphonie de leur avenir.",
-  "🌸 Enseigner, c’est semer la confiance en soi.",
-  "🚀 Aujourd’hui, vous changez la trajectoire d’une vie.",
+  "dashboard.motivationalQuotes.quote1",
+  "dashboard.motivationalQuotes.quote2",
+  "dashboard.motivationalQuotes.quote3",
+  "dashboard.motivationalQuotes.quote4",
+  "dashboard.motivationalQuotes.quote5",
+  "dashboard.motivationalQuotes.quote6",
+  "dashboard.motivationalQuotes.quote7",
+  "dashboard.motivationalQuotes.quote8",
+  "dashboard.motivationalQuotes.quote9",
+  "dashboard.motivationalQuotes.quote10",
 ];
 
+function getDateFnsLocale(language: string) {
+  switch (language) {
+    case "fr":
+      return fr;
+    case "zh":
+      return zhCN;
+    default:
+      return enUS;
+  }
+}
+
 export default function Dashboard({ stats, students, events, onOpenStudent }: DashboardProps) {
+  const { t, i18n } = useTranslation();
   const [page, setPage] = useState(1);
   const [historyClearedAt, setHistoryClearedAt] = useState<string | null>(null);
   const PAGE_SIZE = 8;
 
   const randomQuote = useMemo(() => {
-    return motivationalQuotes[Math.floor(Math.random() * motivationalQuotes.length)];
-  }, []);
+    const key = motivationalQuotes[Math.floor(Math.random() * motivationalQuotes.length)];
+    return t(key);
+  }, [t]);
 
   useEffect(() => {
     (async () => {
@@ -95,10 +109,7 @@ export default function Dashboard({ stats, students, events, onOpenStudent }: Da
           const payingCount = contract.totalLessons ?? 0; // totalLessons represents the PAID lessons in the pack
           const contractLessons = (s.lessons || [])
             .filter((l) => l.billingId === contract.id)
-            .sort(
-              (a, b) =>
-                new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
-            );
+            .sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
 
           const idx = contractLessons.findIndex((l) => l.id === lesson.id);
 
@@ -110,8 +121,7 @@ export default function Dashboard({ stats, students, events, onOpenStudent }: Da
 
         const m = d.getMonth();
         months[m][contract.currency] =
-          ((months[m][contract.currency] as number) ?? 0) +
-          (contract.pricePerLesson || 0);
+          ((months[m][contract.currency] as number) ?? 0) + (contract.pricePerLesson || 0);
       });
     });
     return months;
@@ -172,7 +182,7 @@ export default function Dashboard({ stats, students, events, onOpenStudent }: Da
   }, [students]);
 
   async function handleClearHistory() {
-    const ok = window.confirm("Effacer définitivement l'historique ?");
+    const ok = window.confirm(t("dashboard.history.confirmClear"));
     if (!ok) return;
     try {
       await window.studentApi.clearHistory?.();
@@ -186,14 +196,14 @@ export default function Dashboard({ stats, students, events, onOpenStudent }: Da
 
   return (
     <div className="dash">
-      <h2>Tableau de bord</h2>
+      <h2>{t("dashboard.title")}</h2>
       <p className="motivational-quote">{randomQuote}</p>
 
       <div className="dash-grid">
         <div className="dashboard-card full-width">
-          <h3>Top 3 étudiants (leçons)</h3>
+          <h3>{t("dashboard.top3.title")}</h3>
           {top3.every((s) => s.lessons === 0) ? (
-            <div className="empty-state">Aucune leçon enregistrée.</div>
+            <div className="empty-state">{t("dashboard.top3.empty")}</div>
           ) : (
             <div className="podium-wrap">
               <PodiumStep rank={2} student={top3[1]} />
@@ -220,7 +230,7 @@ export default function Dashboard({ stats, students, events, onOpenStudent }: Da
         </div>
 
         <div className="dashboard-card pie">
-          <h3>Actifs / Inactifs</h3>
+          <h3>{t("dashboard.activeInactive.title")}</h3>
           <div className="chart-container relative">
             <ResponsiveContainer width="100%" height="100%">
               <PieChart>
@@ -234,8 +244,8 @@ export default function Dashboard({ stats, students, events, onOpenStudent }: Da
                 />
                 <Pie
                   data={[
-                    { name: "Actifs", value: stats.active, fill: "#16d39a" },
-                    { name: "Inactifs", value: stats.inactive, fill: "#ef4444" },
+                    { name: "Active", value: stats.active, fill: "#16d39a" },
+                    { name: "Inactive", value: stats.inactive, fill: "#ef4444" },
                   ]}
                   cx="50%"
                   cy="50%"
@@ -246,6 +256,11 @@ export default function Dashboard({ stats, students, events, onOpenStudent }: Da
                   dataKey="value"
                 />
                 <Tooltip
+                  formatter={(value, name) => {
+                    const key = String(name).toLowerCase();
+                    return [`${value}`, t(`dashboard.activeInactive.${key}`)];
+                  }}
+                  labelFormatter={() => t("dashboard.activeInactive.title")}
                   contentStyle={{
                     backgroundColor: "rgba(31,31,31,0.95)",
                     border: "1px solid rgba(255,255,255,0.08)",
@@ -254,23 +269,21 @@ export default function Dashboard({ stats, students, events, onOpenStudent }: Da
                     fontSize: 13,
                   }}
                   itemStyle={{ color: "#f9fafb" }}
-                  cursor={{ fill: "rgba(59,130,246,0.15)" }}
-                  formatter={(value: number, name: string) => [`${name} : ${value}`]}
                 />
               </PieChart>
             </ResponsiveContainer>
             <div className="donut-center">
               <span className="donut-value">{stats.total}</span>
-              <span className="donut-label">Étudiants</span>
+              <span className="donut-label">{t("dashboard.activeInactive.label")}</span>
             </div>
           </div>
         </div>
 
         <div className="dashboard-card pie">
-          <h3>Origine des étudiants</h3>
+          <h3>{t("dashboard.origins.title")}</h3>
           <div className="chart-container relative">
             {originsData.length === 0 ? (
-              <div className="empty-state">Aucune origine définie.</div>
+              <div className="empty-state">{t("dashboard.origins.empty")}</div>
             ) : (
               <OriginsPie data={originsData} colors={colors} />
             )}
@@ -280,18 +293,18 @@ export default function Dashboard({ stats, students, events, onOpenStudent }: Da
 
       <div className="dashboard-card">
         <div className="card-header">
-          <h3>Historique</h3>
+          <h3>{t("dashboard.history.title")}</h3>
           <button
             className={`btn ghost ${recent.length === 0 ? "disabled" : "danger"}`}
             disabled={recent.length === 0}
             onClick={handleClearHistory}
           >
-            🗑 Vider
+            🗑 {t("dashboard.history.clear")}
           </button>
         </div>
         <div className="activity-list">
           {paginated.length === 0 ? (
-            <div className="empty-state">Aucune activité.</div>
+            <div className="empty-state">{t("dashboard.history.empty")}</div>
           ) : (
             paginated.map((ev) => (
               <div
@@ -302,7 +315,7 @@ export default function Dashboard({ stats, students, events, onOpenStudent }: Da
                 <span className="activity-icon">{ev.kind.startsWith("student") ? "👤" : "📘"}</span>
                 <span className="activity-label">{ev.label}</span>
                 <span className="activity-date">
-                  {formatDistanceToNow(new Date(ev.when), { addSuffix: true, locale: fr })}
+                  {formatDistanceToNow(new Date(ev.when), { addSuffix: true, locale: getDateFnsLocale(i18n.language) })}
                 </span>
               </div>
             ))
@@ -315,17 +328,15 @@ export default function Dashboard({ stats, students, events, onOpenStudent }: Da
               disabled={page <= 1}
               onClick={() => setPage((p) => p - 1)}
             >
-              Précédent
+              {t("pagination.previous")}
             </button>
-            <span className="counter">
-              Page {page} / {pageCount}
-            </span>
+            <span className="counter">{t("pagination.pageOf", { page, pageCount })}</span>
             <button
               className="btn"
               disabled={page >= pageCount}
               onClick={() => setPage((p) => p + 1)}
             >
-              Suivant
+              {t("pagination.next")}
             </button>
           </div>
         )}

@@ -1,0 +1,319 @@
+{
+  "dashboard": {
+    "motivationalQuotes": {
+      "quote1": "🌱 Chaque leçon est une graine semée dans l'esprit d'un étudiant.",
+      "quote2": "✨ Inspirer aujourd’hui, c’est changer demain.",
+      "quote3": "📘 Un élève motivé est un monde qui s’ouvre.",
+      "quote4": "🌍 Enseigner, c’est laisser une trace dans l’infini.",
+      "quote5": "💡 Une seule explication claire peut illuminer une vie entière.",
+      "quote6": "🌟 Derrière chaque progrès d’un étudiant, il y a votre patience.",
+      "quote7": "🔥 La passion d’enseigner crée la passion d’apprendre.",
+      "quote8": "🎶 Chaque cours est une note dans la symphonie de leur avenir.",
+      "quote9": "🌸 Enseigner, c’est semer la confiance en soi.",
+      "quote10": "🚀 Aujourd’hui, vous changez la trajectoire d’une vie."
+    },
+    "activeInactive": {
+      "title": "Actifs / Inactifs",
+      "active": "Actifs",
+      "inactive": "Inactifs",
+      "label": "Étudiants"
+    },
+    "history": {
+      "clear": "Vider",
+      "empty": "Aucune activité enregistrée pour l’instant.",
+      "title": "Historique",
+      "confirmClear": "Effacer définitivement l’historique ?"
+    },
+    "origins": {
+      "empty": "Aucune origine définie pour l’instant.",
+      "title": "Origine des étudiants"
+    },
+    "title": "Tableau de bord",
+    "top3": {
+      "empty": "Aucune leçon enregistrée pour l’instant.",
+      "title": "Top 3 étudiants (leçons)",
+      "lessons": "leçons"
+    },
+    "loading": "Chargement...",
+    "lessons": {
+      "title": "Leçons (7 derniers jours)",
+      "total": "Total",
+      "day": "Jour"
+    },
+    "revenue": {
+      "empty": "Aucun revenu enregistré pour l’instant.",
+      "title": "Revenus annuels ({{year}})"
+    }
+  },
+  "pagination": {
+    "next": "Suivant",
+    "pageOf": "Page {{page}} / {{pageCount}}",
+    "previous": "Précédent"
+  },
+  "updates": {
+    "installNow": "Mettre à jour maintenant",
+    "available": "⬇️ Mise à jour disponible, téléchargement...",
+    "checking": "🔄 Vérification des mises à jour...",
+    "downloaded": "📦 Mise à jour prête à installer",
+    "error": "❌ Erreur de mise à jour: {{error}}",
+    "none": "✅ Aucune mise à jour disponible"
+  },
+  "months": {
+    "jan": "janv.",
+    "feb": "févr.",
+    "mar": "mars",
+    "apr": "avr.",
+    "may": "mai",
+    "jun": "juin",
+    "jul": "juil.",
+    "aug": "août",
+    "sep": "sept.",
+    "oct": "oct.",
+    "nov": "nov.",
+    "dec": "déc."
+  },
+  "days": {
+    "monday": "Lun.",
+    "tuesday": "Mar.",
+    "wednesday": "Mer.",
+    "thursday": "Jeu.",
+    "friday": "Ven.",
+    "saturday": "Sam.",
+    "sunday": "Dim."
+  },
+  "billing": {
+    "add": "Ajouter",
+    "alertValidDurationPrice": "Veuillez entrer une durée et un prix valides",
+    "cancel": "Annuler",
+    "completed": "Terminé",
+    "confirmDelete": "Voulez-vous vraiment supprimer ce contrat ?",
+    "custom": "Personnalisé",
+    "customPlaceholder": "Entrer une valeur personnalisée",
+    "delete": "Supprimer",
+    "duration": "Durée",
+    "edit": "Modifier",
+    "favorites": "Favoris",
+    "freeLessons": "Leçons gratuites",
+    "historyTitle": "Historique de facturation",
+    "next": "Suivant",
+    "noContracts": "Aucun contrat pour cet étudiant",
+    "notes": "Notes",
+    "notesPlaceholder": "Ajouter des détails ou remarques",
+    "others": "Autres",
+    "package": "Pack de leçons",
+    "packageLabel": "Pack",
+    "pageOf": "Page {{page}} / {{pageCount}}",
+    "paid": "Payé",
+    "paymentStatus": "Statut du paiement",
+    "previous": "Précédent",
+    "price": "Prix",
+    "priceExample": "ex: 42",
+    "pricePerLesson": "Prix par leçon",
+    "progress": "Progression",
+    "save": "Enregistrer",
+    "single": "Leçon unitaire",
+    "singleLessonLabel": "Unitaire",
+    "title": "Contrats",
+    "totalLessons": "Nombre total de leçons",
+    "type": "Type",
+    "unpaid": "Non payé",
+    "validation": "Veuillez remplir tous les champs requis"
+  },
+  "changelog": {
+    "empty": "Aucun changelog disponible",
+    "error": {
+      "hint": "Réessayez plus tard",
+      "rateLimit": "Limite d’accès GitHub atteinte",
+      "repoNotFound": "Dépôt GitHub introuvable",
+      "unable": "Impossible de charger le changelog"
+    },
+    "title": "Changelog",
+    "viewOnGithub": "Voir sur GitHub"
+  },
+  "common": {
+    "add": "Ajouter",
+    "cancel": "Annuler",
+    "create": "Créer",
+    "delete": "Supprimer",
+    "edit": "Modifier",
+    "save": "Enregistrer"
+  },
+  "events": {
+    "student": {
+        "added": "Étudiant {{name}} ajouté",
+        "deleted": "Étudiant {{name}} supprimé",
+        "updated": "Étudiant {{name}} modifié"
+    },
+    "lesson": {
+        "added": "Leçon pour {{name}} ajoutée",
+        "deleted": "Leçon pour {{name}} supprimée",
+        "updated": "Leçon pour {{name}} mise à jour"
+    }
+  },
+  "lessonCard": {
+    "comment": "Commentaire",
+    "deletedContract": "Contrat supprimé",
+    "homework": "Devoirs",
+    "linkedContract": "Contrat lié"
+  },
+  "lessonForm": {
+    "addCustomTime": "Ajouter une heure spécifique",
+    "associateToContract": "Associer à un contrat",
+    "associatedContract": "Contrat associé",
+    "comment": "Commentaire",
+    "commentPlaceholder": "Ajouter un commentaire...",
+    "date": "Date",
+    "editTitle": "Modifier la leçon",
+    "homework": "Devoirs",
+    "homeworkPlaceholder": "Ajouter des devoirs...",
+    "newTitle": "Nouvelle leçon",
+    "packLessonsGroup": "Pack de leçons",
+    "packageLabel": "Pack",
+    "singleLesson": "Leçon unitaire",
+    "singleLessonsGroup": "Unitaire",
+    "time": "Heure"
+  },
+  "settings": {
+    "app": {
+      "defaultStudentFilter": "Filtre étudiant par défaut",
+      "language": "Langue",
+      "theme": "Thème"
+    },
+    "data": {
+      "exportJson": "Exporter les données en JSON"
+    },
+    "language": {
+      "en": "Anglais",
+      "fr": "Français",
+      "zh": "Chinois simplifié"
+    },
+    "lessons": {
+      "30min": "30 min",
+      "45min": "45 min",
+      "60min": "60 min",
+      "90min": "90 min",
+      "currency": "Devise",
+      "defaultDuration": "Durée par défaut"
+    },
+    "studentFilter": {
+      "active": "Actifs",
+      "all": "Tous",
+      "contracts": "Contrats",
+      "inactive": "Inactifs"
+    },
+    "tabs": {
+      "app": "Application",
+      "data": "Données",
+      "lessons": "Leçons"
+    },
+    "theme": {
+      "dark": "Sombre",
+      "light": "Clair"
+    },
+    "title": "Paramètres"
+  },
+  "sidebar": {
+    "brand": "StudentDesk",
+    "contractsActive": "Contrats actifs",
+    "csvSchema": "Schéma CSV attendu",
+    "filter": {
+      "active": "Actifs",
+      "all": "Tous",
+      "contracts": "Contrats",
+      "inactive": "Inactifs"
+    },
+    "home": "Accueil",
+    "importCsv": "Importer un CSV",
+    "imported": "Importation réussie",
+    "newStudent": "Nouvel étudiant",
+    "noResults": "Aucun résultat trouvé",
+    "searchPlaceholder": "Rechercher...",
+    "settings": "Paramètres"
+  },
+  "studentDetail": {
+    "tabs": {
+      "billing": "Facturation",
+      "fiche": "Fiche",
+      "suivi": "Suivi"
+    }
+  },
+  "studentForm": {
+    "description": "Description",
+    "descriptionPlaceholder": "Ajouter une description...",
+    "editTitle": "Modifier l'étudiant",
+    "firstName": "Prénom",
+    "importPhoto": "Importer une photo",
+    "isActive": "Actif",
+    "lastName": "Nom",
+    "newOrigin": "Nouvelle origine",
+    "newTitle": "Nouvel étudiant",
+    "origin": "Origine",
+    "other": "Autre",
+    "photoHint": "PNG ou JPG, max 5 Mo",
+    "removePhoto": "Supprimer la photo",
+    "selectPlaceholder": "Sélectionner..."
+  },
+  "studentHero": {
+    "active": "Actif",
+    "comment": "Commentaire",
+    "confirmDeleteLesson": "Voulez-vous vraiment supprimer cette leçon ?",
+    "confirmDeleteStudent": "Voulez-vous vraiment supprimer cet étudiant ?",
+    "deleteLesson": "Supprimer la leçon",
+    "deleteStudent": "Supprimer l'étudiant",
+    "editLesson": "Modifier la leçon",
+    "editStudent": "Modifier l'étudiant",
+    "homework": "Devoirs",
+    "inactive": "Inactif",
+    "lastLesson": "Dernière leçon",
+    "noDescription": "Pas de description",
+    "seeLess": "Voir moins",
+    "seeMore": "Voir plus",
+    "sheetCreated": "Fiche créée le {{date}}"
+  },
+  "studentLessons": {
+    "addLesson": "Ajouter une leçon",
+    "createContract": "Créer un contrat",
+    "createContractFirst": "Créez d'abord un contrat",
+    "deleteConfirm": "Êtes-vous sûr de vouloir supprimer cette leçon ?",
+    "empty": "Aucune leçon enregistrée",
+    "title": "Leçons"
+  },
+  "studentTracking": {
+    "cancel": "Annuler",
+    "cefr": {
+      "grammar": "Grammaire",
+      "interaction": "Interaction",
+      "oral": "Oral",
+      "vocabulary": "Vocabulaire",
+      "writing": "Écrit"
+    },
+    "downloadPdf": "Télécharger le PDF",
+    "exportPdfTitle": "Exporter le bilan PDF",
+    "generating": "Génération en cours...",
+    "goals": "Objectifs",
+    "goalsPlaceholder": "Ajouter vos objectifs...",
+    "levels": "Niveaux",
+    "noChanges": "Aucune modification détectée",
+    "pdfError": "Erreur lors de la génération du PDF",
+    "progression": "Progression",
+    "save": "Enregistrer"
+  },
+  "toast": {
+    "default": "Action effectuée",
+    "lessons": {
+      "add": "Leçon ajoutée",
+      "default": "Action sur les leçons",
+      "delete": "Leçon supprimée",
+      "update": "Leçon mise à jour"
+    },
+    "settings": {
+      "saved": "Paramètres enregistrés"
+    },
+    "students": {
+      "create": "Étudiant créé",
+      "default": "Action sur les étudiants",
+      "delete": "Étudiant supprimé",
+      "update": "Étudiant mis à jour"
+    }
+  }
+}

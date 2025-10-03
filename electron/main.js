@@ -429,6 +429,15 @@ ipcMain.handle("students:create", async (_evt, payload) => {
   };
   students.push(student);
   saveStudents(students, "students:create");
+  pushHistory({
+    kind: "student.added",
+    studentId: student.id,
+    meta: {
+      fullName: `${student.firstName} ${student.lastName}`.trim(),
+      email: student.email,
+      origin: student.origin,
+    },
+  });
   return student;
 });
 
@@ -663,6 +672,10 @@ ipcMain.handle("history:clear", async () => {
 
   saveStudents(students, "history:clear");
   store.set(HISTORY_KEY, now);
+  pushHistory({
+    kind: "history.cleared",
+    meta: { clearedAt: now },
+  });
 
   // ✅ Notify renderer immédiatement
   if (mainWindow && !mainWindow.isDestroyed()) {
@@ -683,6 +696,7 @@ ipcMain.handle("settings:get", () => {
     lessonDuration: store.get("lessonDuration", 60),
     currency: store.get("currency", "EUR"),
     defaultStudentFilter: store.get("defaultStudentFilter", "all"),
+    language: store.get("language", "fr"),
   };
 });
 
@@ -693,15 +707,16 @@ ipcMain.handle("settings:save", (_evt, newSettings) => {
   if (newSettings.currency !== undefined) store.set("currency", newSettings.currency);
   if (newSettings.defaultStudentFilter !== undefined)
     store.set("defaultStudentFilter", newSettings.defaultStudentFilter);
+  if (newSettings.language !== undefined) store.set("language", newSettings.language);
 
   const updated = {
     theme: store.get("theme", "dark"),
     lessonDuration: store.get("lessonDuration", 60),
     currency: store.get("currency", "EUR"),
     defaultStudentFilter: store.get("defaultStudentFilter", "all"),
+    language: store.get("language", "fr"),
   };
 
-  // 🔔 notifier le renderer (App.tsx) → toast
   mainWindow?.webContents.send("store:saved", {
     action: "settings",
     icloud: !!dataDirs?.isICloud,

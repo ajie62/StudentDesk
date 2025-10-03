@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { useTranslation } from "react-i18next";
 import LessonForm from "./LessonForm";
 import { Lesson, LessonCardProps } from "../../types";
 
@@ -9,6 +10,7 @@ export default function LessonCard({
   onUpdated,
   onDelete,
 }: LessonCardProps) {
+  const { t } = useTranslation();
   const [editing, setEditing] = useState(false);
 
   const contract = allContracts.find((c) => c.id === lesson.billingId);
@@ -29,11 +31,11 @@ export default function LessonCard({
     <div className="card">
       <div className="lesson-columns" style={{ marginBottom: 12 }}>
         <div>
-          <h4>Commentaire</h4>
+          <h4>{t("lessonCard.comment")}</h4>
           <p>{lesson.comment || <span style={{ color: "var(--muted)" }}>—</span>}</p>
         </div>
         <div>
-          <h4>Devoirs</h4>
+          <h4>{t("lessonCard.homework")}</h4>
           <p>{lesson.homework || <span style={{ color: "var(--muted)" }}>—</span>}</p>
         </div>
       </div>
@@ -46,17 +48,17 @@ export default function LessonCard({
             marginBottom: 8,
           }}
         >
-          Contrat lié : {contract?.displayName ?? lesson.billingId}{" "}
-          {!contract && <span>(contrat supprimé)</span>}
+          {t("lessonCard.linkedContract")}: {contract?.displayName ?? lesson.billingId}{" "}
+          {!contract && <span>({t("lessonCard.deletedContract")})</span>}
         </div>
       )}
 
       <div className="lesson-actions">
         <button className="btn ghost" onClick={() => setEditing(true)}>
-          Modifier
+          {t("common.edit")}
         </button>
         <button className="btn" onClick={() => onDelete()}>
-          Supprimer
+          {t("common.delete")}
         </button>
       </div>
 

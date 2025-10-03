@@ -1,29 +1,30 @@
 import { useEffect, useState } from "react";
 import { pushToast } from "../helpers/toastHelpers";
 import { Toast } from "../types";
+import i18n from "i18next";
 
 export function useUpdates(setToasts: React.Dispatch<React.SetStateAction<Toast[]>>) {
   const [updateReady, setUpdateReady] = useState(false);
 
   useEffect(() => {
     window.studentApi.onUpdate?.("update:checking", () => {
-      pushToast(setToasts, "🔄 Vérification des mises à jour...");
+      pushToast(setToasts, i18n.t("updates.checking"));
       setUpdateReady(false);
     });
     window.studentApi.onUpdate?.("update:available", () => {
-      pushToast(setToasts, "⬇️ Mise à jour disponible, téléchargement...");
+      pushToast(setToasts, i18n.t("updates.available"));
       setUpdateReady(false);
     });
     window.studentApi.onUpdate?.("update:none", () => {
-      pushToast(setToasts, "✅ Aucune mise à jour disponible");
+      pushToast(setToasts, i18n.t("updates.none"));
       setUpdateReady(false);
     });
     window.studentApi.onUpdate?.("update:downloaded", () => {
-      pushToast(setToasts, "📦 Mise à jour prête à installer");
+      pushToast(setToasts, i18n.t("updates.downloaded"));
       setUpdateReady(true);
     });
     window.studentApi.onUpdate?.("update:error", (_evt, err) => {
-      pushToast(setToasts, "❌ Erreur de mise à jour: " + err);
+      pushToast(setToasts, i18n.t("updates.error", { err }));
       setUpdateReady(false);
     });
   }, [setToasts]);

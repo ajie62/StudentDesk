@@ -1,4 +1,5 @@
-import React, { useMemo, useState, useEffect } from "react";
+import { useMemo, useState, useEffect } from "react";
+import { useTranslation } from "react-i18next";
 import { StudentLessonsProps } from "../../types";
 import LessonCard from "../dashboard/LessonCard";
 import LessonForm from "../dashboard/LessonForm";
@@ -6,6 +7,7 @@ import LessonForm from "../dashboard/LessonForm";
 const PAGE_SIZE_LESSONS = 10;
 
 export default function StudentLessons({ student, onUpdated, setTab }: StudentLessonsProps) {
+  const { t } = useTranslation();
   const [page, setPage] = useState(1);
   const [addingLesson, setAddingLesson] = useState(false);
 
@@ -44,25 +46,23 @@ export default function StudentLessons({ student, onUpdated, setTab }: StudentLe
   return (
     <>
       <div className="lesson-toolbar" style={{ marginBottom: 16 }}>
-        <div className="lesson-toolbar__title">Leçons</div>
+        <div className="lesson-toolbar__title">{t("studentLessons.title")}</div>
         <div className="lesson-toolbar__actions">
           <div className="pagination">
-            <span className="counter">
-              Page {page} / {pageCount}
-            </span>
+            <span className="counter">{t("pagination.pageOf", { page, pageCount })}</span>
             <button
               className="btn ghost"
               disabled={prevDisabled}
               onClick={() => setPage((p) => Math.max(1, p - 1))}
             >
-              Précédent
+              {t("pagination.previous")}
             </button>
             <button
               className="btn"
               disabled={nextDisabled}
               onClick={() => setPage((p) => Math.min(pageCount, p + 1))}
             >
-              Suivant
+              {t("pagination.next")}
             </button>
           </div>
 
@@ -71,23 +71,27 @@ export default function StudentLessons({ student, onUpdated, setTab }: StudentLe
               className={`btn ${openContracts.length === 0 ? "disabled" : ""}`}
               disabled={openContracts.length === 0}
               onClick={() => setAddingLesson(true)}
-              title={openContracts.length === 0 ? "Crée d’abord un contrat" : "Ajouter une leçon"}
+              title={
+                openContracts.length === 0
+                  ? t("studentLessons.createContractFirst")
+                  : t("studentLessons.addLesson")
+              }
             >
-              Ajouter une leçon
+              {t("studentLessons.addLesson")}
             </button>
             <button
               className="btn ghost"
               onClick={() => setTab("billing")}
-              title="Créer un contrat"
+              title={t("studentLessons.createContract")}
             >
-              Créer un contrat
+              {t("studentLessons.createContract")}
             </button>
           </div>
         </div>
       </div>
 
       {(student.lessons?.length ?? 0) === 0 && (
-        <div className="empty">Aucune leçon pour cet étudiant.</div>
+        <div className="empty">{t("studentLessons.empty")}</div>
       )}
 
       <div className="list">
@@ -99,7 +103,7 @@ export default function StudentLessons({ student, onUpdated, setTab }: StudentLe
             allContracts={student.billingHistory ?? []}
             onUpdated={handleListUpdated}
             onDelete={async () => {
-              if (confirm("Supprimer cette carte de leçon ?")) {
+              if (confirm(t("studentLessons.deleteConfirm"))) {
                 await window.studentApi.deleteLesson(student.id, lesson.id);
                 await handleListUpdated();
               }

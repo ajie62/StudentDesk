@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useState, useRef } from "react";
 import { BillingContract, LessonFormProps } from "../../types";
+import { useTranslation } from "react-i18next";
 
 export default function LessonForm({
   onClose,
@@ -7,6 +8,8 @@ export default function LessonForm({
   initial,
   availableContracts = [],
 }: LessonFormProps) {
+  const { t } = useTranslation();
+
   const [comment, setComment] = useState(initial?.comment || "");
   const [homework, setHomework] = useState(initial?.homework || "");
   const [date, setDate] = useState(
@@ -25,8 +28,8 @@ export default function LessonForm({
   const [time, setTime] = useState(
     initialDate
       ? initialDate.getHours().toString().padStart(2, "0") +
-        ":" +
-        initialDate.getMinutes().toString().padStart(2, "0")
+          ":" +
+          initialDate.getMinutes().toString().padStart(2, "0")
       : ""
   );
 
@@ -107,13 +110,7 @@ export default function LessonForm({
         hours = Number(h);
         minutes = Number(m);
       }
-      const combined = new Date(
-        Number(year),
-        Number(month) - 1,
-        Number(day),
-        hours,
-        minutes
-      );
+      const combined = new Date(Number(year), Number(month) - 1, Number(day), hours, minutes);
       await onSaved({
         comment,
         homework,
@@ -129,34 +126,34 @@ export default function LessonForm({
   return (
     <div className="modal-overlay">
       <div className="modal-card">
-        <h3>{initial ? "Modifier la leçon" : "Nouvelle leçon"}</h3>
+        <h3>{initial ? t("lessonForm.editTitle") : t("lessonForm.newTitle")}</h3>
         <form onSubmit={handleSubmit} className="form">
           <div className="field">
-            <label className="label">Commentaire</label>
+            <label className="label">{t("lessonForm.comment")}</label>
             <textarea
               ref={commentRef}
               className="textarea"
               value={comment}
               onChange={(e) => setComment(e.target.value)}
-              placeholder="Notes sur la leçon..."
+              placeholder={t("lessonForm.commentPlaceholder")}
               style={{ resize: "none", overflow: "hidden" }}
             />
           </div>
 
           <div className="field">
-            <label className="label">Devoirs</label>
+            <label className="label">{t("lessonForm.homework")}</label>
             <textarea
               ref={homeworkRef}
               className="textarea"
               value={homework}
               onChange={(e) => setHomework(e.target.value)}
-              placeholder="Travail à faire..."
+              placeholder={t("lessonForm.homeworkPlaceholder")}
               style={{ resize: "none", overflow: "hidden" }}
             />
           </div>
 
           <div className="field">
-            <label className="label">Date de la leçon</label>
+            <label className="label">{t("lessonForm.date")}</label>
             <input
               type="date"
               className="input"
@@ -180,14 +177,14 @@ export default function LessonForm({
                     setTime(`${hh}:${mm}`);
                   }
                 }}
-              />
-              {" "}Ajouter une heure spécifique
+              />{" "}
+              {t("lessonForm.addCustomTime")}
             </label>
           </div>
 
           {customTimeEnabled && (
             <div className="field">
-              <label className="label">Heure</label>
+              <label className="label">{t("lessonForm.time")}</label>
               <input
                 type="time"
                 className="input"
@@ -202,25 +199,25 @@ export default function LessonForm({
               - >1 contrats   => select avec groupes : Cours unitaires puis Packs */}
           {availableContracts.length === 1 && (
             <div className="field">
-              <label className="label">Contrat associé</label>
+              <label className="label">{t("lessonForm.associatedContract")}</label>
               <div className="input" style={{ opacity: 0.9 }}>
                 {availableContracts[0].mode === "package"
-                  ? `Pack ${availableContracts[0].totalLessons} leçons`
-                  : "Cours unitaire"}
+                  ? t("lessonForm.packageLabel", { count: availableContracts[0].totalLessons })
+                  : t("lessonForm.singleLesson")}
               </div>
             </div>
           )}
 
           {availableContracts.length > 1 && (
             <div className="field">
-              <label className="label">Associer à un contrat</label>
+              <label className="label">{t("lessonForm.associateToContract")}</label>
               <select
                 className="input"
                 value={billingId ?? ""}
                 onChange={(e) => setBillingId(e.target.value || null)}
               >
                 {singlesSorted.length > 0 && (
-                  <optgroup label="Cours unitaires">
+                  <optgroup label={t("lessonForm.singleLessonsGroup")}>
                     {singlesSorted.map((c) => (
                       <option key={c.id} value={c.id}>
                         {c.displayName}
@@ -230,7 +227,7 @@ export default function LessonForm({
                 )}
 
                 {packsFlatSorted.length > 0 && (
-                  <optgroup label="Packs">
+                  <optgroup label={t("lessonForm.packLessonsGroup")}>
                     {packGroups.sizes.map((size) => {
                       const arr = packGroups.map.get(size) || [];
                       return arr.map((c) => (
@@ -247,10 +244,10 @@ export default function LessonForm({
 
           <div className="actions">
             <button type="button" className="btn ghost" onClick={onClose}>
-              Annuler
+              {t("common.cancel")}
             </button>
             <button type="submit" className="btn" disabled={loading}>
-              {initial ? "Enregistrer" : "Ajouter"}
+              {initial ? t("common.save") : t("common.add")}
             </button>
           </div>
         </form>

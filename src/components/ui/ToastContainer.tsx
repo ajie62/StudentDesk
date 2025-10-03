@@ -1,4 +1,3 @@
-import React from "react";
 import { ToastContainerProps } from "../../types";
 
 export function ToastContainer({ toasts }: ToastContainerProps) {

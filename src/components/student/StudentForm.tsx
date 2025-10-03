@@ -1,7 +1,10 @@
 import React, { useEffect, useRef, useState } from "react";
 import { StudentFormProps } from "../../types";
+import { useTranslation } from "react-i18next";
 
 export default function StudentForm({ initial, onClose, onSaved }: StudentFormProps): JSX.Element {
+  const { t } = useTranslation();
+
   const [firstName, setFirstName] = useState(initial?.firstName ?? "");
   const [lastName, setLastName] = useState(initial?.lastName ?? "");
   const [description, setDescription] = useState(initial?.description ?? "");
@@ -134,7 +137,7 @@ export default function StudentForm({ initial, onClose, onSaved }: StudentFormPr
         role="dialog"
         aria-modal="true"
       >
-        <h3>{initial ? "Modifier l’étudiant" : "Nouvel étudiant"}</h3>
+        <h3>{initial ? t("studentForm.editTitle") : t("studentForm.newTitle")}</h3>
 
         {/* Avatar */}
         <div className="field-photo">
@@ -151,16 +154,16 @@ export default function StudentForm({ initial, onClose, onSaved }: StudentFormPr
           <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
             <div style={{ display: "flex", gap: 10, alignItems: "center", flexWrap: "wrap" }}>
               <button type="button" className="btn" onClick={pickFile}>
-                Importer une photo
+                {t("studentForm.importPhoto")}
               </button>
               {photo && (
                 <button
                   type="button"
                   className="btn ghost"
                   onClick={() => setPhoto(null)}
-                  title="Retirer la photo"
+                  title={t("studentForm.removePhoto")}
                 >
-                  Retirer
+                  {t("studentForm.removePhoto")}
                 </button>
               )}
             </div>
@@ -173,15 +176,13 @@ export default function StudentForm({ initial, onClose, onSaved }: StudentFormPr
               style={{ display: "none" }}
             />
 
-            <div style={{ fontSize: 13, color: "var(--muted)" }}>
-              JPG/PNG. Redimensionné automatiquement (max 130×130).
-            </div>
+            <div style={{ fontSize: 13, color: "var(--muted)" }}>{t("studentForm.photoHint")}</div>
           </div>
         </div>
 
         <form onSubmit={handleSubmit}>
           <div className="field">
-            <label className="label">Prénom</label>
+            <label className="label">{t("studentForm.firstName")}</label>
             <input
               className="input"
               value={firstName}
@@ -191,7 +192,7 @@ export default function StudentForm({ initial, onClose, onSaved }: StudentFormPr
           </div>
 
           <div className="field">
-            <label className="label">Nom</label>
+            <label className="label">{t("studentForm.lastName")}</label>
             <input
               className="input"
               value={lastName}
@@ -200,19 +201,19 @@ export default function StudentForm({ initial, onClose, onSaved }: StudentFormPr
           </div>
 
           <div className="field">
-            <label className="label">Description</label>
+            <label className="label">{t("studentForm.description")}</label>
             <textarea
               ref={descRef}
               className="textarea"
               value={description}
               onChange={(e) => setDescription(e.target.value)}
-              placeholder="Notes générales, contexte, objectifs…"
+              placeholder={t("studentForm.descriptionPlaceholder")}
             />
           </div>
 
           {/* Origine */}
           <div className="field">
-            <label className="input-row">Origine</label>
+            <label className="input-row">{t("studentForm.origin")}</label>
             <select
               className="input"
               value={origin}
@@ -226,19 +227,19 @@ export default function StudentForm({ initial, onClose, onSaved }: StudentFormPr
                 }
               }}
             >
-              <option value="">— Sélectionner —</option>
+              <option value="">{t("studentForm.selectPlaceholder")}</option>
               {origins.map((o) => (
                 <option key={o} value={o}>
                   {o}
                 </option>
               ))}
-              <option value="__custom__">Autre…</option>
+              <option value="__custom__">{t("studentForm.other")}</option>
             </select>
 
             {origin === "__custom__" && (
               <input
                 className="input"
-                placeholder="Nouvelle origine"
+                placeholder={t("studentForm.newOrigin")}
                 value={customOrigin}
                 onChange={(e) => setCustomOrigin(e.target.value)}
               />
@@ -255,16 +256,16 @@ export default function StudentForm({ initial, onClose, onSaved }: StudentFormPr
             <span className="track">
               <span className="thumb" />
             </span>
-            <span>Étudiant actif</span>
+            <span>{t("studentForm.isActive")}</span>
           </label>
 
           {/* Boutons */}
           <div className="actions">
             <button type="button" className="btn ghost" onClick={onClose}>
-              Annuler
+              {t("common.cancel")}
             </button>
             <button type="submit" className="btn">
-              {initial ? "Enregistrer" : "Créer"}
+              {initial ? t("common.save") : t("common.create")}
             </button>
           </div>
         </form>

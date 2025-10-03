@@ -1,4 +1,5 @@
 import { Toast } from "../types";
+import i18n from "i18next";
 
 export function pushToast(
   setToasts: React.Dispatch<React.SetStateAction<Toast[]>>,
@@ -23,20 +24,20 @@ export function toastSave(
   where: string
 ) {
   const labels: Record<string, string> = {
-    "students:create": "Étudiant enregistré",
-    "students:update": "Étudiant enregistré",
-    "students:delete": "Étudiant supprimé",
-    "lessons:add": "Leçon enregistrée",
-    "lessons:update": "Leçon modifiée",
-    "lessons:delete": "Leçon supprimée",
-    settings: "Réglages sauvegardés",
+    "students:create": i18n.t("toast.students.create"),
+    "students:update": i18n.t("toast.students.update"),
+    "students:delete": i18n.t("toast.students.delete"),
+    "lessons:add": i18n.t("toast.lessons.add"),
+    "lessons:update": i18n.t("toast.lessons.update"),
+    "lessons:delete": i18n.t("toast.lessons.delete"),
+    settings: i18n.t("toast.settings.saved"),
   };
 
   let label = labels[action];
   if (!label) {
-    if (action.startsWith("students")) label = "Étudiant enregistré";
-    else if (action.startsWith("lessons")) label = "Leçon enregistrée";
-    else label = "Sauvegarde effectuée";
+    if (action.startsWith("students")) label = i18n.t("toast.students.default");
+    else if (action.startsWith("lessons")) label = i18n.t("toast.lessons.default");
+    else label = i18n.t("toast.default");
   }
 
   pushToast(setToasts, `${label} • ${where}`);
