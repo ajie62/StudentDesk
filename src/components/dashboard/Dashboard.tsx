@@ -315,7 +315,10 @@ export default function Dashboard({ stats, students, events, onOpenStudent }: Da
                 <span className="activity-icon">{ev.kind.startsWith("student") ? "👤" : "📘"}</span>
                 <span className="activity-label">{ev.label}</span>
                 <span className="activity-date">
-                  {formatDistanceToNow(new Date(ev.when), { addSuffix: true, locale: getDateFnsLocale(i18n.language) })}
+                  {formatDistanceToNow(new Date(ev.when), {
+                    addSuffix: true,
+                    locale: getDateFnsLocale(i18n.language),
+                  })}
                 </span>
               </div>
             ))

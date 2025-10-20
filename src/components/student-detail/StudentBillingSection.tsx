@@ -1,10 +1,11 @@
 import { useMemo, useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { Student, BillingContract, StudentWithUpdateProps } from "../../types";
-import StudentBilling from "../student/StudentBilling";
 import { formatDate } from "../../utils";
 import { v4 as uuidv4 } from "uuid";
 import { isContractEqual, generateDisplayName } from "./utils";
+import StudentBilling from "../student/StudentBilling";
+import ContractDetail from "./ContractDetail";
 
 // UI Helpers
 function totalFor(c: BillingContract) {
@@ -28,12 +29,16 @@ function percentFor(c: BillingContract, student: Student) {
 
 const PAGE_SIZE_BILLING = 10;
 
+/**
+ * MAIN EXPORT
+ */
 export default function StudentBillingSection({ student, onUpdated }: StudentWithUpdateProps) {
   const { t } = useTranslation();
   const [billingPage, setBillingPage] = useState(1);
   const [editingContract, setEditingContract] = useState<BillingContract | null>(null);
   const [billingDraft, setBillingDraft] = useState<BillingContract | null>(null);
   const [billingDirty, setBillingDirty] = useState(false);
+  const [selectedContract, setSelectedContract] = useState<BillingContract | null>(null);
 
   // Historique trié
   const sortedContracts = useMemo(() => {
@@ -152,6 +157,18 @@ export default function StudentBillingSection({ student, onUpdated }: StudentWit
     await onUpdated();
   }
 
+  if (selectedContract) {
+    const lessons = (student.lessons ?? []).filter((l) => l.billingId === selectedContract.id);
+    return (
+      <ContractDetail
+        student={student}
+        contract={selectedContract}
+        lessons={lessons}
+        onBack={() => setSelectedContract(null)}
+      />
+    );
+  }
+
   return (
     <div style={{ marginTop: 8 }}>
       <div
@@ -204,6 +221,7 @@ export default function StudentBillingSection({ student, onUpdated }: StudentWit
                     padding: "16px",
                     borderRadius: "var(--r-lg)",
                     minHeight: 230,
+                    transition: "transform 0.15s ease",
                   }}
                 >
                   {done && (
@@ -301,42 +319,53 @@ export default function StudentBillingSection({ student, onUpdated }: StudentWit
                     <div style={{ fontSize: 13, color: "var(--muted)" }}>
                       {formatDate(c.createdAt)}
                     </div>
-
-                    {c.paid ? (
-                      <span
-                        style={{
-                          display: "inline-flex",
-                          alignItems: "center",
-                          gap: 6,
-                          fontSize: 13,
-                          fontWeight: 600,
-                          color: "#d8ffe0",
-                        }}
-                        title={t("billing.paid")}
-                      >
+                    <div style={{ display: "flex", alignItems: "center" }}>
+                      {c.paid ? (
                         <span
-                          aria-hidden
                           style={{
-                            width: 16,
-                            height: 16,
-                            borderRadius: 4,
-                            background: "#22c55e",
-                            color: "white",
-                            display: "inline-grid",
-                            placeItems: "center",
-                            fontSize: 12,
-                            lineHeight: 1,
+                            display: "inline-flex",
+                            alignItems: "center",
+                            gap: 6,
+                            fontSize: 13,
+                            fontWeight: 600,
+                            color: "#d8ffe0",
                           }}
+                          title={t("billing.paid")}
                         >
-                          ✓
+                          <span
+                            aria-hidden
+                            style={{
+                              width: 16,
+                              height: 16,
+                              borderRadius: 4,
+                              background: "#22c55e",
+                              color: "white",
+                              display: "inline-grid",
+                              placeItems: "center",
+                              fontSize: 12,
+                              lineHeight: 1,
+                            }}
+                          >
+                            ✓
+                          </span>
+                          {t("billing.paid")}
                         </span>
-                        {t("billing.paid")}
-                      </span>
-                    ) : (
-                      <span style={{ fontSize: 13, color: "var(--muted)" }}>
-                        {t("billing.unpaid")}
-                      </span>
-                    )}
+                      ) : (
+                        <span style={{ fontSize: 13, color: "var(--muted)" }}>
+                          {t("billing.unpaid")}
+                        </span>
+                      )}
+                      {done && (
+                        <button
+                          className="btn ghost small"
+                          style={{ marginLeft: 8, fontSize: 13 }}
+                          onClick={() => setSelectedContract(c)}
+                          title="Voir l’historique du contrat"
+                        >
+                          🧾
+                        </button>
+                      )}
+                    </div>
                   </div>
 
                   <div style={{ display: "flex", gap: 8, marginTop: 10 }}>

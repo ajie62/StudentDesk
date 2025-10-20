@@ -140,14 +140,14 @@
   },
   "events": {
     "student": {
-        "added": "Étudiant {{name}} ajouté",
-        "deleted": "Étudiant {{name}} supprimé",
-        "updated": "Étudiant {{name}} modifié"
+      "added": "Étudiant {{name}} ajouté",
+      "deleted": "Étudiant {{name}} supprimé",
+      "updated": "Étudiant {{name}} modifié"
     },
     "lesson": {
-        "added": "Leçon pour {{name}} ajoutée",
-        "deleted": "Leçon pour {{name}} supprimée",
-        "updated": "Leçon pour {{name}} mise à jour"
+      "added": "Leçon pour {{name}} ajoutée",
+      "deleted": "Leçon pour {{name}} supprimée",
+      "updated": "Leçon pour {{name}} mise à jour"
     }
   },
   "lessonCard": {
