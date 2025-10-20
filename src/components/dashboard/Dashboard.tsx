@@ -213,21 +213,14 @@ export default function Dashboard({ stats, students, events, onOpenStudent }: Da
           )}
         </div>
 
-        <div className="dashboard-card full-width">
-          <div className="double-chart">
-            <div className="chart-half">
-              <RevenueBar
-                revenueByMonth={revenueByMonth}
-                currencies={currencies}
-                colors={colors}
-                totalsByCurrency={totalsByCurrency}
-              />
-            </div>
-            <div className="chart-half">
-              <LessonsBar days={days} weeklyTotal={weeklyTotal} />
-            </div>
-          </div>
-        </div>
+        <RevenueBar
+        revenueByMonth={revenueByMonth}
+        currencies={currencies}
+        colors={colors}
+        totalsByCurrency={totalsByCurrency}
+        />
+    
+        <LessonsBar days={days} weeklyTotal={weeklyTotal} />
 
         <div className="dashboard-card pie">
           <h3>{t("dashboard.activeInactive.title")}</h3>

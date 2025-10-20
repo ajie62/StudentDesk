@@ -144,9 +144,7 @@ select.input:focus {
   appearance: none;
   outline: none;
   cursor: pointer;
-  transition:
-    border-color 0.2s,
-    background 0.2s;
+  transition: border-color 0.2s;
   position: relative;
 }
 
@@ -636,28 +634,11 @@ select.input:focus {
 /* =========================
    DASHBOARD MODERNE
    ========================= */
-.dash {
-  display: flex;
-  flex-direction: column;
-  gap: var(--s-6);
-}
-
 .dash h2 {
   margin: 0;
   font-size: 22px;
   font-weight: 700;
   color: var(--text);
-}
-
-.dash-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr; /* 50/50 exact */
-  gap: var(--s-6);
-}
-@media (max-width: 900px) {
-  .dash-grid {
-    grid-template-columns: 1fr;
-  }
 }
 
 .dashboard-card {
@@ -860,43 +841,6 @@ select.input:focus {
   color: var(--muted);
 }
 
-/* Historique */
-.activity-list {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-}
-.activity-item {
-  display: grid;
-  grid-template-columns: 28px 1fr auto;
-  align-items: center;
-  gap: 10px;
-  padding: 8px 10px;
-  border-radius: var(--r-md);
-  background: var(--card);
-  border: 1px solid var(--soft);
-  font-size: 14px;
-  cursor: pointer;
-  transition:
-    background 0.15s ease,
-    border-color 0.15s ease;
-}
-.activity-item:hover {
-  background: #1c1c1e;
-  border-color: var(--ring);
-}
-.activity-icon {
-  font-size: 16px;
-}
-.activity-label {
-  font-weight: 500;
-  color: var(--text);
-}
-.activity-date {
-  font-size: 13px;
-  color: var(--muted);
-}
-
 /* --- macOS draggable titlebar regions --- */
 .window-drag {
   -webkit-app-region: drag;
@@ -987,7 +931,7 @@ a,
   grid-template-columns: 1fr 1fr;
   gap: 20px;
 }
-@media (max-width: 1000px) {
+@media (max-width: 1100px) {
   .dash-grid {
     grid-template-columns: 1fr;
   }
@@ -995,6 +939,13 @@ a,
 
 .dashboard-card.full-width {
   grid-column: 1 / -1;
+}
+
+/* Remove extra dark wrapper background for full-width cards with inner charts */
+.dashboard-card.full-width {
+  background: transparent;
+  border: none;
+  padding: 0;
 }
 
 /* KPI Cards */
