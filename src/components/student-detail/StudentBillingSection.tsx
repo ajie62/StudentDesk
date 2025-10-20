@@ -413,30 +413,32 @@ export default function StudentBillingSection({ student, onUpdated }: StudentWit
       )}
 
       {billingDraft && (
-        <div className="modal-card" style={{ marginTop: 20 }}>
-          <StudentBilling
-            viewModel={{
-              firstName: student.firstName,
-              lastName: student.lastName,
-              lessons: student.lessons ?? [],
-              billing: billingDraft,
-            }}
-            onChange={(patch: Partial<BillingContract>) => updateBilling(patch)}
-          />
-          <div className="actions">
-            <button
-              className="btn ghost"
-              onClick={() => {
-                setBillingDraft(null);
-                setEditingContract(null);
-                setBillingDirty(false);
+        <div className="modal-overlay">
+          <div className="modal-card">
+            <StudentBilling
+              viewModel={{
+                firstName: student.firstName,
+                lastName: student.lastName,
+                lessons: student.lessons ?? [],
+                billing: billingDraft,
               }}
-            >
-              {t("billing.cancel")}
-            </button>
-            <button className="btn" disabled={!billingDirty} onClick={saveBilling}>
-              💾 {t("billing.save")}
-            </button>
+              onChange={(patch: Partial<BillingContract>) => updateBilling(patch)}
+            />
+            <div className="actions">
+              <button
+                className="btn ghost"
+                onClick={() => {
+                  setBillingDraft(null);
+                  setEditingContract(null);
+                  setBillingDirty(false);
+                }}
+              >
+                {t("billing.cancel")}
+              </button>
+              <button className="btn" disabled={!billingDirty} onClick={saveBilling}>
+                💾 {t("billing.save")}
+              </button>
+            </div>
           </div>
         </div>
       )}
