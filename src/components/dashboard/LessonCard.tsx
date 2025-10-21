@@ -52,6 +52,17 @@ export default function LessonCard({
           {!contract && <span>({t("lessonCard.deletedContract")})</span>}
         </div>
       )}
+      {!lesson.billingId && (
+        <div
+          style={{
+            fontSize: 12,
+            color: "var(--muted)",
+            marginBottom: 8,
+          }}
+        >
+          Leçon unitaire
+        </div>
+      )}
 
       <div className="lesson-actions">
         <button className="btn ghost" onClick={() => setEditing(true)}>

@@ -91,19 +91,29 @@ export default function StudentLessons({ student, onUpdated, setTab }: StudentLe
 
       <div className="list">
         {currentLessons.map((lesson) => (
-          <LessonCard
+          <div
             key={lesson.id}
-            studentId={student.id}
-            lesson={lesson}
-            allContracts={student.billingHistory ?? []}
-            onUpdated={handleListUpdated}
-            onDelete={async () => {
-              if (confirm(t("studentLessons.deleteConfirm"))) {
-                await window.studentApi.deleteLesson(student.id, lesson.id);
-                await handleListUpdated();
-              }
+            style={{
+              position: "relative",
+              borderLeft: !lesson.billingId ? "4px solid #22c55e" : "none",
+              borderRadius: "var(--r-md)",
+              overflow: "hidden",
+              transition: "border-color 0.3s ease",
             }}
-          />
+          >
+            <LessonCard
+              studentId={student.id}
+              lesson={lesson}
+              allContracts={student.billingHistory ?? []}
+              onUpdated={handleListUpdated}
+              onDelete={async () => {
+                if (confirm(t("studentLessons.deleteConfirm"))) {
+                  await window.studentApi.deleteLesson(student.id, lesson.id);
+                  await handleListUpdated();
+                }
+              }}
+            />
+          </div>
         ))}
       </div>
 
