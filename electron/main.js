@@ -166,6 +166,41 @@ function initStore() {
       saveStudents(cleaned, "maintenance:hard-purge");
       console.log("[StudentDesk] Hard purge effectué (soft deletes nettoyés).");
     }
+
+    // ✅ Migration: supprimer les anciens contrats "single" et détacher leurs leçons
+    try {
+      const students = loadStudents() || [];
+      let migrated = 0;
+
+      for (const s of students) {
+        const singles = (s.billingHistory || []).filter((c) => c.mode === "single");
+        if (singles.length === 0) continue;
+
+        const singleIds = new Set(singles.map((c) => c.id));
+
+        if (Array.isArray(s.lessons)) {
+          for (const l of s.lessons) {
+            if (l && singleIds.has(l.billingId)) {
+              l.billingId = null; // devient une leçon unitaire
+              migrated++;
+            }
+          }
+        }
+
+        // Supprime les contrats "single" de l'historique
+        s.billingHistory = (s.billingHistory || []).filter((c) => c.mode !== "single");
+        recomputeBillingProgress(s);
+      }
+
+      if (migrated > 0) {
+        saveStudents(students, "migration:remove-single-contracts");
+        console.log(
+          `[StudentDesk] Migration: ${migrated} leçon(s) unitarisée(s), contrats 'single' retirés.`
+        );
+      }
+    } catch (e) {
+      console.warn("Migration single->unitary failed:", e);
+    }
   } catch (e) {
     console.warn("Hard purge failed:", e);
   }
@@ -519,12 +554,10 @@ ipcMain.handle("lessons:add", async (_evt, studentId, payload) => {
 
   const student = students[idx];
 
-  // billingId prioritaire depuis payload, sinon dernier contrat ouvert
-  let targetBillingId = payload.billingId || null;
-  if (!targetBillingId) {
-    const targetContract = latestOpenContract(student);
-    targetBillingId = targetContract ? targetContract.id : null;
-  }
+  // Respecte exactement le choix de l'utilisateur :
+  // - billingId = string (contrat existant)
+  // - billingId = null ou undefined (leçon unitaire)
+  const targetBillingId = payload?.billingId ?? null;
 
   const lesson = {
     id: uid(),

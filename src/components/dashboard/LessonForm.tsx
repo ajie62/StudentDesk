@@ -18,6 +18,9 @@ export default function LessonForm({
       : new Date().toISOString().substring(0, 10)
   );
   const [billingId, setBillingId] = useState<string | null>(initial?.billingId ?? null);
+  const [associateContract, setAssociateContract] = useState(false);
+  const [unitPrice, setUnitPrice] = useState<number | null>(null);
+  const [unitPriceError, setUnitPriceError] = useState<string | null>(null);
 
   // Determine if initial.createdAt has a time component other than midnight
   const initialDate = initial?.createdAt ? new Date(initial.createdAt) : null;
@@ -81,24 +84,23 @@ export default function LessonForm({
     return packGroups.sizes.flatMap((size) => packGroups.map.get(size) || []);
   }, [packGroups]);
 
-  // Pré-sélection par défaut :
-  // - s'il n'y a qu'un seul contrat, on le choisit
-  // - s'il y en a plusieurs et rien de pré-choisi, on prend le 1er "Cours unitaire" si dispo, sinon le 1er pack
+  // Ne pré-sélectionne plus automatiquement de contrat
   useEffect(() => {
     if (initial) return;
-    if (availableContracts.length === 1) {
-      setBillingId(availableContracts[0].id);
-      return;
-    }
-    if (!billingId && availableContracts.length > 1) {
-      const first = singlesSorted[0] ?? packsFlatSorted[0] ?? null;
-      if (first) setBillingId(first.id);
-    }
-  }, [initial, availableContracts, billingId, singlesSorted, packsFlatSorted]);
+    setBillingId(null);
+  }, [initial]);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setLoading(true);
+    // Validation: unitPrice is required if not associated with a contract
+    if (!associateContract && (unitPrice === null || isNaN(unitPrice))) {
+      setUnitPriceError(t("lessonForm.unitPriceRequired", "Veuillez indiquer le prix de la leçon."));
+      setLoading(false);
+      return;
+    } else {
+      setUnitPriceError(null);
+    }
     try {
       // on renvoie la date sélectionnée avec l'heure actuelle locale, sous forme ISO
       const now = new Date();
@@ -111,12 +113,16 @@ export default function LessonForm({
         minutes = Number(m);
       }
       const combined = new Date(Number(year), Number(month) - 1, Number(day), hours, minutes);
-      await onSaved({
+      const payload: any = {
         comment,
         homework,
         billingId,
         createdAt: combined.toISOString(),
-      });
+      };
+      if (!associateContract) {
+        payload.price = unitPrice;
+      }
+      await onSaved(payload);
       onClose();
     } finally {
       setLoading(false);
@@ -128,6 +134,24 @@ export default function LessonForm({
       <div className="modal-card">
         <h3>{initial ? t("lessonForm.editTitle") : t("lessonForm.newTitle")}</h3>
         <form onSubmit={handleSubmit} className="form">
+          {!associateContract && (
+            <div className="field">
+              <label className="label">{t("lessonForm.unitPrice", "Prix de la leçon (EUR)")}</label>
+              <input
+                type="number"
+                className="input"
+                min="0"
+                step="0.01"
+                value={unitPrice ?? ""}
+                onChange={(e) => setUnitPrice(e.target.value ? parseFloat(e.target.value) : null)}
+                placeholder={t("lessonForm.unitPricePlaceholder", "Ex: 25")}
+              />
+              {unitPriceError && (
+                <p style={{ color: "#e53935", fontSize: "13px", marginTop: "4px", fontWeight: 500 }}>{unitPriceError}</p>
+              )}
+            </div>
+          )}
+
           <div className="field">
             <label className="label">{t("lessonForm.comment")}</label>
             <textarea
@@ -194,50 +218,39 @@ export default function LessonForm({
             </div>
           )}
 
-          {/* Contrat associé :
-              - 1 seul contrat => affichage statique (pas de select)
-              - >1 contrats   => select avec groupes : Cours unitaires puis Packs */}
-          {availableContracts.length === 1 && (
+          {availableContracts.length > 0 && (
             <div className="field">
-              <label className="label">{t("lessonForm.associatedContract")}</label>
-              <div className="input" style={{ opacity: 0.9 }}>
-                {availableContracts[0].mode === "package"
-                  ? t("lessonForm.packageLabel", { count: availableContracts[0].totalLessons })
-                  : t("lessonForm.singleLesson")}
-              </div>
+              <label className="checkbox-label">
+                <input
+                  type="checkbox"
+                  checked={associateContract}
+                  onChange={(e) => {
+                    const checked = e.target.checked;
+                    setAssociateContract(checked);
+                    if (!checked) {
+                      setBillingId(null);
+                    }
+                  }}
+                />{" "}
+                {t("lessonForm.associateContractOption", "Associer un contrat")}
+              </label>
             </div>
           )}
 
-          {availableContracts.length > 1 && (
+          {associateContract && availableContracts.length > 0 && (
             <div className="field">
-              <label className="label">{t("lessonForm.associateToContract")}</label>
+              <label className="label">{t("lessonForm.chooseContract", "Sélectionner un contrat")}</label>
               <select
                 className="input"
                 value={billingId ?? ""}
                 onChange={(e) => setBillingId(e.target.value || null)}
               >
-                {singlesSorted.length > 0 && (
-                  <optgroup label={t("lessonForm.singleLessonsGroup")}>
-                    {singlesSorted.map((c) => (
-                      <option key={c.id} value={c.id}>
-                        {c.displayName}
-                      </option>
-                    ))}
-                  </optgroup>
-                )}
-
-                {packsFlatSorted.length > 0 && (
-                  <optgroup label={t("lessonForm.packLessonsGroup")}>
-                    {packGroups.sizes.map((size) => {
-                      const arr = packGroups.map.get(size) || [];
-                      return arr.map((c) => (
-                        <option key={c.id} value={c.id}>
-                          {c.displayName}
-                        </option>
-                      ));
-                    })}
-                  </optgroup>
-                )}
+                {packsFlatSorted.map((c) => (
+                  <option key={c.id} value={c.id}>
+                    {c.displayName || `Pack de ${c.totalLessons ?? "?"} leçons`}
+                    {c.createdAt ? ` — ${new Date(c.createdAt).toLocaleDateString("fr-FR")}` : ""}
+                  </option>
+                ))}
               </select>
             </div>
           )}

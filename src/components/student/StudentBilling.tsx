@@ -7,6 +7,12 @@ import Select from "react-select";
 export default function StudentBilling({ viewModel, onChange }: StudentBillingProps): JSX.Element {
   const { t } = useTranslation();
   const c = viewModel.billing;
+
+  // Force mode "package"
+  if (c.mode !== "package") {
+    onChange({ mode: "package" });
+  }
+
   const [settings, setSettings] = useState<{ lessonDuration: number; currency: string } | null>(
     null
   );
@@ -94,27 +100,6 @@ export default function StudentBilling({ viewModel, onChange }: StudentBillingPr
       <h3 style={{ marginBottom: 12 }}>
         {t("billing.title", { firstName: viewModel.firstName, lastName: viewModel.lastName })}
       </h3>
-
-      {/* Type de contrat */}
-      <div className="field">
-        <label className="label">{t("billing.type")}</label>
-        <div style={{ display: "flex", gap: 8 }}>
-          <button
-            type="button"
-            className={`btn ghost ${c.mode === "single" ? "active" : ""}`}
-            onClick={() => setMode("single")}
-          >
-            {t("billing.single")}
-          </button>
-          <button
-            type="button"
-            className={`btn ghost ${c.mode === "package" ? "active" : ""}`}
-            onClick={() => setMode("package")}
-          >
-            {t("billing.package")}
-          </button>
-        </div>
-      </div>
 
       {/* Nombre de leçons (pack) */}
       {c.mode === "package" && (

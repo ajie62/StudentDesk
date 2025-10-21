@@ -68,14 +68,9 @@ export default function StudentLessons({ student, onUpdated, setTab }: StudentLe
 
           <div style={{ display: "flex", gap: 12 }}>
             <button
-              className={`btn ${openContracts.length === 0 ? "disabled" : ""}`}
-              disabled={openContracts.length === 0}
+              className="btn"
               onClick={() => setAddingLesson(true)}
-              title={
-                openContracts.length === 0
-                  ? t("studentLessons.createContractFirst")
-                  : t("studentLessons.addLesson")
-              }
+              title={t("studentLessons.addLesson")}
             >
               {t("studentLessons.addLesson")}
             </button>
@@ -114,7 +109,7 @@ export default function StudentLessons({ student, onUpdated, setTab }: StudentLe
 
       {addingLesson && (
         <LessonForm
-          availableContracts={openContracts}
+          availableContracts={student.billingHistory ?? []}
           onClose={() => setAddingLesson(false)}
           onSaved={async (payload) => {
             // on ne reconstruit pas l'objet, on le passe tel quel (contient createdAt)
