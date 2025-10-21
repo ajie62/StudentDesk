@@ -130,7 +130,12 @@ export default function LessonForm({
   }
 
   return (
-    <div className="modal-overlay">
+    <div
+      className="modal-overlay"
+      onClick={(e) => {
+        if (e.target === e.currentTarget) onClose();
+      }}
+    >
       <div className="modal-card">
         <h3>{initial ? t("lessonForm.editTitle") : t("lessonForm.newTitle")}</h3>
         <form onSubmit={handleSubmit} className="form">
@@ -227,7 +232,12 @@ export default function LessonForm({
                   onChange={(e) => {
                     const checked = e.target.checked;
                     setAssociateContract(checked);
-                    if (!checked) {
+                    if (checked) {
+                      // Si aucun contrat n'est encore sélectionné, on prend le premier contrat disponible
+                      if (!billingId && packsFlatSorted.length > 0) {
+                        setBillingId(String(packsFlatSorted[0].id));
+                      }
+                    } else {
                       setBillingId(null);
                     }
                   }}
@@ -243,7 +253,7 @@ export default function LessonForm({
               <select
                 className="input"
                 value={billingId ?? ""}
-                onChange={(e) => setBillingId(e.target.value || null)}
+                onChange={(e) => setBillingId(e.target.value ? String(e.target.value) : null)}
               >
                 {packsFlatSorted.map((c) => (
                   <option key={c.id} value={c.id}>

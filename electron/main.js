@@ -325,7 +325,7 @@ function recomputeBillingProgress(student) {
     const capacity = Math.max(0, paidTotal) + Math.max(0, freeTotal);
 
     // Nombre total de cours (payés + gratuits) rattachés au contrat
-    const consumed = lessons.filter((l) => l.billingId === c.id).length;
+    const consumed = lessons.filter((l) => String(l.billingId || "") === String(c.id)).length;
 
     // Ajoute la répartition payés/gratuits consommées
     const ctr = lessonsByContract.get(c.id);

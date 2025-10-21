@@ -284,7 +284,7 @@ export default function StudentBillingSection({ student, onUpdated }: StudentWit
                         marginBottom: 6,
                       }}
                     >
-                      {t("billing.progress", { consumed, total, pct })}
+                      {t("billing.progress", { consumed, total, pct })} ({consumed}/{total})
                     </div>
                     <div
                       style={{
@@ -413,7 +413,16 @@ export default function StudentBillingSection({ student, onUpdated }: StudentWit
       )}
 
       {billingDraft && (
-        <div className="modal-overlay">
+        <div
+          className="modal-overlay"
+          onClick={(e) => {
+            if (e.target === e.currentTarget) {
+              setBillingDraft(null);
+              setEditingContract(null);
+              setBillingDirty(false);
+            }
+          }}
+        >
           <div className="modal-card">
             <StudentBilling
               viewModel={{
