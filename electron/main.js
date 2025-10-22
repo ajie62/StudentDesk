@@ -464,15 +464,6 @@ ipcMain.handle("students:create", async (_evt, payload) => {
   };
   students.push(student);
   saveStudents(students, "students:create");
-  pushHistory({
-    kind: "student.added",
-    studentId: student.id,
-    meta: {
-      fullName: `${student.firstName} ${student.lastName}`.trim(),
-      email: student.email,
-      origin: student.origin,
-    },
-  });
   return student;
 });
 
@@ -705,10 +696,6 @@ ipcMain.handle("history:clear", async () => {
 
   saveStudents(students, "history:clear");
   store.set(HISTORY_KEY, now);
-  pushHistory({
-    kind: "history.cleared",
-    meta: { clearedAt: now },
-  });
 
   // ✅ Notify renderer immédiatement
   if (mainWindow && !mainWindow.isDestroyed()) {

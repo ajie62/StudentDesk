@@ -69,6 +69,11 @@ export function Sidebar({
     };
   }, [setFilterActive]);
 
+  // 🔁 Rafraîchit automatiquement la liste des étudiants quand il y a un changement
+  useEffect(() => {
+    onStudentsChanged();
+  }, [students.length]);
+
   return (
     <aside className="sidebar">
       <div className="header window-drag">

@@ -84,6 +84,13 @@ export default function LessonForm({
     return packGroups.sizes.flatMap((size) => packGroups.map.get(size) || []);
   }, [packGroups]);
 
+  // Filtrer uniquement les contrats actifs (non terminés)
+  const activeContracts = useMemo(() => {
+    return (packsFlatSorted ?? []).filter(
+      (c) => !c.completed && (c.consumedLessons ?? 0) < (c.totalLessons ?? 0)
+    );
+  }, [packsFlatSorted]);
+
   // Ne pré-sélectionne plus automatiquement de contrat
   useEffect(() => {
     if (initial) return;
@@ -223,7 +230,7 @@ export default function LessonForm({
             </div>
           )}
 
-          {availableContracts.length > 0 && (
+          {activeContracts.length > 0 && (
             <div className="field">
               <label className="checkbox-label">
                 <input
@@ -234,8 +241,8 @@ export default function LessonForm({
                     setAssociateContract(checked);
                     if (checked) {
                       // Si aucun contrat n'est encore sélectionné, on prend le premier contrat disponible
-                      if (!billingId && packsFlatSorted.length > 0) {
-                        setBillingId(String(packsFlatSorted[0].id));
+                      if (!billingId && activeContracts.length > 0) {
+                        setBillingId(String(activeContracts[0].id));
                       }
                     } else {
                       setBillingId(null);
@@ -247,7 +254,7 @@ export default function LessonForm({
             </div>
           )}
 
-          {associateContract && availableContracts.length > 0 && (
+          {associateContract && activeContracts.length > 0 && (
             <div className="field">
               <label className="label">{t("lessonForm.chooseContract", "Sélectionner un contrat")}</label>
               <select
@@ -255,7 +262,7 @@ export default function LessonForm({
                 value={billingId ?? ""}
                 onChange={(e) => setBillingId(e.target.value ? String(e.target.value) : null)}
               >
-                {packsFlatSorted.map((c) => (
+                {activeContracts.map((c) => (
                   <option key={c.id} value={c.id}>
                     {c.displayName || `Pack de ${c.totalLessons ?? "?"} leçons`}
                     {c.createdAt ? ` — ${new Date(c.createdAt).toLocaleDateString("fr-FR")}` : ""}

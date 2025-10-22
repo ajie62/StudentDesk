@@ -9,8 +9,8 @@ import StudentForm from "./components/student/StudentForm";
 import StudentDetail from "./components/student-detail/StudentDetail";
 import Changelog from "./components/changelog/Changelog";
 import SettingsPage from "./components/settings/Settings";
-import { useStudents } from "./hooks/useStudents";
 import { useUpdates } from "./hooks/useUpdates";
+import { useStudentsContext } from "./contexts/StudentsContext";
 import Fuse from "fuse.js";
 import "./styles.css";
 import "../i18n";
@@ -35,7 +35,7 @@ export default function App() {
   const [toasts, setToasts] = useState<Toast[]>([]);
   const [version, setVersion] = useState("");
 
-  const { students, setStudents, refresh } = useStudents();
+  const { students, setStudents, refresh } = useStudentsContext();
   const updateReady = useUpdates(setToasts);
 
   // Chargement initial : étudiants + version app
@@ -197,9 +197,26 @@ export default function App() {
         <StudentForm
           onClose={() => setShowNew(false)}
           onSaved={async (payload: Partial<Student>) => {
-            await window.studentApi.createStudent(payload as Partial<Student>);
-            setShowNew(false);
-            await refresh();
+            try {
+              // 1) Crée l'étudiant et récupère son ID
+              const created: any = await window.studentApi.createStudent(payload as Partial<Student>);
+
+              // 2) Ouvre immédiatement sa fiche si possible
+              if (created && created.id) {
+                setSelectedId(created.id);
+                setShowDashboard(false);
+                setShowChangelog(false);
+                setShowSettings(false);
+              }
+
+              // 3) Ferme la modale
+              setShowNew(false);
+
+              // 4) Rafraîchit la liste (sidebar & co)
+              await refresh();
+            } catch (err) {
+              console.error("Erreur lors de la création de l'étudiant :", err);
+            }
           }}
         />
       )}

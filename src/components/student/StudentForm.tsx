@@ -98,34 +98,42 @@ export default function StudentForm({ initial, onClose, onSaved }: StudentFormPr
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
 
-    // Origine finale choisie
-    let finalOrigin = origin === "__custom__" ? customOrigin.trim() : origin;
+    try {
+      // Origine finale choisie
+      let finalOrigin = origin === "__custom__" ? customOrigin.trim() : origin;
 
-    if (!finalOrigin) {
-      alert("Merci de renseigner une origine pour l’étudiant.");
-      return;
-    }
-
-    // Vérifie si nouvelle origine → ajoute en BDD
-    if (!origins.includes(finalOrigin)) {
-      try {
-        const updatedList = await window.studentApi.addOrigin(finalOrigin);
-        setOrigins(updatedList); // liste toujours synchronisée
-      } catch (err) {
-        console.error("Erreur lors de l’ajout de l’origine :", err);
+      if (!finalOrigin) {
+        alert("Merci de renseigner une origine pour l’étudiant.");
+        return;
       }
+
+      // Vérifie si nouvelle origine → ajoute en BDD
+      if (!origins.includes(finalOrigin)) {
+        try {
+          const updatedList = await window.studentApi.addOrigin(finalOrigin);
+          setOrigins(updatedList); // liste toujours synchronisée
+        } catch (err) {
+          console.error("Erreur lors de l’ajout de l’origine :", err);
+        }
+      }
+
+      // Sauvegarde via callback
+      await onSaved({
+        firstName: firstName.trim(),
+        lastName: lastName.trim(),
+        description: description.trim(),
+        isActive,
+        photo,
+        origin: finalOrigin,
+      });
+
+      // Ferme la modale après sauvegarde réussie
+      onClose?.();
+    } catch (err) {
+      console.error("Erreur lors de la création de l’étudiant :", err);
+      // Fermer la modale même en cas d'erreur pour éviter un blocage
+      onClose?.();
     }
-
-    await onSaved({
-      firstName: firstName.trim(),
-      lastName: lastName.trim(),
-      description: description.trim(),
-      isActive,
-      photo,
-      origin: finalOrigin,
-    });
-
-    onClose();
   }
 
   /* -------------------- Render -------------------- */
